@@ -1,0 +1,66 @@
+{
+  "timezone": "Asia/Shanghai",
+  "definition": "State Council official holidays and makeup workdays",
+  "years": {
+    "2026": {
+      "status": "verified",
+      "verified_at": "2026-10-12",
+      "sources": [
+        "https://www.gov.cn/zhengce/zhengceku/202511/content_7047091.htm",
+        "https://www.beijing.gov.cn/fuwu/bmfw/sy/jrts/202511/t20251104_4258838.html"
+      ],
+      "holiday_ranges": [
+        {
+          "start": "2026-01-01",
+          "end": "2026-01-03"
+        },
+        {
+          "start": "2026-02-15",
+          "end": "2026-02-23"
+        },
+        {
+          "start": "2026-04-04",
+          "end": "2026-04-06"
+        },
+        {
+          "start": "2026-05-01",
+          "end": "2026-05-05"
+        },
+        {
+          "start": "2026-06-19",
+          "end": "2026-06-21"
+        },
+        {
+          "start": "2026-09-25",
+          "end": "2026-09-27"
+        },
+        {
+          "start": "2026-10-01",
+          "end": "2026-10-07"
+        }
+      ],
+      "makeup_workdays": [
+        "2026-01-04",
+        "2026-02-14",
+        "2026-02-28",
+        "2026-05-09",
+        "2026-09-20",
+        "2026-10-10"
+      ]
+    }
+  },
+  "pending_years": {
+    "2027": {
+      "status": "not_verified",
+      "last_checked": "2026-10-12",
+      "next_check_not_before": "2026-11-01"
+    }
+  },
+  "scheduling": {
+    "task_title": "检查 X Flip 相机代码",
+    "time": "09:00",
+    "first_scheduled_run": "2026-10-12T09:00:00+08:00",
+    "remaining_2026_exdates": [],
+    "remaining_2026_rdates": []
+  }
+}
