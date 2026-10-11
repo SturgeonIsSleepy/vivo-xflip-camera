@@ -8,6 +8,7 @@
 
 - [技术基线与实机验收清单](docs/technical-baseline.md)
 - [开发日志与待办](DEVELOPMENT_LOG.md)
+- [每日 Work 任务配置](docs/work-task.md)
 
 ## 技术方向
 
