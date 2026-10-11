@@ -8,7 +8,7 @@
 
 - [技术基线与实机验收清单](docs/technical-baseline.md)
 - [开发日志与待办](DEVELOPMENT_LOG.md)
-- [每日 00:00 Work 开发任务](docs/work-task.md)
+- [每天 00:00 开发（含周末和法定假期）](docs/work-task.md)
 - [中国工作日 09:00 检查任务](docs/morning-review-task.md)
 
 ## 技术方向
