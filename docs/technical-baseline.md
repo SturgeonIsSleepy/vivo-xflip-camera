@@ -29,9 +29,9 @@ ImageCapture.Metadata 提供左右反转标记，OutputFileOptions.Builder 可�
 | 摄像头 | 外屏实时预览 | 保存照片 |
 | --- | --- | --- |
 | 后摄 | 不左右翻转 | 不左右翻转 |
-| 前摄 | 默认按自拍习惯镜像，可提供关闭选项 | 默认不镜像；用户显式开启“镜像自拍”后才镜像 |
+| 前摄 | 默认不镜像，可单独开启 | 默认不镜像；用户显式开启“照片镜像”后才镜像 |
 
-这是待实机确认的产品默认值。最终行为需要与用户期望和图库显示结果一起核对。
+最小工程依据用户“外屏画面不左右反转”的要求，前后摄镜像默认均关闭，预览与照片可分别开启。最终实际行为仍需要与用户期望和图库显示结果一起做真机核对。
 
 ## 外屏与“翻开手机”提示
 
@@ -50,7 +50,7 @@ Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 
 ## 本轮已知阻塞与待办
 
 - 尚无 vivo X Flip 实机测试结果，无法确认外屏显示权限、具体扩展模式、前后摄像头输出方向或系统提示根因。
-- P0：建立最小 CameraX 相机预览/拍照工程，并运行时读取当前窗口尺寸、显示方向和可用摄像头。
+- P0 源码已实现：最小 CameraX 相机预览/拍照工程及运行时窗口、旋转和摄像头诊断；Android APK 构建与设备运行验证仍待确认，见 build-and-verify.md。
 - P1：为预览镜像与保存照片镜像建立分离的状态和可重复测试，覆盖前摄/后摄及 EXIF。
 - P2：在 X Flip 上查询 CameraX Extensions 的每摄像头支持情况，比较标准与扩展模式样张。
 - P3：按复现清单定位“翻开手机”提示来源；若是系统策略，整理 OEM 授权接口需求。
@@ -71,3 +71,4 @@ Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 
 - [Android 后台 Activity 启动安全规则](https://developer.android.com/guide/components/activities/secure-bal)
 - [Android 14 后台启动行为变更](https://developer.android.com/about/versions/14/behavior-changes-14)
 - [AOSP CameraX 厂商扩展架构](https://source.android.com/docs/core/camera/camerax-vendor-extensions)
+
