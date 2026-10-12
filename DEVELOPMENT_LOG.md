@@ -63,3 +63,13 @@
 - 限制：没有 X Flip 实机或系统日志，外屏实际启动、预览/成片方向、折叠切屏和“翻开手机”提示原因仍待验证。没有引入 Google Camera 专有算法或厂商扩展成像，不将标准 CameraX 结果称为 GCam。
 - 模型/推理强度无法核实，剩余额度无法读取；按用户已授权规则利用当前可执行能力推进本轮目标。
 - 更新待办：P0 核验远程 APK 构建与 Lint；P1 外/内屏前后摄和四方向真机验收；P2 取得 ROM/Android 与启动/折叠日志定位系统提示；P3 增加可用厂商扩展查询并实测。仅暂停依赖设备的验证，项目仍有独立可继续事项。
+
+## 2026-10-12｜远程构建验证结果
+
+- 验证源码提交：efe0150d275bc5b84a19e65228c52e93e0e531f3。
+- 构建链接：https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38191883873。
+- 远程执行成功：核心检查 13,486 个断言、Android assembleDebug、lintDebug，日志明确 BUILD SUCCESSFUL；APK 与 Lint 报告已成功上传。
+- artifact：xflip-camera-debug，大小 5922640 bytes，archive digest sha256:c25389d165b5dd59db3fdbf2bf5a4c8b5a680a8460a18dff71451d57ad3bd00b，当前到期时间 2026-10-19T01:28:25Z。
+- 已核对远程 main 指向源码提交，全部 21 个新增/修改文件的 Git blob 哈希与本地一致，脚本可执行位也匹配。
+- 规划更新：P0 最小工程源码与 APK/Lint 构建验证完成；P1 前后摄、内/外屏、四方向及折叠切屏真机验收继续待设备；P2 系统提示根因待 ROM/Android 与复现日志；P3 厂商扩展查询与可用成像模式待实现和实测。
+- 未声称进行任何 X Flip 真机测试，未集成 Google Camera 专有算法。项目仍有可继续的开发事项，两项既有任务继续保留。

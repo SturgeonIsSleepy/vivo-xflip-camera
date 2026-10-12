@@ -52,9 +52,19 @@ gradle --no-daemon :camera-core:check :app:assembleDebug :app:lintDebug
 
 ## 下一步
 
-1. P0：核验远程 Android 构建/Lint，修复真实失败；确认产出的 debug APK。
+1. P0 已完成：远程 Android 构建/Lint 与方向核心检查通过，debug APK 已上传。后续代码变更继续使用同一工作流验证。
 2. P1：在 X Flip 外屏与内屏分别测试前后摄、四个方向、两项镜像开关。使用 technical-baseline.md 的非对称卡片，核对图库和独立 EXIF 解码显示，不能仅凭 EXIF 标记证明 JPEG 像素方向正确。
 3. P2：取得 ROM/Android 版本和折叠/切屏复现日志，确认“翻开手机”提示来自系统、启动器还是其他相机应用。
 4. P3：增加并在设备上验证 CameraX Extensions 能力查询及可用模式，保持 Google Camera 授权边界。
 
 缺少设备只阻塞第 2 至 4 项的真机部分。剩余额度、实际模型和推理强度当前无法从运行接口读取；按用户已授权的规则说明并继续独立工作，不编造余额或型号。
+
+## 远程构建已核验
+
+- 源码提交：efe0150d275bc5b84a19e65228c52e93e0e531f3。
+- [Android build 实际结果](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38191883873)：成功。
+- 实际日志包含核心检查 PASS 13486 assertions、:app:assembleDebug、:app:lintDebug 和 BUILD SUCCESSFUL。Android 编译与 Lint 已执行通过。
+- artifact：xflip-camera-debug，5922640 bytes；上传日志确认包含 2 个文件，即配置中指定的 debug APK 和 Lint HTML 报告。APK 及报告从上方构建页面的 Artifacts 下载。
+- archive digest：sha256:c25389d165b5dd59db3fdbf2bf5a4c8b5a680a8460a18dff71451d57ad3bd00b。
+- 当前 artifact 保留至 2026-10-19T01:28:25Z；源代码与构建脚本保留在仓库，可以重新构建。
+- 成功构建仍不代表 X Flip 外屏、折叠状态或镜像实拍验收通过。

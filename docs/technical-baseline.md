@@ -50,10 +50,10 @@ Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 
 ## 本轮已知阻塞与待办
 
 - 尚无 vivo X Flip 实机测试结果，无法确认外屏显示权限、具体扩展模式、前后摄像头输出方向或系统提示根因。
-- P0 源码已实现：最小 CameraX 相机预览/拍照工程及运行时窗口、旋转和摄像头诊断；Android APK 构建与设备运行验证仍待确认，见 build-and-verify.md。
-- P1：为预览镜像与保存照片镜像建立分离的状态和可重复测试，覆盖前摄/后摄及 EXIF。
-- P2：在 X Flip 上查询 CameraX Extensions 的每摄像头支持情况，比较标准与扩展模式样张。
-- P3：按复现清单定位“翻开手机”提示来源；若是系统策略，整理 OEM 授权接口需求。
+- P0 已完成源码及远程构建验证：最小 CameraX 预览/拍照工程、窗口/旋转/摄像头诊断；assembleDebug 与 lintDebug 已通过。设备运行验证仍待完成，见 build-and-verify.md。
+- P1：独立镜像状态及核心检查已完成；在 X Flip 上验收前后摄、内外屏、四方向和折叠切屏，分别核对预览、照片与 EXIF。
+- P2：按复现清单取得 ROM/Android 与启动/折叠日志，定位“翻开手机”提示来源；若是系统策略，整理 OEM 授权接口需求。
+- P3：实现 CameraX Extensions 能力查询，在 X Flip 上核对每摄像头支持情况并比较标准与扩展模式样张。
 
 ## 官方参考
 
