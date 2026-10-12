@@ -1,0 +1,52 @@
+[
+  {
+    "file": "photo-default-1.jpg",
+    "bytes": 62824,
+    "sha256": "454b6d10a45c3dee2e5851e2a5ddba4e024e04db11e03c541dd8c6a2430689bb",
+    "size": [
+      4096,
+      2534
+    ],
+    "exif_orientation": 6,
+    "has_gps": false,
+    "rgb_extrema": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "file": "photo-default-2.jpg",
+    "bytes": 62824,
+    "sha256": "3ba26c465c874f976aa4e52bf3800d525884127fb54c765fdef7c94d594bd591",
+    "size": [
+      4096,
+      2534
+    ],
+    "exif_orientation": 6,
+    "has_gps": false,
+    "rgb_extrema": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  }
+]

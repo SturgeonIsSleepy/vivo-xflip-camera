@@ -1,0 +1,15 @@
+model=V2256A
+sdk=34
+window_px=682x422
+preview_px=682x422
+display_id=1
+display_rotation=0
+selected_lens=back
+preview_mirror=false
+photo_mirror=false
+last_capture=back, requested_mirror=false
+last_exif_orientation=6
+last_exif_reflection=false
+last_error=none
+camera 0: facing=1, sensor_rotation=90
+camera 1: facing=1, sensor_rotation=90

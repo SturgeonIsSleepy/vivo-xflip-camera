@@ -73,3 +73,21 @@
 - 已核对远程 main 指向源码提交，全部 21 个新增/修改文件的 Git blob 哈希与本地一致，脚本可执行位也匹配。
 - 规划更新：P0 最小工程源码与 APK/Lint 构建验证完成；P1 前后摄、内/外屏、四方向及折叠切屏真机验收继续待设备；P2 系统提示根因待 ROM/Android 与复现日志；P3 厂商扩展查询与可用成像模式待实现和实测。
 - 未声称进行任何 X Flip 真机测试，未集成 Google Camera 专有算法。项目仍有可继续的开发事项，两项既有任务继续保留。
+
+## 2026-10-12｜第一版有线实机验收与协作交接
+
+- 起始提交：776a9b867271ac434be2f30cb9993a092b56af5f；测试 APK 对应源码 efe0150d275bc5b84a19e65228c52e93e0e531f3，版本 0.1.0-dev。
+- 用户指定本轮角色为唯一有线实机测试负责人，通过本 GitHub 仓库向代码撰写与基础错误检查两个 agent 交接。已建立 Issue 1，未通过其他聊天渠道协调。
+- 下载 Actions run 38191883873 / artifact 11722060632；ZIP SHA256 与上传 digest 完全一致。用户手动安装后，从实机拉取 base.apk，SHA256 与原始 APK 一致，为 8329d69e6a0b460e18c87748595c4168e44c04cf72ca21d43ee45674b7436659。
+- 实机为 V2256A，Android 14 / API 34，ROM PD2256_A_14.1.16.1.W10.V000L1；合盖 device_state=CLOSED、无 override；外屏 displayId=1，窗口和预览均为 682×422，display_rotation=0，installOrientation=ROTATION_270。
+- 安装前置：ADB install 与 pm install 未完成，解锁后仍等待；合盖打开 APK 被 com.vivo.fliplauncher/.FlipToContinue 拦截。用户通过文件管理完成一次安装，随后相机验收全程合盖。
+- 首轮结果：外屏 Activity 冷启动成功、设置与诊断可操作、快门保存成功；预览黑屏，两张原始 JPEG 均为全黑。每张 62,824 bytes，原始尺寸 4096×2534，独立 Pillow 解码确认三个 RGB 通道 extrema 均为 [0,0]，EXIF=6，无 GPS。
+- 系统提示已定位：com.vivo.daemonService 的 com.vivo.camera.action 窗口，UID 1000、displayId 1、type 2009。相机权限已授予，CameraService 可连接 ID 0 且产生帧；不能把连接或文件保存成功当作有效图像证明。
+- 对照：用户确认镜头无遮挡、朝向明亮物体后重复拍照，仍全黑。同一合盖场景的 vivo 原生相机能显示真实画面，使用 Camera ID 4；本应用诊断仅枚举 ID 0、1，均为 facing=1、sensor_rotation=90，切换按钮提示“另一摄像头不可用”。ID 差异是后续排查线索，尚不能保证第三方可访问 ID 4。
+- 镜像：默认两项为 false，成片 EXIF 6 不含反射；预览镜像开关曾实际写入 back.preview=true、back.photo=false。因为没有有效图像，像素方向与照片镜像仍未通过验收；受其他前台页面切换影响的点击不计为成功。
+- 本轮整理 docs/device-test-2026-10-12.md、四张应用/系统提示截图、两张原始黑色 JPEG、UI 诊断、必要系统摘录、照片量化 JSON 与可复现 inspect-photos.py。真实场景、图库缩略图、完整全机日志及设备序列号不公开上传。
+- 检查：原始照片独立解码、GPS 检查、APK/ZIP/已安装包哈希、系统窗口归属与原生相机对照；提交前运行 git diff --check。本轮未改相机源码，不重复运行与该证据增量无关的 Android 构建或核心测试。
+- 清理：已恢复本轮新建镜像偏好为初始默认状态，外屏密度从被触控干扰后的 200 恢复为原来的 160，并读取显示信息核验；停止测试相机后 CameraService 无活动客户端，取消明确属于本轮的安装会话。
+- 更新待办：P0 优先修复合盖有效图像路径与诊断，P1 建立独立外屏入口并恢复镜像实拍验收，P2 Google Camera 合法可用成像接入仍未实现。具体分工见实机报告和 Issue 1。
+- 代码 agent：做运行时 Camera2 小规模探测，调查公开 ID 与原生 ID 4 的差异，补齐相机/预览流/Surface 诊断，提供明确源码 SHA 对应的下一版 APK；禁止仅移除提示或硬编码 ID 4 后宣称成功。
+- 检查 agent：独立复核证据与镜像验收边界，审查 selector、bindCamera、显示变更和 CaptureGate 生命周期，下一版运行核心检查、assembleDebug、lintDebug，再交回实机验收。
