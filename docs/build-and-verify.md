@@ -52,7 +52,7 @@ gradle --no-daemon :camera-core:check :app:assembleDebug :app:lintDebug
 
 ## 当前验证与下一步
 
-新增 PhotoEvidenceChecks 在 Gradle check 中用原始 SHA-256 与 JVM ImageIO 独立解码两张设备 JPEG，不将连接或保存成功等同于图像验收。此轮本地不能读取仓库二进制，原始 JPEG 重解码及新 APK/Lint 结果须读取远程 CI 后确认；本地合成像素、尺寸预算与 Java 语法已检查。
+新增 PhotoEvidenceChecks 在 Gradle check 中用原始 SHA-256 与 JVM ImageIO 独立解码两张设备 JPEG，不将连接或保存成功等同于图像验收。此轮本地不能读取仓库二进制，原始 JPEG 重解码及新 APK/Lint 已在远程 CI 执行通过，见下方新版记录；本地合成像素、尺寸预算与 Java 语法已检查。
 
 1. P0：实机负责人继续 ID/合盖策略探测，接续 displayId 重绑定与实际相机/流状态诊断；验收为明亮场景的真实预览和有效 JPEG。
 2. P1：验收新 JPEG 分享检查入口、黑图与明亮图对照；有效图像恢复后执行完整镜像与折叠矩阵。
@@ -60,7 +60,7 @@ gradle --no-daemon :camera-core:check :app:assembleDebug :app:lintDebug
 
 剩余额度、实际模型和推理强度无法从当前接口读取；按用户已授权规则继续独立工作。新工具使用方法、代码审查发现和设备待验收项见 code-review-2026-10-13.md。
 
-## 远程构建已核验
+## 首版远程构建已核验
 
 - 源码提交：efe0150d275bc5b84a19e65228c52e93e0e531f3。
 - [Android build 实际结果](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38191883873)：成功。
@@ -69,3 +69,11 @@ gradle --no-daemon :camera-core:check :app:assembleDebug :app:lintDebug
 - archive digest：sha256:c25389d165b5dd59db3fdbf2bf5a4c8b5a680a8460a18dff71451d57ad3bd00b。
 - 当前 artifact 保留至 2026-10-19T01:28:25Z；源代码与构建脚本保留在仓库，可以重新构建。
 - 成功构建仍不代表 X Flip 外屏、折叠状态或镜像实拍验收通过。
+
+## 0.1.1-diagnostics 远程验证
+
+- 验证源码：800935ea24ad1638749dd4ed0cae8985a7a868e9。
+- [实际 CI 结果与 APK 下载](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38331262454)：completed / success，assembleDebug、lintDebug、13,511 个核心断言和 photoEvidenceChecks 全部通过。
+- JVM ImageIO 重解码两张原始 JPEG，20,758,528 个完整 RGB 像素均为零，两个 SHA-256 与实机报告匹配。这是原始证据复核，不能写成新版本实机测试。
+- artifact xflip-camera-debug，ID 11782463018，ZIP 5928273 bytes；上传日志确认包含 APK 与 Lint 报告。archive digest sha256:f8285f504436ea7b4ebd03f639d121a52cecb02fb1954e545ac3e35b18973f33，当前保留至 2026-10-20T01:16:11Z。
+- 新分享入口、Android 解码采样、临时 URI 权限、损坏文件、连续选择和外屏布局仍待有线实机负责人验证；未声称相机黑屏已修复。

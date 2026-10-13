@@ -6,7 +6,7 @@
 
 已建立最小 Android CameraX 工程：前后摄切换、取景拍照、预览/照片镜像独立控制、窗口与摄像头诊断、成片 EXIF 检查。两个镜像开关默认关闭，照片保存到 Pictures/XFlipCamera。0.1.1-diagnostics 新增独立“照片像素检查”分享入口，后台采样 JPEG 的 RGB 与 EXIF；无需开启相机，结果仅辅助取证，不代表黑屏或镜像已修复。
 
-独立 Java 方向核心已通过本地编译及 13,486 个断言检查；远程 Android APK 构建与 Lint 均已通过，已产出 debug APK。[第一版有线实机测试](docs/device-test-2026-10-12.md)未通过外屏验收：合盖预览及两张成片全黑，系统仍提示翻开手机；原生相机对照可正常预览。镜像方向与外屏独立使用仍待修复后验收。
+独立 Java 方向核心已通过本地编译及 13,486 个断言检查；0.1.1-diagnostics 的远程 Android APK 构建、Lint、13,511 个核心断言及原始 JPEG 独立重解码均已通过，已产出 debug APK。[第一版有线实机测试](docs/device-test-2026-10-12.md)未通过外屏验收：合盖预览及两张成片全黑，系统仍提示翻开手机；原生相机对照可正常预览。镜像方向与外屏独立使用仍待修复后验收。
 
 - [技术基线与实机验收清单](docs/technical-baseline.md)
 - [构建、验证与当前待办](docs/build-and-verify.md)
@@ -26,5 +26,5 @@
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[成功构建与 APK 下载入口](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38191883873)已核验，通过页面 Artifacts 中的 xflip-camera-debug 下载。实机已确认 Activity 可在合盖外屏启动，“翻开手机以使用摄像头”来自 com.vivo.daemonService；真实预览和有效成片验收失败。待完成：有效图像路径、独立外屏入口、成片方向、折叠切屏及逐镜头厂商扩展能力。
+[成功构建与 APK 下载入口](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38331262454)已核验，通过页面 Artifacts 中的 xflip-camera-debug 下载。实机已确认 Activity 可在合盖外屏启动，“翻开手机以使用摄像头”来自 com.vivo.daemonService；真实预览和有效成片验收失败。待完成：有效图像路径、独立外屏入口、成片方向、折叠切屏及逐镜头厂商扩展能力。
 

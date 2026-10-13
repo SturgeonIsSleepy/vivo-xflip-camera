@@ -102,6 +102,9 @@
 - 实际开发：新增独立 PhotoInspectionActivity 分享入口和 JpegPixelInspector，只读用户选择的 content JPEG，后台预读尺寸、按 2 的幂降采样至长边不超过 512，显示 RGB 范围、非黑样本、EXIF；失败不计为全黑或验收通过。版本更新为 0.1.1-diagnostics / 2，未改相机主页面，未打开或硬编码厂商 ID。
 - 核心：新增 RgbFrameStats 与 JpegSamplePlan；单通道仅值 1 也识别为非零，拒绝空输入、无效尺寸、超过 1 亿像素和整数溢出输入。新增 JVM PhotoEvidenceChecks 纳入 Gradle check，对原始设备 JPEG 校验 SHA-256、尺寸及全分辨率 RGB，不以采样代替原始证据。
 - 本地验证：bash scripts/check_core.sh 通过 JDK 17 / --release 17 / -Xlint:all / -Werror 的 13,511 个断言；java scripts/ParseJava.java 通过 10 个 Java 文件语法解析，未代表 Android 类型解析。修复后的 Python 脚本在缺照片目录退出 1，真实原图未在本地重新解码。
-- 环境限制：没有 Android SDK、Gradle、ADB 或已连接 X Flip；GitHub 文本连接器拒绝 JPEG 二进制，原始照片重解码交给远程 CI checkout 后执行。新源码 APK/Lint 与照片检查需核验实际远程日志，不以工作流定义宣称成功。
+- 环境限制：没有 Android SDK、Gradle、ADB 或已连接 X Flip；GitHub 文本连接器拒绝 JPEG 二进制，原始照片重解码交给远程 CI checkout 后执行。新源码 APK/Lint 与原始照片检查已通过实际远程日志核验，见下一条；没有进行本轮真机测试。
 - 待办：P0 有线负责人继续 Camera2 ID/合盖策略与实际绑定状态探测，接续 displayId 修复并证明明亮场景有效图像；P1 验收新 JPEG 页面，再在有效图像恢复后执行前后摄/内外屏/四方向/折叠与镜像矩阵；P2 合法成像接入与厂商扩展查询。当前只暂停依赖设备的操作，未集成 GCam 专有算法。
 - 模型/推理强度无法核实，剩余额度无法读取；没有限额提示，按已授权规则完成范围明确的独立目标。项目仍未完成，未停用后续任务。
+
+- 远程验证完成：源码提交 800935ea24ad1638749dd4ed0cae8985a7a868e9；https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38331262454 已 completed / success。实际执行核心 13,511 个断言、photoEvidenceChecks、assembleDebug、lintDebug，日志为 BUILD SUCCESSFUL。两张原始 JPEG 的 SHA-256 匹配，JVM ImageIO 完整解码 20,758,528 个像素，RGB 全零。
+- 新版 artifact：xflip-camera-debug / 11782463018，ZIP 5928273 bytes，digest sha256:f8285f504436ea7b4ebd03f639d121a52cecb02fb1954e545ac3e35b18973f33，APK 与 Lint 报告成功上传，保留至 2026-10-20T01:16:11Z。已核对远程 16 个新增/修改文件 blob 与本地一致、MainActivity 保持原 blob。真机页面/采样验收及黑屏修复仍未完成。
