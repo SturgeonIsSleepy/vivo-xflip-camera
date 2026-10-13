@@ -4,14 +4,15 @@ plugins {
 
 android {
     namespace 'com.sturgeon.xflipcamera'
+    buildFeatures { buildConfig true }
     compileSdk 36
 
     defaultConfig {
         applicationId 'com.sturgeon.xflipcamera'
         minSdk 33
         targetSdk 36
-        versionCode 7
-        versionName '0.1.6-dev'
+        versionCode 10
+        versionName '0.2.2-dev'
     }
 
     flavorDimensions 'cameraAccess'
@@ -40,4 +41,6 @@ dependencies {
     implementation 'androidx.camera:camera-lifecycle:' + cameraVersion
     implementation 'androidx.camera:camera-view:' + cameraVersion
     implementation 'androidx.exifinterface:exifinterface:1.4.2'
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
 }
