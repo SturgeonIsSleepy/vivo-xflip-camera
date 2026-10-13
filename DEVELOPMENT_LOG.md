@@ -127,3 +127,13 @@
 - 文档与证据：docs/device-test-2026-10-13.md、docs/evidence/2026-10-13-system-capture，更新 README、技术基线、双 flavor 构建与工作流。实测 APK另上传 GitHub 预发布供其他 agent 下载，发布结果以实际远程核验为准。
 - 下一步：代码 agent 在系统回传基线上完成外屏直接入口与可恢复状态，再研究取得真实预览的可行接口；检查 agent 审核 Activity Result、URI 授权、取消/读取失败/退出与恢复的输出归属。共同保留独立 JPEG 工具，禁止把系统成像称为 Google 或把 STREAMING 当像素验收。
 - 未验收：非对称卡片左右方向、四方向、展开/内屏、独立入口、进程恢复、损坏/无权限 JPEG、厂商扩展及 Google 成像。用户无法展开，只暂停需要展开的验证；继续可独立推进事项。实际模型/推理强度无法从任务接口核实。
+
+## 2026-10-13｜实测 APK 发布与双 flavor CI 读回核验
+
+- 验证源码提交：6f9815e9bcd3e329c30892967bef289b3dbe2cc8；已 push main 并用 ls-remote 确认完全一致。
+- GitHub 预发布 v0.1.6-device-test 已建立，实测附件 xflip-camera-0.1.6-cover-compat-debug.apk / asset 636886828 / 15,641,006 bytes / state uploaded。远程 digest sha256:9a5bdf82581c3991dffcd33f33214589a0cd1020cc967401c10f9420fcf00d80，与本地实测文件及手机 base.apk 完全一致。
+- 发布链接：https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.1.6-device-test。该本地签名 debug 包已实机验证，CI 签名可能不同，不能把两个文件混为同一安装产物。
+- 远程 run 38393319956 已 completed / success，head_sha 精确对应源码提交。实际日志确认 13,511 项断言、原始 JPEG 全图与哈希、assembleStandardDebug / assembleCoverCompatDebug、lintStandardDebug / lintCoverCompatDebug，BUILD SUCCESSFUL in 38s。
+- artifact xflip-camera-debug / 11810447546，11,869,859 bytes，digest sha256:34f0618937f2a9b5d63b36f99e51e07b7b0751325d40d74f368fdc7791e6ce6b；日志确认上传 4 个文件，即两个 APK 和各自 Lint 报告，保留至 2026-10-20T11:54:14Z。
+- 上传必要成果和远程核验均完成。README 更新到当前下载与构建入口，证据目录增加发布收据和 CI 日志摘要；没有为文档结果重复构建 Android。
+- 实测结束时停止本轮相机进程，CameraService 无活动客户端，真实状态仍 CLOSED / 无 override，清理本轮明确创建的诊断临时文件，保留新 APK 与用户手机上的成片。最终方向与两个 agent 分工沿用上一条及 Issue 1。

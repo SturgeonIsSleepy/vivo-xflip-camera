@@ -1,0 +1,15 @@
+{
+  "conclusion": "success",
+  "run_url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38393319956",
+  "head_sha": "6f9815e9bcd3e329c30892967bef289b3dbe2cc8",
+  "artifacts": [
+    {
+      "id": 11810447546,
+      "name": "xflip-camera-debug",
+      "size_in_bytes": 11869859,
+      "digest": "sha256:34f0618937f2a9b5d63b36f99e51e07b7b0751325d40d74f368fdc7791e6ce6b",
+      "expired": false,
+      "expires_at": "2026-10-20T11:54:14Z"
+    }
+  ]
+}

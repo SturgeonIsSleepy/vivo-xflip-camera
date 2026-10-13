@@ -1,0 +1,11 @@
+2026-10-13T11:53:34.8666620Z ##[group]Run gradle --no-daemon :camera-core:check :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
+2026-10-13T11:53:34.8667839Z [36;1mgradle --no-daemon :camera-core:check :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug[0m
+2026-10-13T11:53:49.0972963Z PASS 13511 assertions: EXIF 1..8, raster bounds, inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets
+2026-10-13T11:53:51.8967192Z PASS original JPEG evidence: 2 files, 20758528 fully decoded pixels, RGB=0, original SHA-256 hashes match
+2026-10-13T11:53:58.6942446Z > Task :app:assembleStandardDebug
+2026-10-13T11:54:03.2982061Z > Task :app:assembleCoverCompatDebug
+2026-10-13T11:54:13.8027516Z > Task :app:lintCoverCompatDebug
+2026-10-13T11:54:13.8094903Z > Task :app:lintStandardDebug
+2026-10-13T11:54:13.8985766Z BUILD SUCCESSFUL in 38s
+2026-10-13T11:54:14.2565619Z With the provided path, there will be 4 files uploaded
+2026-10-13T11:54:22.6145939Z BUILD SUCCESSFUL in 4s

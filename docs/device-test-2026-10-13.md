@@ -2,6 +2,8 @@
 
 起始本地提交为 c3f50ce，续接并合并 GitHub 最新 main 9404224。保留另一 agent 的独立 JPEG 检查、13,511 项核心断言和原始黑图检查；没有覆盖其成果。
 
+本轮源码：[6f9815e](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/6f9815e9bcd3e329c30892967bef289b3dbe2cc8)。[实测 APK 预发布](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.1.6-device-test)已上传，远程资产 digest 与实机 APK 哈希一致；[对应 CI](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38393319956)已成功，实际执行双 flavor assemble / Lint、核心和原图检查，上传两个 APK 及两个 Lint 报告。公开核验摘要见同轮 evidence 目录。
+
 ## 实测通过的路径
 
 0.1.6-dev / versionCode 7 的 coverCompat APK 已在 V2256A、Android 14、原 ROM 上安装。实际 base.apk 与本地文件 SHA256 完全一致：`9a5bdf82581c3991dffcd33f33214589a0cd1020cc967401c10f9420fcf00d80`，15,641,006 bytes。
