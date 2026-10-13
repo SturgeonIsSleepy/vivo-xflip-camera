@@ -4,7 +4,7 @@
 
 ## 当前状态与本轮目标
 
-仓库此前只有 README 和初始提交，没有 Android 源码、测试或开发日志。本轮优先确认可合法调用的成像能力、预览与成片的镜像边界、折叠屏运行时状态接口，并建立后续实机验收标准。
+仓库已建立 CameraX 工程、核心检查和构建验证，首版实机验收确认合盖预览与成片全黑。当前优先定位有效图像路径，复用以下合法成像与镜像研究。
 
 ## Google Camera 与合法成像路径
 
@@ -37,7 +37,7 @@ ImageCapture.Metadata 提供左右反转标记，OutputFileOptions.Builder 可�
 
 DisplayManager 可以枚举系统当前公开的逻辑显示屏；应用窗口自己的实时尺寸和方向也必须在运行时读取。折叠屏状态可通过 Jetpack WindowInfoTracker 获取与当前窗口关联的 WindowLayoutInfo/DisplayFeature，DisplayFeature.bounds 是当前应用窗口坐标系中的区域。该接口用于折痕与窗口布局，不保证每家厂商都会公开外屏，也不能单独证明外屏相机启动权限。
 
-Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 与跨应用 Service 的相关授权要求更严格。“翻开手机”提示可能来自 vivo 相机的产品策略、外屏 Activity 限制或系统启动路径；目前没有设备日志，不能认定根因。安全的首选验证路线是用户从外屏前台启动本项目自己的相机 Activity。若系统仍阻止第三方应用在外屏显示，需要 OEM 公开接口或系统授权；不尝试隐藏 API、伪造系统权限或绕过签名校验。
+Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 与跨应用 Service 的相关授权要求更严格。首版实机证据已将相机提示定位到 com.vivo.daemonService/com.vivo.camera.action；Activity 可在合盖外屏启动，预览和成片仍全黑。系统提示归属不等于已确定黑像素来源，后续需实际 ID 与帧状态探测。安装入口的 FlipToContinue 是另一现象。安全的首选验证路线是用户从外屏前台启动本项目自己的相机 Activity。若系统仍阻止第三方应用在外屏显示，需要 OEM 公开接口或系统授权；不尝试隐藏 API、伪造系统权限或绕过签名校验。
 
 ## 验收与复现清单
 
@@ -47,13 +47,13 @@ Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 
 4. 在 X Flip 上逐摄像头运行 CameraX Extensions 查询，记录 Auto、HDR、Night、Bokeh、人像修饰是否可用。不能以公开设备列表代替运行时检测。
 5. 复现“翻开手机”：分别从系统外屏相机入口、外屏启动本项目、内屏启动本项目，再尝试前后摄像头。记录 ROM/Android 版本、用户操作路径、提示截图和提示出现时的 logcat 时间窗；分享日志前删除账号、序列号等个人信息。
 
-## 本轮已知阻塞与待办
+## 当前阻塞与待办
 
-- 尚无 vivo X Flip 实机测试结果，无法确认外屏显示权限、具体扩展模式、前后摄像头输出方向或系统提示根因。
-- P0 已完成源码及远程构建验证：最小 CameraX 预览/拍照工程、窗口/旋转/摄像头诊断；assembleDebug 与 lintDebug 已通过。设备运行验证仍待完成，见 build-and-verify.md。
-- P1：独立镜像状态及核心检查已完成；在 X Flip 上验收前后摄、内外屏、四方向和折叠切屏，分别核对预览、照片与 EXIF。
-- P2：按复现清单取得 ROM/Android 与启动/折叠日志，定位“翻开手机”提示来源；若是系统策略，整理 OEM 授权接口需求。
-- P3：实现 CameraX Extensions 能力查询，在 X Flip 上核对每摄像头支持情况并比较标准与扩展模式样张。
+- [首版实机证据](device-test-2026-10-12.md)已取得 ROM/Android、外屏和系统提示归属；应用公开 ID 与原生相机 ID 不同，第三方可访问性及黑帧原因仍未确认。此轮未连接设备。
+- P0：先定位合盖有效图像路径，补齐实际选中 ID、CameraState、预览流与显示切换诊断；独立 JPEG 像素检查已实现，Android 入口和采样结果待设备验收。
+- P1：镜像状态与 EXIF 核心检查已通过，但黑图不能验收像素方向。恢复真实图像后再完成前后摄、内外屏、四方向和折叠切屏矩阵。
+- P2：沿用 Google Camera 合法接入边界，运行时查询实际可用的厂商扩展并实测；没有实现 Google Camera 专有算法。
+- MainActivity 的 displayId 缓存遗漏与诊断缺口见 [本轮代码审查](code-review-2026-10-13.md)，按 Issue 1 的交接由实机负责人接续，避免同时覆盖其工作。
 
 ## 官方参考
 

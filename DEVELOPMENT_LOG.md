@@ -91,3 +91,17 @@
 - 更新待办：P0 优先修复合盖有效图像路径与诊断，P1 建立独立外屏入口并恢复镜像实拍验收，P2 Google Camera 合法可用成像接入仍未实现。具体分工见实机报告和 Issue 1。
 - 代码 agent：做运行时 Camera2 小规模探测，调查公开 ID 与原生 ID 4 的差异，补齐相机/预览流/Surface 诊断，提供明确源码 SHA 对应的下一版 APK；禁止仅移除提示或硬编码 ID 4 后宣称成功。
 - 检查 agent：独立复核证据与镜像验收边界，审查 selector、bindCamera、显示变更和 CaptureGate 生命周期，下一版运行核心检查、assembleDebug、lintDebug，再交回实机验收。
+
+## 2026-10-13｜黑屏证据复核与独立 JPEG 像素检查
+
+- 起始提交：c3f50ce4acbfb87c088490ecb9539e3b51f66e84；读取最新 main、项目规则、近期日志、任务配置、首版实机报告及 Issue 1 后续交接，确认 Public 仓库与连接器 push 权限。
+- 工作日：Asia/Shanghai 实际日期 2026-10-13，复用已核查 2026 年缓存，属于工作日；2027 年下一次检查不早于 11-01，未重复查询、未更改任何已有日程。
+- 审查：设备证据一致指向合盖全黑且系统提示来自 vivo daemonService；两项公开 ID 都为后摄与前摄 selector 不可用相符，不能据此断言 ID 4 可被第三方访问。CaptureGate、镜像快照及 EXIF 检查继续复用。
+- 静态发现：bindCamera 缓存不含 displayId，同尺寸/旋转的显示屏迁移可能遗漏重绑定；缺少实际选中 ID、相机及 PreviewView 流状态。按 Issue 1 最新交接避免并发修改 MainActivity，本轮保留该文件原 blob，缺口写入 docs/code-review-2026-10-13.md 交回实机负责人，未宣称已修复或确认黑帧根因。
+- 修复：inspect-photos.py 在原始 JPEG 缺失时原先输出 []、退出 0；本轮已复现，现明确报错并退出非零，避免把未执行检查计为成功。技术基线与当前构建规划中“无实机证据/未知提示归属”的过时状态已按首版报告更新。
+- 实际开发：新增独立 PhotoInspectionActivity 分享入口和 JpegPixelInspector，只读用户选择的 content JPEG，后台预读尺寸、按 2 的幂降采样至长边不超过 512，显示 RGB 范围、非黑样本、EXIF；失败不计为全黑或验收通过。版本更新为 0.1.1-diagnostics / 2，未改相机主页面，未打开或硬编码厂商 ID。
+- 核心：新增 RgbFrameStats 与 JpegSamplePlan；单通道仅值 1 也识别为非零，拒绝空输入、无效尺寸、超过 1 亿像素和整数溢出输入。新增 JVM PhotoEvidenceChecks 纳入 Gradle check，对原始设备 JPEG 校验 SHA-256、尺寸及全分辨率 RGB，不以采样代替原始证据。
+- 本地验证：bash scripts/check_core.sh 通过 JDK 17 / --release 17 / -Xlint:all / -Werror 的 13,511 个断言；java scripts/ParseJava.java 通过 10 个 Java 文件语法解析，未代表 Android 类型解析。修复后的 Python 脚本在缺照片目录退出 1，真实原图未在本地重新解码。
+- 环境限制：没有 Android SDK、Gradle、ADB 或已连接 X Flip；GitHub 文本连接器拒绝 JPEG 二进制，原始照片重解码交给远程 CI checkout 后执行。新源码 APK/Lint 与照片检查需核验实际远程日志，不以工作流定义宣称成功。
+- 待办：P0 有线负责人继续 Camera2 ID/合盖策略与实际绑定状态探测，接续 displayId 修复并证明明亮场景有效图像；P1 验收新 JPEG 页面，再在有效图像恢复后执行前后摄/内外屏/四方向/折叠与镜像矩阵；P2 合法成像接入与厂商扩展查询。当前只暂停依赖设备的操作，未集成 GCam 专有算法。
+- 模型/推理强度无法核实，剩余额度无法读取；没有限额提示，按已授权规则完成范围明确的独立目标。项目仍未完成，未停用后续任务。

@@ -4,13 +4,14 @@
 
 ## 项目进度
 
-已建立最小 Android CameraX 工程：前后摄切换、取景拍照、预览/照片镜像独立控制、窗口与摄像头诊断、成片 EXIF 检查。两个镜像开关默认关闭，照片保存到 Pictures/XFlipCamera。
+已建立最小 Android CameraX 工程：前后摄切换、取景拍照、预览/照片镜像独立控制、窗口与摄像头诊断、成片 EXIF 检查。两个镜像开关默认关闭，照片保存到 Pictures/XFlipCamera。0.1.1-diagnostics 新增独立“照片像素检查”分享入口，后台采样 JPEG 的 RGB 与 EXIF；无需开启相机，结果仅辅助取证，不代表黑屏或镜像已修复。
 
 独立 Java 方向核心已通过本地编译及 13,486 个断言检查；远程 Android APK 构建与 Lint 均已通过，已产出 debug APK。[第一版有线实机测试](docs/device-test-2026-10-12.md)未通过外屏验收：合盖预览及两张成片全黑，系统仍提示翻开手机；原生相机对照可正常预览。镜像方向与外屏独立使用仍待修复后验收。
 
 - [技术基线与实机验收清单](docs/technical-baseline.md)
 - [构建、验证与当前待办](docs/build-and-verify.md)
 - [第一版实机结果、原始证据与两个 agent 的下一轮任务](docs/device-test-2026-10-12.md)
+- [独立 JPEG 像素检查与本轮代码审查](docs/code-review-2026-10-13.md)
 - [开发日志与待办](DEVELOPMENT_LOG.md)
 - [每天 00:00 开发（含周末和法定假期）](docs/work-task.md)
 - [中国工作日 09:00 检查任务](docs/morning-review-task.md)

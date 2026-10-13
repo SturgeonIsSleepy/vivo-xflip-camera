@@ -6,7 +6,10 @@ from pathlib import Path
 from PIL import Image
 
 results = []
-for path in sorted(Path(__file__).parent.glob("photo-default-*.jpg")):
+photos = sorted(Path(__file__).parent.glob("photo-default-*.jpg"))
+if not photos:
+    raise SystemExit("No original photo-default-*.jpg evidence found; nothing was decoded.")
+for path in photos:
     with Image.open(path) as image:
         exif = image.getexif()
         results.append({
