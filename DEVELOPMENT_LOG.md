@@ -173,8 +173,11 @@
 - 本地验证：JDK 17，bash scripts/check_core.sh 开启 --release 17、-Xlint:all、-Werror，13,595 个断言通过，其中 84 个为新增媒体提供者故障注入断言，覆盖插入失败/空 URI、部分写入、0/2/-1 发布行数、IO/运行时发布失败、清理失败和相同异常重复抛出；成功保留原图与旧图，失败不发布半成品。
 - java scripts/ParseJava.java 通过 18 个 Java 文件语法解析，仅为语法检查。Manifest/资源 XML 解析、9 个协作文件 blob 保持一致；提交前检查差异空白。
 - 原始照片复核：此次连接器支持 base64 读取，恢复两张原始 JPEG 并核对 Git blob；独立 JVM ImageIO 完整解码 20,758,528 个像素，两个 SHA-256 与记录一致、RGB 全零。没有重新采集照片或把原始黑图复核当成新版本真机测试。
-- 环境：当前有 Java 17，无本地 Gradle、Android SDK 或 ADB；Android 类型、双 flavor 构建与 Lint 由既有 CI 验证，须读回实际结果。新源码尚未在手机安装/复测，不在没有授权设备的环境尝试 Shell、悬浮窗或系统权限操作。
+- 环境：当前检测到 Java 17，Gradle 与 ADB 不在 PATH；没有执行本地 Android 构建。Android 类型、双 flavor 构建与 Lint 已通过既有 CI 的实际结果核验。新源码尚未在手机安装/复测，不在没有授权设备的环境尝试 Shell、悬浮窗或系统权限操作。
 - 待办：P0 由有线负责人验证动态预览持续更新、文字左右与快门/确认操作；接续逐次渲染 token、STOP/死亡与 Surface 清理。P1 解除协作独占后复用发布检查到系统回传，加入输出归属与重建读取单一执行者，再在设备上验证取消/读取失败/退出/恢复。P2 扩展与 Google 合法成像路径继续沿用既有待办，不把 vivo 成像称为 Google。
 - 工作日表：复用已核查 2026 年与 2027 年下一次检查不早于 11-01 的缓存；本任务不按晨间休息日规则跳过。没有新年度或更正依据、没有修改已有日程。
 - 模型/推理强度无法核实，剩余额度无法读取；本轮限制为上述独立修复、审查与相称验证，项目仍有可继续事项。
 - 连接身份已通过 authenticated profile 核验为 SturgeonIsSleepy，仓库 main 推送权限已确认。
+
+- 远程验证：源码提交 1603d6e48b924862f5e21c2a879497456ced5171；https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38446311535 已 completed / success。实际日志确认 13,595 个断言、原始 JPEG 全图/哈希、assembleStandardDebug、assembleCoverCompatDebug、lintStandardDebug、lintCoverCompatDebug，BUILD SUCCESSFUL in 41s。
+- artifact：xflip-camera-debug / 11838447488，ZIP 11,958,242 bytes，digest sha256:5a026e47b999dd2dc8a0d307eed311cf831d5635e9697a74faf74d261f228cc5，上传 4 个文件（两个 APK 与两个 Lint 报告），保留至 2026-10-20T18:24:21Z。7 个新增/修改文件已核对远程 blob 与本地一致，9 个协作文件保持原值。CI 产物未在手机安装，不能混同于既有实测发布包；实际预览与此次 Provider 故障处理待复测。

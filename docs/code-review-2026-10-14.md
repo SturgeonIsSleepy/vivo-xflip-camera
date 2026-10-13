@@ -48,3 +48,11 @@ java scripts/ParseJava.java
 - P2：合法成像与厂商扩展待办继续复用。没有接入 Google Camera 专有算法。
 
 官方 API 依据：[ContentResolver.update](https://developer.android.com/reference/android/content/ContentResolver) 返回影响行数；[MediaStore.IS_PENDING](https://developer.android.com/reference/android/provider/MediaStore.MediaColumns) 的发布状态；[BroadcastOptions](https://developer.android.com/reference/android/app/BroadcastOptions) 的身份共享设置。此轮模型/推理强度与剩余额度接口均未提供可读取值。
+
+## 远程结果已核验
+
+- 验证源码：1603d6e48b924862f5e21c2a879497456ced5171。
+- [CI 与本轮 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38446311535)：completed / success；13,595 个断言、原始照片全图/哈希、standard / coverCompat 的 assemble 与 Lint 均通过。
+- Artifacts 的 xflip-camera-debug 含两个 APK 与两个 Lint HTML；ZIP 11,958,242 bytes，digest sha256:5a026e47b999dd2dc8a0d307eed311cf831d5635e9697a74faf74d261f228cc5，当前保留至 2026-10-20T18:24:21Z。
+- app 版本号沿用实机负责人接管的 0.2.2-dev / 10，通过源码 SHA 区分本次修复。没有修改协作中的版本/Manifest/预览链路，也没有重复发布实测 APK；CI 签名与手机上的实测包可能不同。
+- 下一步仍按上述 P0/P1 交回唯一有线负责人。编译、模拟提供者测试与证据复核均不代替本轮手机验证。
