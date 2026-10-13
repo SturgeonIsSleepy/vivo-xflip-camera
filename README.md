@@ -17,7 +17,7 @@
 - [第一版实机结果、原始证据与两个 agent 的下一轮任务](docs/device-test-2026-10-12.md)
 - [独立 JPEG 像素检查与本轮代码审查](docs/code-review-2026-10-13.md)
 - [开发日志与待办](DEVELOPMENT_LOG.md)
-- [每天 00:00 开发（含周末和法定假期）](docs/work-task.md)
+- [每天 02:00 开发（含周末和法定假期）](docs/work-task.md)
 - [中国工作日 09:00 检查任务](docs/morning-review-task.md)
 
 ## 技术方向
