@@ -20,6 +20,8 @@
 - [每天 02:00 开发（含周末和法定假期）](docs/work-task.md)
 - [中国工作日 09:00 检查任务](docs/morning-review-task.md)
 
+当前源码 0.2.2-dev 的实时预览仍处于待实机验证的开发检查点。本轮独立修复成片另存的发布失败误报与清理异常，保留原图；进展和静态审查边界见 [保存与生命周期审查](docs/code-review-2026-10-14.md)。
+
 ## 技术方向
 
 优先运行时查询 vivo X Flip 上可用的 CameraX/Camera2 厂商扩展。Android 官方已知支持设备列表包含 Vivo X Flip，但具体镜头和模式仍需在设备上逐项查询。Google Camera 的专有 APK、库、素材或代码不会在未获授权时复制或分发。

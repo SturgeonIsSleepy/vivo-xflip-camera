@@ -162,3 +162,19 @@
 - 新增明确的“外屏系统相机”入口；录制与照片处理使用系统回传，仍依赖本机外屏助手的普通 Activity 启动能力。没有改全局 DPI，不能宣称独立入口已完全验收。
 - 多帧：已通过 Issue 1 给代码 agent 独立配准/降噪研究方向；真正一次连拍及高分辨率多张回传尚未验证，未加入伪装成连拍的循环拍摄或视频截图。
 - 下一步唯一优先项：把直接 Shell Binder 通道在系统拍摄界面跑通，验证画面连续更新、文字左右正确、快门/确认可操作，并保存实测 APK 与无私人场景的证据。源码及当前事实先上传，继续从本检查点工作。
+
+## 2026-10-14｜独立媒体发布失败处理与预览边界审查
+
+- 起始提交：cbe80af67337d6bc553a8775f6315fe2a484368f；读取 latest main、README、AGENTS、近期开发日志、技术基线、两项任务文档、工作日缓存与 Issue 1 最新交接。连接器确认 Public 仓库及 pull/push 权限。
+- 优先级：用户已将实时系统取景左右纠正列为首要目标，成片反转次要；有线负责人暂时接管预览链路及系统入口。本轮保留 SystemCaptureActivity、MainActivity、PreviewMirrorService/Worker、Receiver/Starter、Manifest、app/build.gradle 和工作流共 9 个文件的原 blob，未并发修改或重新调查改包名、ID 4、AGC 黑屏等已验证路线。
+- 静态审查：广播发送端已启用 API 34 身份共享，接收端有 API 34 判断、DUMP 权限与真实 UID 0/2000、接口描述符检查；不因此认定 Binder 通道已实机跑通。SurfaceDestroyed 尚无显式 STOP，线程停止 join(1500) 超时后仍共享 running，页面读取中重建可能重复处理同一输出；这些发现及待验收条件写入 docs/code-review-2026-10-14.md，没有伪造相应设备复现。
+- 确认并修复：PhotoPostProcessor 忽略清除 IS_PENDING 的 update 返回行数，0 行仍返回“保存成功”；其失败清理还可能以 delete 异常覆盖写入/EXIF/发布的原始错误。新增 PendingMediaWrite，在写入与资源关闭完成后要求恰好发布 1 行；失败仅尝试清理本次新输出，保留原始失败并附加独立清理异常，不删除源图和已保存媒体。
+- 实际接入：PhotoPostProcessor 已使用上述核心；像素翻转、JPEG 质量、Exif 与原图保留策略沿用已有实现，没有增加成片算法、Google 专有代码或新的 Shell 接口。该核心可在实机负责人解除独占后供系统回传路径复用；当前未把 SystemCaptureActivity 的同类发布与进程恢复问题写成已修复。
+- 本地验证：JDK 17，bash scripts/check_core.sh 开启 --release 17、-Xlint:all、-Werror，13,595 个断言通过，其中 84 个为新增媒体提供者故障注入断言，覆盖插入失败/空 URI、部分写入、0/2/-1 发布行数、IO/运行时发布失败、清理失败和相同异常重复抛出；成功保留原图与旧图，失败不发布半成品。
+- java scripts/ParseJava.java 通过 18 个 Java 文件语法解析，仅为语法检查。Manifest/资源 XML 解析、9 个协作文件 blob 保持一致；提交前检查差异空白。
+- 原始照片复核：此次连接器支持 base64 读取，恢复两张原始 JPEG 并核对 Git blob；独立 JVM ImageIO 完整解码 20,758,528 个像素，两个 SHA-256 与记录一致、RGB 全零。没有重新采集照片或把原始黑图复核当成新版本真机测试。
+- 环境：当前有 Java 17，无本地 Gradle、Android SDK 或 ADB；Android 类型、双 flavor 构建与 Lint 由既有 CI 验证，须读回实际结果。新源码尚未在手机安装/复测，不在没有授权设备的环境尝试 Shell、悬浮窗或系统权限操作。
+- 待办：P0 由有线负责人验证动态预览持续更新、文字左右与快门/确认操作；接续逐次渲染 token、STOP/死亡与 Surface 清理。P1 解除协作独占后复用发布检查到系统回传，加入输出归属与重建读取单一执行者，再在设备上验证取消/读取失败/退出/恢复。P2 扩展与 Google 合法成像路径继续沿用既有待办，不把 vivo 成像称为 Google。
+- 工作日表：复用已核查 2026 年与 2027 年下一次检查不早于 11-01 的缓存；本任务不按晨间休息日规则跳过。没有新年度或更正依据、没有修改已有日程。
+- 模型/推理强度无法核实，剩余额度无法读取；本轮限制为上述独立修复、审查与相称验证，项目仍有可继续事项。
+- 连接身份已通过 authenticated profile 核验为 SturgeonIsSleepy，仓库 main 推送权限已确认。

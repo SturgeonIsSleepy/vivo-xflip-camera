@@ -11,6 +11,8 @@ import android.provider.MediaStore;
 
 import androidx.exifinterface.media.ExifInterface;
 
+import com.sturgeon.xflipcamera.core.PendingMediaWrite;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,7 +32,6 @@ public final class PhotoPostProcessor {
         Matrix matrix = new Matrix();
         matrix.setScale(-1, 1);
         Bitmap flipped = null;
-        Uri result = null;
         try {
             flipped = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, false);
             ContentValues values = new ContentValues();
@@ -38,38 +39,48 @@ public final class PhotoPostProcessor {
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/XFlipCamera");
             values.put(MediaStore.Images.Media.IS_PENDING, 1);
-            result = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            if (result == null) throw new IOException("Cannot create edited photo");
-            try (OutputStream target = resolver.openOutputStream(result, "w")) {
-                if (target == null || !flipped.compress(Bitmap.CompressFormat.JPEG, 95, target)) {
-                    throw new IOException("JPEG encode failed");
+            final Bitmap encoded = flipped;
+            return PendingMediaWrite.execute(new PendingMediaWrite.Storage<Uri>() {
+                @Override public Uri insertPending() {
+                    return resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
                 }
-            }
-            try (InputStream input = resolver.openInputStream(original);
-                    ParcelFileDescriptor target = resolver.openFileDescriptor(result, "rw")) {
-                if (input == null || target == null) throw new IOException("Metadata stream unavailable");
-                ExifInterface before = new ExifInterface(input);
-                ExifInterface after = new ExifInterface(target.getFileDescriptor());
-                for (String tag : new String[]{ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL,
-                        ExifInterface.TAG_DATETIME_ORIGINAL, ExifInterface.TAG_EXPOSURE_TIME,
-                        ExifInterface.TAG_F_NUMBER, ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
-                        ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_FLASH,
-                        ExifInterface.TAG_GPS_LATITUDE, ExifInterface.TAG_GPS_LATITUDE_REF,
-                        ExifInterface.TAG_GPS_LONGITUDE, ExifInterface.TAG_GPS_LONGITUDE_REF,
-                        ExifInterface.TAG_GPS_ALTITUDE, ExifInterface.TAG_GPS_ALTITUDE_REF,
-                        ExifInterface.TAG_GPS_DATESTAMP, ExifInterface.TAG_GPS_TIMESTAMP}) {
-                    after.setAttribute(tag, before.getAttribute(tag));
+
+                @Override public void writeAndClose(Uri destination) throws IOException {
+                    try (OutputStream target = resolver.openOutputStream(destination, "w")) {
+                        if (target == null || !encoded.compress(Bitmap.CompressFormat.JPEG, 95, target)) {
+                            throw new IOException("JPEG encode failed");
+                        }
+                    }
+                    try (InputStream input = resolver.openInputStream(original);
+                            ParcelFileDescriptor target = resolver.openFileDescriptor(destination, "rw")) {
+                        if (input == null || target == null) throw new IOException("Metadata stream unavailable");
+                        ExifInterface before = new ExifInterface(input);
+                        ExifInterface after = new ExifInterface(target.getFileDescriptor());
+                        for (String tag : new String[]{ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL,
+                                ExifInterface.TAG_DATETIME_ORIGINAL, ExifInterface.TAG_EXPOSURE_TIME,
+                                ExifInterface.TAG_F_NUMBER, ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
+                                ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_FLASH,
+                                ExifInterface.TAG_GPS_LATITUDE, ExifInterface.TAG_GPS_LATITUDE_REF,
+                                ExifInterface.TAG_GPS_LONGITUDE, ExifInterface.TAG_GPS_LONGITUDE_REF,
+                                ExifInterface.TAG_GPS_ALTITUDE, ExifInterface.TAG_GPS_ALTITUDE_REF,
+                                ExifInterface.TAG_GPS_DATESTAMP, ExifInterface.TAG_GPS_TIMESTAMP}) {
+                            after.setAttribute(tag, before.getAttribute(tag));
+                        }
+                        after.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
+                        after.saveAttributes();
+                    }
                 }
-                after.setAttribute(ExifInterface.TAG_ORIENTATION, "1");
-                after.saveAttributes();
-            }
-            values.clear();
-            values.put(MediaStore.Images.Media.IS_PENDING, 0);
-            resolver.update(result, values, null, null);
-            return result;
-        } catch (IOException | RuntimeException failure) {
-            if (result != null) resolver.delete(result, null, null);
-            throw failure;
+
+                @Override public int publish(Uri destination) {
+                    ContentValues published = new ContentValues();
+                    published.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    return resolver.update(destination, published, null, null);
+                }
+
+                @Override public void deletePending(Uri destination) {
+                    resolver.delete(destination, null, null);
+                }
+            });
         } finally {
             if (flipped != null && flipped != source) flipped.recycle();
             source.recycle();

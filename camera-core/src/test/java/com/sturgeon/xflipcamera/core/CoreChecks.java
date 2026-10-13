@@ -14,9 +14,10 @@ public final class CoreChecks {
         staleCaptureCallbacksCannotUnlockNewCaptures();
         blackPixelEvidenceDoesNotAcceptEmptyOrNearBlack();
         jpegSamplingIsBoundedBeforeDecode();
+        assertions += PendingMediaWriteChecks.run();
         invalidInputsFailExplicitly();
         System.out.println("PASS " + assertions + " assertions: EXIF 1..8, raster bounds, "
-                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets");
+                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes");
     }
 
     private static void asymmetricRasterFixtures() {
