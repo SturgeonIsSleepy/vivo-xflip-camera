@@ -37,10 +37,12 @@ java scripts/ParseJava.java
 完整 Android 构建需要安装以上 JDK、Gradle 与 Android SDK，能访问 Google Maven/Maven Central，并配置 ANDROID_HOME 或本地 SDK 路径：
 
 ```sh
-gradle --no-daemon :camera-core:check :app:assembleDebug :app:lintDebug
+gradle --no-daemon :camera-core:check :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
 ```
 
-成功后 APK 路径是 app/build/outputs/apk/debug/app-debug.apk。GitHub Actions 的 Android build 工作流使用相同检查，并在成功后上传 APK 和 Lint 报告。
+0.1.6-dev 的 standard APK 路径是 app/build/outputs/apk/standard/debug/app-standard-debug.apk，包名 com.sturgeon.xflipcamera；coverCompat 路径是 app/build/outputs/apk/coverCompat/debug/app-coverCompat-debug.apk，包名 org.codeaurora.snapcam。后者用于复现兼容假设，改包名未赋予系统相机权限。GitHub Actions 使用同一组明确的 flavor 任务并上传两个 APK 和 Lint 报告；lintDebug 在该配置中会有歧义。
+
+本机 Windows 使用 JDK 21 编译 Java 17 目标、共享 SDK 和 Gradle 8.11.1，双 APK、双 Lint、核心及原始 JPEG 检查均已执行通过。0.1.6 coverCompat 已安装并通过合盖系统回传实测，standard 只完成构建；CI 与本地 debug 签名可能不同，不能仅以包名相同直接更新已装版本。新结果与限制见 device-test-2026-10-13.md，以下各节保留前几轮历史记录。
 
 ## 本轮已执行的验证
 

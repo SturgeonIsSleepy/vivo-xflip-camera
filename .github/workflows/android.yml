@@ -37,14 +37,14 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "platforms;android-36" "build-tools;35.0.0"
       - name: Test direction core and build Android app
-        run: gradle --no-daemon :camera-core:check :app:assembleDebug :app:lintDebug
+        run: gradle --no-daemon :camera-core:check :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
       - name: Upload APK and lint report
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: xflip-camera-debug
           path: |
-            app/build/outputs/apk/debug/app-debug.apk
-            app/build/reports/lint-results-debug.html
+            app/build/outputs/apk/*/debug/*.apk
+            app/build/reports/lint-results-*Debug.html
           if-no-files-found: error
           retention-days: 7

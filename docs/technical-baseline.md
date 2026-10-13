@@ -53,7 +53,7 @@ Android 有后台启动 Activity 的安全限制，Android 14 对 PendingIntent 
 - P0：先定位合盖有效图像路径，补齐实际选中 ID、CameraState、预览流与显示切换诊断；独立 JPEG 像素检查已实现，Android 入口和采样结果待设备验收。
 - P1：镜像状态与 EXIF 核心检查已通过，但黑图不能验收像素方向。恢复真实图像后再完成前后摄、内外屏、四方向和折叠切屏矩阵。
 - P2：沿用 Google Camera 合法接入边界，运行时查询实际可用的厂商扩展并实测；没有实现 Google Camera 专有算法。
-- MainActivity 的 displayId 缓存遗漏与诊断缺口见 [本轮代码审查](code-review-2026-10-13.md)，按 Issue 1 的交接由实机负责人接续，避免同时覆盖其工作。
+- MainActivity 的 displayId 缓存和实际镜头/CameraState/流状态诊断已由实机负责人接续修复，构建通过；展开切屏仍待验收。0.1.6 的公开系统相机回传已在合盖外屏取得有效 JPEG，CameraX 有效预览、独立入口、镜像及 Google 成像仍待解决，见[续接实测](device-test-2026-10-13.md)。
 
 ## 官方参考
 

@@ -3,13 +3,17 @@ package com.sturgeon.xflipcamera;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.ActivityOptions;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
@@ -26,6 +30,7 @@ import android.view.Gravity;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowInsets;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -34,6 +39,8 @@ import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.CameraInfo;
+import androidx.camera.camera2.interop.Camera2CameraInfo;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.MirrorMode;
@@ -48,8 +55,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.sturgeon.xflipcamera.core.CaptureGate;
 import com.sturgeon.xflipcamera.core.ExifTransform;
 import com.sturgeon.xflipcamera.core.MirrorSettings;
+import com.sturgeon.xflipcamera.core.RgbFrameStats;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -67,6 +76,7 @@ public final class MainActivity extends ComponentActivity {
     private DisplayManager displayManager;
     private ProcessCameraProvider provider;
     private ImageCapture imageCapture;
+    private CameraInfo boundCameraInfo;
     private MirrorSettings mirrors = MirrorSettings.defaults();
     private final CaptureGate captureGate = new CaptureGate();
     private boolean front;
@@ -74,10 +84,14 @@ public final class MainActivity extends ComponentActivity {
     private int boundWidth;
     private int boundHeight;
     private int boundRotation = -1;
+    private int boundDisplayId = -1;
     private int lastExif;
     private long lastSavedToken;
     private String lastCapture = "none";
     private String lastError = "none";
+    private String requestedCameraId;
+    private String selectedCameraId = "none";
+    private String lastImageCheck = "not_checked";
 
     private final DisplayManager.DisplayListener displayListener =
             new DisplayManager.DisplayListener() {
@@ -88,6 +102,8 @@ public final class MainActivity extends ComponentActivity {
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        requestedCameraId = getIntent().getStringExtra("camera_id");
         preferences = getSharedPreferences("mirror-preferences", MODE_PRIVATE);
         front = preferences.getBoolean("front-selected", false);
         loadMirrors();
@@ -175,6 +191,8 @@ public final class MainActivity extends ComponentActivity {
         if (displayManager != null) displayManager.unregisterDisplayListener(displayListener);
         if (provider != null) provider.unbindAll();
         imageCapture = null;
+        selectedCameraId = "none";
+        boundCameraInfo = null;
         boundWidth = 0;
         boundHeight = 0;
         updateControls();
@@ -207,11 +225,27 @@ public final class MainActivity extends ComponentActivity {
         if (previewView.getWidth() == 0 || previewView.getHeight() == 0
                 || previewView.getDisplay() == null) return;
         int rotation = previewView.getDisplay().getRotation();
+        int displayId = previewView.getDisplay().getDisplayId();
         if (imageCapture != null && boundWidth == previewView.getWidth()
-                && boundHeight == previewView.getHeight() && boundRotation == rotation) return;
+                && boundHeight == previewView.getHeight() && boundRotation == rotation
+                && boundDisplayId == displayId) return;
         try {
             CameraSelector selector = front
                     ? CameraSelector.DEFAULT_FRONT_CAMERA : CameraSelector.DEFAULT_BACK_CAMERA;
+            if (requestedCameraId != null) {
+                selector = new CameraSelector.Builder().addCameraFilter(cameraInfos -> {
+                    ArrayList<androidx.camera.core.CameraInfo> matching = new ArrayList<>();
+                    for (androidx.camera.core.CameraInfo info : cameraInfos) {
+                        if (requestedCameraId.equals(Camera2CameraInfo.from(info).getCameraId())) {
+                            matching.add(info);
+                        }
+                    }
+                    return matching;
+                }).build();
+                if (!provider.hasCamera(selector)) {
+                    throw new IllegalStateException("Camera ID not available: " + requestedCameraId);
+                }
+            }
             if (!provider.hasCamera(selector)) {
                 front = !front;
                 loadMirrors();
@@ -238,16 +272,20 @@ public final class MainActivity extends ComponentActivity {
                     .setViewPort(viewPort).addUseCase(preview).addUseCase(capture).build();
             provider.unbindAll();
             imageCapture = null;
-            provider.bindToLifecycle(this, selector, group);
+            boundCameraInfo = provider.bindToLifecycle(this, selector, group).getCameraInfo();
+            selectedCameraId = Camera2CameraInfo.from(boundCameraInfo).getCameraId();
             imageCapture = capture;
             boundWidth = previewView.getWidth();
             boundHeight = previewView.getHeight();
             boundRotation = rotation;
+            boundDisplayId = displayId;
             status.setText((front ? "前摄" : "后摄")
                     + (mirrors.previewMirrored ? " · 预览镜像" : " · 预览不镜像"));
             Log.i(TAG, diagnostics());
         } catch (Exception failure) {
             imageCapture = null;
+            boundCameraInfo = null;
+            selectedCameraId = "none";
             cameraError("相机启动失败，请查看诊断", failure);
         }
         updateControls();
@@ -255,6 +293,7 @@ public final class MainActivity extends ComponentActivity {
 
     private void changeLens() {
         if (provider == null || captureGate.isBusy()) return;
+        requestedCameraId = null;
         try {
             CameraSelector candidate = front
                     ? CameraSelector.DEFAULT_BACK_CAMERA : CameraSelector.DEFAULT_FRONT_CAMERA;
@@ -291,6 +330,10 @@ public final class MainActivity extends ComponentActivity {
                             }
                         })
                 .setNeutralButton("诊断", (dialog, which) -> showDiagnostics())
+                .setNegativeButton("系统相机", (dialog, which) -> startActivity(
+                        new Intent(this, SystemCaptureActivity.class),
+                        ActivityOptions.makeBasic().setLaunchDisplayId(
+                                getDisplay().getDisplayId()).toBundle()))
                 .setPositiveButton("完成", null)
                 .show();
     }
@@ -335,6 +378,7 @@ public final class MainActivity extends ComponentActivity {
                         if (!finishCapture(captureToken)) return;
                         lastSavedToken = captureToken;
                         lastExif = 0;
+                        lastImageCheck = "not_checked";
                         lastCapture = lens + ", requested_mirror=" + snapshot.photoMirrored;
                         status.setText("照片已保存");
                         readSavedExif(result.getSavedUri(), captureToken);
@@ -361,9 +405,29 @@ public final class MainActivity extends ComponentActivity {
             try (InputStream stream = getContentResolver().openInputStream(uri)) {
                 int orientation = stream == null ? 0 : new ExifInterface(stream)
                         .getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = 64;
+                Bitmap sample;
+                try (InputStream pixels = getContentResolver().openInputStream(uri)) {
+                    sample = BitmapFactory.decodeStream(pixels, null, options);
+                }
+                boolean allBlack = sample != null;
+                if (sample != null) {
+                    int[] pixels = new int[sample.getWidth() * sample.getHeight()];
+                    sample.getPixels(pixels, 0, sample.getWidth(), 0, 0,
+                            sample.getWidth(), sample.getHeight());
+                    allBlack = RgbFrameStats.fromArgb(pixels).allBlack();
+                    sample.recycle();
+                }
+                final String imageCheck = sample == null ? "decode_failed"
+                        : allBlack ? "sample_all_black" : "sample_has_signal";
                 runOnUiThread(() -> {
                     if (isDestroyed() || lastSavedToken != savedToken) return;
                     lastExif = orientation;
+                    lastImageCheck = imageCheck;
+                    if (imageCheck.equals("sample_all_black") && !captureGate.isBusy()) {
+                        status.setText("已保存，疑似黑图，请检查相机访问");
+                    }
                     Log.i(TAG, "saved EXIF=" + orientation + ", " + lastCapture);
                 });
             } catch (Exception failure) {
@@ -390,12 +454,18 @@ public final class MainActivity extends ComponentActivity {
                 .append("\ndisplay_rotation=").append(display == null
                         ? Surface.ROTATION_0 : display.getRotation())
                 .append("\nselected_lens=").append(front ? "front" : "back")
+                .append("\nselected_camera_id=").append(selectedCameraId)
+                .append("\ncamera_state=").append(boundCameraInfo == null ? "none"
+                        : boundCameraInfo.getCameraState().getValue())
+                .append("\nrequested_camera_id=").append(requestedCameraId)
+                .append("\npreview_stream=").append(previewView.getPreviewStreamState().getValue())
                 .append("\npreview_mirror=").append(mirrors.previewMirrored)
                 .append("\nphoto_mirror=").append(mirrors.photoMirrored)
                 .append("\nlast_capture=").append(lastCapture)
                 .append("\nlast_exif_orientation=").append(lastExif)
                 .append("\nlast_exif_reflection=").append(lastExif >= 1 && lastExif <= 8
                         ? String.valueOf(ExifTransform.isMirrored(lastExif)) : "unknown")
+                .append("\nlast_image_check=").append(lastImageCheck)
                 .append("\nlast_error=").append(lastError);
         if (hasCameraPermission()) {
             try {
@@ -407,6 +477,17 @@ public final class MainActivity extends ComponentActivity {
                                 .append(": facing=").append(info.get(CameraCharacteristics.LENS_FACING))
                                 .append(", sensor_rotation=")
                                 .append(info.get(CameraCharacteristics.SENSOR_ORIENTATION));
+                    }
+                    if (requestedCameraId != null) {
+                        try {
+                            CameraCharacteristics probe = manager.getCameraCharacteristics(requestedCameraId);
+                            text.append("\nrequested_camera_query=available, facing=")
+                                    .append(probe.get(CameraCharacteristics.LENS_FACING));
+                        } catch (Exception failure) {
+                            text.append("\nrequested_camera_query=")
+                                    .append(failure.getClass().getSimpleName())
+                                    .append(": ").append(failure.getMessage());
+                        }
                     }
                 }
             } catch (Exception failure) {

@@ -108,3 +108,22 @@
 
 - 远程验证完成：源码提交 800935ea24ad1638749dd4ed0cae8985a7a868e9；https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38331262454 已 completed / success。实际执行核心 13,511 个断言、photoEvidenceChecks、assembleDebug、lintDebug，日志为 BUILD SUCCESSFUL。两张原始 JPEG 的 SHA-256 匹配，JVM ImageIO 完整解码 20,758,528 个像素，RGB 全零。
 - 新版 artifact：xflip-camera-debug / 11782463018，ZIP 5928273 bytes，digest sha256:f8285f504436ea7b4ebd03f639d121a52cecb02fb1954e545ac3e35b18973f33，APK 与 Lint 报告成功上传，保留至 2026-10-20T01:16:11Z。已核对远程 16 个新增/修改文件 blob 与本地一致、MainActivity 保持原 blob。真机页面/采样验收及黑屏修复仍未完成。
+
+## 2026-10-13｜有线续接修复与合盖系统相机回传
+
+- 起始本地提交 c3f50ce；先 fetch 并快进到 9404224，保留另一 agent 新增的 JPEG 工具、照片证据与核心检查。合并只在版本号配置冲突，采用 0.1.6-dev / versionCode 7，保留两 flavor 与全部上游功能。
+- 用户授权实机负责人优先修复、查现有方案和系统相机接口；仍只通过本仓库 Issue 1 与两个 agent 沟通，未启动另一个手机测试者或通过其他聊天分派。
+- 本轮诊断：实际 Camera ID、CameraState、PreviewView stream、受控 camera_id 请求及直接 Camera2 查询错误；修复 displayId 缓存遗漏，加入 KEEP_SCREEN_ON 和采样黑图提示，复用上游 RgbFrameStats。35 秒无触摸时外屏仍 Awake、mStayOn=false；不修改设备全局休眠设置。
+- 排除改包名假设：org.codeaurora.snapcam 仍只枚举 0、1，查询 ID 4 报 system only device。ADB Shell 的 SYSTEM_CAMERA 显示 granted，真实 UID 2000 / com.android.shell 通过 scrcpy 上下文直接查询 ID 4 仍被拒绝。scrcpy 4.1 也仅枚举 0、1；ID 0 短录像产生文件但视频解码未成功，不计有效像素。
+- Google 现有方案：手机已安装 AGC 9.2 的公开 IMAGE_CAPTURE Activity 可在外屏启动，但出现 vivo 翻开提示、预览黑屏。未改其配置、未分发 APK、未接通 Google 成像。
+- 有效图像路线：新增 SystemCaptureActivity，使用公开 ACTION_IMAGE_CAPTURE 调用 com.android.camera、明确 launchDisplayId，实际 ID 4 可真实取景。前期 MediaStore 输出直接回传取消，改用狭窄 cache FileProvider URI、ClipData 和临时读写授权后全尺寸 JPEG 成功返回，再复制到本应用 MediaStore 并发布。
+- 0.1.6 coverCompat 实际安装包与本地 SHA256 均为 9a5bdf82581c3991dffcd33f33214589a0cd1020cc967401c10f9420fcf00d80，15,641,006 bytes。全程实际 CLOSED、无 override、display 1。连续两次拍照均返回自有外屏显示并保存：3,096,607 / 5,014,711 bytes、3072×4096，Pillow 独立全图解码 RGB 非零；取消未新增空文件，已保存照片保留。0.1.5 另有一次有效回传。
+- 原生成片含 GPS 元数据，公开证据只含其存在标志、图像统计和 SHA，不含坐标、真实场景 JPEG 或照片截图。未上传厂商 APK、反编译结果或完整全机日志。
+- 原生预览仍镜像，外屏设置未发现对应开关；本应用 CameraX 两项镜像偏好不作用于外部相机。没有宣称镜像、Google 算法或独立外屏入口已完成。既有外屏助手影响普通 Activity 的合盖启动，暂停它后出现 FlipToContinue，恢复后可启动；保留用户该配置。
+- 最终 CameraX ID 0 为 OPEN、STREAMING、CAMERA 已授权、last_error=none，却仍拍出 62,824 bytes 全黑图。新黑图提示实际显示，独立全图解码三个 RGB 范围均 [0,0]。
+- 检查 agent 的独立 JPEG 页面已在外屏完成真实黑图与有效系统照片连续分享：黑图 512×317、全零，明亮图 384×512、196,608 个非零采样，EXIF 缺失显示 unknown，没有旧结果覆盖。
+- 本机 JDK 21 / Java 17 目标、共享 SDK、Gradle 8.11.1：两个 flavor assemble 与 Lint、13,511 项核心断言、两张原始黑 JPEG 共 20,758,528 个像素及哈希检查通过。一次构建因挂起的旧 ADB install 占用 APK 而失败，终止安装命令、重跑后 BUILD SUCCESSFUL in 19s；后续安装使用独立副本。standard 仅构建，coverCompat 才有上述真机验证。
+- APK 全程外屏文件管理安装，版本化文件名避免旧安装元数据缓存；未要求展开。已恢复本测试包默认镜像偏好，保留系统相机原 4:3 / 无延时设置，没有修改全机 DPI。
+- 文档与证据：docs/device-test-2026-10-13.md、docs/evidence/2026-10-13-system-capture，更新 README、技术基线、双 flavor 构建与工作流。实测 APK另上传 GitHub 预发布供其他 agent 下载，发布结果以实际远程核验为准。
+- 下一步：代码 agent 在系统回传基线上完成外屏直接入口与可恢复状态，再研究取得真实预览的可行接口；检查 agent 审核 Activity Result、URI 授权、取消/读取失败/退出与恢复的输出归属。共同保留独立 JPEG 工具，禁止把系统成像称为 Google 或把 STREAMING 当像素验收。
+- 未验收：非对称卡片左右方向、四方向、展开/内屏、独立入口、进程恢复、损坏/无权限 JPEG、厂商扩展及 Google 成像。用户无法展开，只暂停需要展开的验证；继续可独立推进事项。实际模型/推理强度无法从任务接口核实。

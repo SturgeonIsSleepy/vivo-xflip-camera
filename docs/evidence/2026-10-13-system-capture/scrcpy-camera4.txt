@@ -1,0 +1,14 @@
+scrcpy 4.1 <https://github.com/Genymobile/scrcpy>
+INFO: ADB device found:
+INFO:     -->   (usb)  [device serial omitted]                 device  V2256A
+[scrcpy folder]/scrcpy-server: 1 file pushed, 0 skipped. 27.9 MB/s (733706 bytes in 0.025s)
+[server] INFO: Device: [vivo] vivo V2256A (Android 14)
+INFO: Recording started to mp4 file: test-evidence/shell-camera4-local.mp4
+[server] ERROR: Camera with id 4 not found
+List of cameras:
+    --camera-id=0    (back, 4096x3072, fps={10, 15, 24, 30}, zoom-range=[1, 10])
+    --camera-id=1    (back, 4096x3072, fps={10, 15, 24, 30}, zoom-range=[0.6, 10])
+ERROR: Demuxer 'video': stream disabled due to connection error
+ERROR: Demuxer error
+WARN: Recording stopped before headers were processed
+ERROR: Recording failed to test-evidence/shell-camera4-local.mp4

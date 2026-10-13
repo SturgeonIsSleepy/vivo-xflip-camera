@@ -1,0 +1,29 @@
+{
+  "bytes": 5014711,
+  "sha256": "0891a9bf154a1c7004ad2eb0db449cb48bff556a22fccd5ea0ed26343478beab",
+  "encoded_px": [
+    3072,
+    4096
+  ],
+  "exif_orientation": null,
+  "gps_present": true,
+  "rgb_extrema": [
+    [
+      0,
+      233
+    ],
+    [
+      0,
+      208
+    ],
+    [
+      0,
+      205
+    ]
+  ],
+  "rgb_mean": [
+    133.1666634877523,
+    133.13757133483887,
+    129.0131630897522
+  ]
+}
