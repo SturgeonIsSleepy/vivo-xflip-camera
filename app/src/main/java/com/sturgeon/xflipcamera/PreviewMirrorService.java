@@ -29,6 +29,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
     private Shizuku.UserServiceArgs args;
     private boolean movie;
     private int displayId;
+    private boolean rendererStarted;
     private final ServiceConnection connection = new ServiceConnection() {
         @Override public void onServiceConnected(ComponentName name, IBinder service) {
             worker = service;
@@ -70,8 +71,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
             preview.getHolder().addCallback(this);
             WindowManager.LayoutParams layout = new WindowManager.LayoutParams(width, size.y,
                     WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                     PixelFormat.TRANSLUCENT);
             layout.gravity = Gravity.TOP | Gravity.LEFT;
             layout.x = (size.x - width) / 2;
@@ -94,7 +94,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
     }
 
     private void startRendering() {
-        if (worker == null || preview == null || !preview.getHolder().getSurface().isValid()) return;
+        if (rendererStarted || worker == null || preview == null || !preview.getHolder().getSurface().isValid()) return;
         Parcel data = Parcel.obtain(), result = Parcel.obtain();
         try {
             data.writeInterfaceToken(PreviewMirrorWorker.DESCRIPTOR);
@@ -104,6 +104,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
             data.writeBoolean(movie);
             worker.transact(PreviewMirrorWorker.START, data, result, 0);
             result.readException();
+            rendererStarted = true;
         } catch (Exception failure) {
             android.util.Log.e("XFlipPreviewMirror", "render failed", failure);
             stopSelf();
@@ -112,7 +113,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
 
     @Override public void surfaceCreated(SurfaceHolder holder) { startRendering(); }
     @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
-    @Override public void surfaceDestroyed(SurfaceHolder holder) { }
+    @Override public void surfaceDestroyed(SurfaceHolder holder) { stopRendering(); }
 
     @Override protected void dump(java.io.FileDescriptor descriptor, java.io.PrintWriter writer, String[] args) {
         String status = "not_connected";
@@ -132,6 +133,18 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
 
     @Override public void onDestroy() {
         active = null;
+        stopRendering();
+        try {
+            if (args != null && Shizuku.pingBinder()) Shizuku.unbindUserService(args, connection, true);
+        } catch (RuntimeException failure) {
+            android.util.Log.w("XFlipPreviewMirror", "service already disconnected", failure);
+        }
+        if (preview != null && preview.isAttachedToWindow() && windows != null) windows.removeView(preview);
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        super.onDestroy();
+    }
+
+    private void stopRendering() {
         if (worker != null) {
             Parcel data = Parcel.obtain(), result = Parcel.obtain();
             try {
@@ -141,13 +154,6 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
             } catch (Exception ignored) { }
             finally { data.recycle(); result.recycle(); }
         }
-        try {
-            if (args != null && Shizuku.pingBinder()) Shizuku.unbindUserService(args, connection, true);
-        } catch (RuntimeException failure) {
-            android.util.Log.w("XFlipPreviewMirror", "service already disconnected", failure);
-        }
-        if (preview != null && preview.isAttachedToWindow() && windows != null) windows.removeView(preview);
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        super.onDestroy();
+        rendererStarted = false;
     }
 }

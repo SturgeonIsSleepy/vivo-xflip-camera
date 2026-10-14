@@ -11,8 +11,8 @@ android {
         applicationId 'com.sturgeon.xflipcamera'
         minSdk 33
         targetSdk 36
-        versionCode 10
-        versionName '0.2.2-dev'
+        versionCode 14
+        versionName '0.2.6-dev'
     }
 
     flavorDimensions 'cameraAccess'

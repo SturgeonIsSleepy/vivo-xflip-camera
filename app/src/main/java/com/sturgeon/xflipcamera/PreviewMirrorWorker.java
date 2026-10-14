@@ -21,9 +21,10 @@ import java.util.List;
 public final class PreviewMirrorWorker extends Binder {
     static final String DESCRIPTOR = "com.sturgeon.xflipcamera.PreviewMirror";
     static final int START = 1, STOP = 2, STATUS = 3;
-    private volatile boolean running;
+    private volatile long generation;
     private volatile String status = "idle";
     private Thread renderThread;
+    private static Class<?> displayControl;
 
     public PreviewMirrorWorker() { attachInterface(null, DESCRIPTOR); }
 
@@ -37,8 +38,8 @@ public final class PreviewMirrorWorker extends Binder {
             SurfaceControl exclude = data.readTypedObject(SurfaceControl.CREATOR);
             int displayId = data.readInt();
             boolean movie = data.readBoolean();
-            running = true;
-            renderThread = new Thread(() -> render(target, exclude, displayId, movie), "cover-preview");
+            long session = ++generation;
+            renderThread = new Thread(() -> render(target, exclude, displayId, movie, session), "cover-preview");
             renderThread.start();
         } else if (code == STOP || code == 16777115) {
             stop();
@@ -53,7 +54,7 @@ public final class PreviewMirrorWorker extends Binder {
     }
 
     private synchronized void stop() {
-        running = false;
+        generation++;
         if (renderThread != null) {
             renderThread.interrupt();
             try { renderThread.join(1500); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
@@ -62,7 +63,7 @@ public final class PreviewMirrorWorker extends Binder {
     }
 
     @SuppressWarnings("unchecked")
-    private void render(Surface target, SurfaceControl exclude, int displayId, boolean movie) {
+    private void render(Surface target, SurfaceControl exclude, int displayId, boolean movie, long session) {
         long frames = 0;
         try {
             if (Process.myUid() != 2000 && Process.myUid() != 0) {
@@ -80,6 +81,10 @@ public final class PreviewMirrorWorker extends Binder {
             IBinder token = displayToken(physicalId);
             Class<?> builderType = Class.forName("android.window.ScreenCapture$DisplayCaptureArgs$Builder");
             Object builder = builderType.getConstructor(IBinder.class).newInstance(token);
+            builderType.getMethod("setUseIdentityTransform", boolean.class).invoke(builder, true);
+            builderType.getMethod("setSize", int.class, int.class).invoke(builder,
+                    info.getClass().getField("logicalWidth").getInt(info),
+                    info.getClass().getField("logicalHeight").getInt(info));
             builderType.getMethod("setExcludeLayers", SurfaceControl[].class)
                     .invoke(builder, new Object[]{new SurfaceControl[]{exclude}});
             Object args = builderType.getMethod("build").invoke(builder);
@@ -89,12 +94,15 @@ public final class PreviewMirrorWorker extends Binder {
             Method getTasks = Class.forName("android.app.IActivityTaskManager")
                     .getMethod("getTasks", int.class, boolean.class, boolean.class, int.class);
             Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
-            while (running && target.isValid()) {
+            while (session == generation && !Thread.currentThread().isInterrupted() && target.isValid()) {
                 List<ActivityManager.RunningTaskInfo> foreground = (List<ActivityManager.RunningTaskInfo>)
                         getTasks.invoke(tasks, 1, false, false, displayId);
                 boolean cameraTop = !foreground.isEmpty() && foreground.get(0).topActivity != null
                         && "com.android.camera".equals(foreground.get(0).topActivity.getPackageName());
-                if (!cameraTop) { clear(target); Thread.sleep(100); continue; }
+                if (!cameraTop) {
+                    status = "waiting_camera, mirrored_frames=" + frames;
+                    clear(target); Thread.sleep(100); continue;
+                }
                 Object buffer = capture.invoke(null, args);
                 if (buffer == null) throw new IllegalStateException("Display capture returned null");
                 Bitmap hardware = (Bitmap) buffer.getClass().getMethod("asBitmap").invoke(buffer);
@@ -102,7 +110,12 @@ public final class PreviewMirrorWorker extends Binder {
                 hardware.recycle();
                 ((android.hardware.HardwareBuffer) buffer.getClass().getMethod("getHardwareBuffer").invoke(buffer)).close();
                 try {
-                    if (!previewControls(pixels, density, movie)) { clear(target); }
+                    int controls = previewControls(pixels, movie);
+                    if (controls == 0) {
+                        status = "waiting_preview_controls, captured_px=" + pixels.getWidth() + "x"
+                                + pixels.getHeight() + ", density=" + density + ", mirrored_frames=" + frames;
+                        clear(target);
+                    }
                     else {
                         int width = Math.round(pixels.getHeight() * (movie ? 9f / 16 : 3f / 4));
                         int left = (pixels.getWidth() - width) / 2;
@@ -114,6 +127,16 @@ public final class PreviewMirrorWorker extends Binder {
                             canvas.drawBitmap(pixels, new Rect(left, 0, left + width, pixels.getHeight()),
                                     new Rect(0, 0, canvas.getWidth(), canvas.getHeight()), paint);
                             canvas.restore();
+                            if (controls == 2) {
+                                int timerWidth = Math.min(width - 4, Math.round(pixels.getHeight() * 0.44f));
+                                Rect timer = new Rect(pixels.getWidth() / 2 - timerWidth / 2,
+                                        Math.round(pixels.getHeight() * 0.06f),
+                                        pixels.getWidth() / 2 + timerWidth / 2,
+                                        Math.round(pixels.getHeight() * 0.19f));
+                                Rect timerTarget = new Rect(timer.left - left, timer.top,
+                                        timer.right - left, timer.bottom);
+                                canvas.drawBitmap(pixels, timer, timerTarget, paint);
+                            }
                         } finally { target.unlockCanvasAndPost(canvas); }
                         frames++;
                         status = "uid=" + Process.myUid() + ", mirrored_frames=" + frames;
@@ -122,31 +145,40 @@ public final class PreviewMirrorWorker extends Binder {
                 Thread.sleep(67);
             }
         } catch (Throwable failure) {
-            status = "mirror_error=" + failure;
+            Throwable cause = failure;
+            while (cause instanceof java.lang.reflect.InvocationTargetException && cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            status = "mirror_error=" + cause;
         } finally {
-            running = false;
             try { clear(target); } catch (RuntimeException ignored) { }
             target.release();
             exclude.release();
         }
     }
 
-    private static boolean previewControls(Bitmap frame, int density, boolean movie) {
-        float dp = density / 160f;
-        int cx = Math.round(frame.getWidth() - 72 * dp), cy = frame.getHeight() / 2;
-        int hits = 0;
-        for (int i = 0; i < 16; i++) {
-            double angle = i * Math.PI / 8;
-            int radius = Math.round((movie ? 15 : 37) * dp);
-            int x = cx + (int) Math.round(Math.cos(angle) * radius);
-            int y = cy + (int) Math.round(Math.sin(angle) * radius);
-            if (x < 0 || y < 0 || x >= frame.getWidth() || y >= frame.getHeight()) return false;
-            int color = frame.getPixel(x, y);
-            boolean marker = movie ? Color.red(color) > 180 && Color.green(color) < 140
-                    : Color.red(color) > 180 && Color.green(color) > 160 && Color.blue(color) < 140;
-            if (marker) hits++;
+    private static int previewControls(Bitmap frame, boolean movie) {
+        int height = frame.getHeight();
+        int previewWidth = Math.round(height * (movie ? 9f / 16 : 3f / 4));
+        int right = (frame.getWidth() + previewWidth) / 2;
+        int minX = frame.getWidth(), minY = height, maxX = -1, maxY = -1, hits = 0;
+        for (int y = height / 4; y < height * 3 / 4; y += 2) {
+            for (int x = right; x < frame.getWidth(); x += 2) {
+                int color = frame.getPixel(x, y);
+                boolean marker = movie ? Color.red(color) > 180 && Color.green(color) < 140
+                        && Color.blue(color) < 140 : Color.red(color) > 180
+                        && Color.green(color) > 160 && Color.blue(color) < 140;
+                if (marker) {
+                    hits++;
+                    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                }
+            }
         }
-        return hits >= 5;
+        int width = maxX - minX + 1, markerHeight = maxY - minY + 1;
+        if (hits < 20 || width <= 0 || markerHeight <= 0
+                || width < markerHeight * 0.75f || width > markerHeight * 1.25f) return 0;
+        return movie && markerHeight < height / 10 ? 2 : 1;
     }
 
     private static void clear(Surface surface) {
@@ -158,16 +190,19 @@ public final class PreviewMirrorWorker extends Binder {
 
     /** Android 14 loader adapted from scrcpy v4.1 DisplayControl (Apache-2.0); see third-party notices. */
     @android.annotation.SuppressLint({"BlockedPrivateApi", "PrivateApi"})
-    private static IBinder displayToken(long physicalId) throws Exception {
-        Class<?> factory = Class.forName("com.android.internal.os.ClassLoaderFactory");
-        ClassLoader loader = (ClassLoader) factory.getDeclaredMethod("createClassLoader", String.class,
-                String.class, String.class, ClassLoader.class, int.class, boolean.class, String.class)
-                .invoke(null, android.system.Os.getenv("SYSTEMSERVERCLASSPATH"), null, null,
-                        ClassLoader.getSystemClassLoader(), 0, true, null);
-        Class<?> control = loader.loadClass("com.android.server.display.DisplayControl");
-        Method load = Runtime.class.getDeclaredMethod("loadLibrary0", Class.class, String.class);
-        load.setAccessible(true);
-        load.invoke(Runtime.getRuntime(), control, "android_servers");
-        return (IBinder) control.getMethod("getPhysicalDisplayToken", long.class).invoke(null, physicalId);
+    private static synchronized IBinder displayToken(long physicalId) throws Exception {
+        if (displayControl == null) {
+            Class<?> factory = Class.forName("com.android.internal.os.ClassLoaderFactory");
+            ClassLoader loader = (ClassLoader) factory.getDeclaredMethod("createClassLoader", String.class,
+                    String.class, String.class, ClassLoader.class, int.class, boolean.class, String.class)
+                    .invoke(null, android.system.Os.getenv("SYSTEMSERVERCLASSPATH"), null, null,
+                            ClassLoader.getSystemClassLoader(), 0, true, null);
+            Class<?> control = loader.loadClass("com.android.server.display.DisplayControl");
+            Method load = Runtime.class.getDeclaredMethod("loadLibrary0", Class.class, String.class);
+            load.setAccessible(true);
+            load.invoke(Runtime.getRuntime(), control, "android_servers");
+            displayControl = control;
+        }
+        return (IBinder) displayControl.getMethod("getPhysicalDisplayToken", long.class).invoke(null, physicalId);
     }
 }

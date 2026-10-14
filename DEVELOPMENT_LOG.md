@@ -196,3 +196,16 @@
 - 源码已同步：6e811e6ded0b4fd2bc832b0c22c0c2e0774c797f；7 个变更文件远程 blob 与本地一致，其余远程文件和权限位全部保留，9 个协作文件未修改。推送使用 expected main SHA 的更新，没有强制覆盖。
 - 远程验证已读回：https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38493995473 completed / success，head 精确对应本轮源码；实际日志确认 13,630 个断言、2 张原始 JPEG 全图 20,758,528 个像素及哈希、assembleStandardDebug / assembleCoverCompatDebug、lintStandardDebug / lintCoverCompatDebug，BUILD SUCCESSFUL in 44s。原始照片仍为历史证据，不是新版本设备验证。
 - artifact xflip-camera-debug / 11863057147，ZIP 11,959,725 bytes，digest sha256:d4795df7b6f0859c3d88d3b44942c59119da6b6283ef3a4eaee4e2160dac256c，保留至 2026-10-21T01:08:44Z。两个 CI APK 和各自 Lint 报告已上传；源码版本号沿用 0.2.2-dev / 10，未改变实机负责人协作中的版本设置，没有发布实测包或操作手机。README 已更新构建入口，恢复/失权实机验收及 P0/P1 待办继续保留。
+
+## 2026-10-14｜拍照与录像实时预览纠正验收
+
+- 起始 026f964，保留两个 agent 的 PendingMediaWrite 与 PhotoInspectionState 修复。用户指定先完成拍照/录像左右纠正，再视频防抖，最后影像算法。
+- 实机已安装 0.2.2，直接 Shell 广播握手成功，日志实际 uid=2000。Shizuku 管理器提供者仍无法被外部 Shell 获取，没有继续把权限文本或待连接状态当成功。
+- 修复只输出第一帧及透明度叠加：取消改用独立 generation，同一 Surface 只 START 一次、销毁显式 STOP；取景覆盖层完整显示。统一逻辑坐标捕获，按右侧快门实际颜色/边界判断预览及确认状态，去掉预测 DPI 坐标依赖。
+- 原生拍照动态取景已实测：连续计数 6 → 631，日历 31 正常可读；按快门后确认页 waiting_preview_controls，覆盖层透明，确认成功返回并保存。
+- 修复同一工作者从照片切换视频时重复加载系统显示库的问题，缓存 DisplayControl 类；异常报告展开实际原因。录像预览与录制均持续更新，录制时计数 359 → 364，方向正常。计时文字保留原生方向。
+- 最终约 5 秒录像成功返回、解码显示并保存至 Movies/XFlipCamera，2,348,489 bytes；返回后 PreviewMirrorService 已停止。真实照片、视频、截图不公开上传。
+- 客户端实测版本 0.2.3，Shell 工作者迭代至 0.2.6；完整单一版本 APK 的安装复验仍需完成，不以混合调试会话当最终发布包验收。
+- 本地各次 coverCompat APK / Lint 构建通过；此前核心检查及新合并断言通过，最终双 flavor 全部检查将随提交前执行记录。新增 nohup 直接桥接启动脚本，其断线、重启恢复仍待实测。
+- 限制：覆盖层占用原生取景点按对焦区域，快门/确认正常；4:3 照片及 16:9 视频布局验证，其他比例/方向/切屏待验收；计时区域有小块背景拼接。手机或应用进程重启后仍需桥接初始化，原外屏助手依赖保留。
+- 文档：docs/live-preview-2026-10-14.md、scripts/start_preview_bridge.ps1。代码检查 agent 可复核 generation/Surface/停止/死亡边界；下一步先完成最终包复验和上传，再添加视频防抖，影像算法排在防抖后。没有宣称已新增防抖或 Google 算法。
