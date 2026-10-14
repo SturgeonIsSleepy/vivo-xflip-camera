@@ -1,0 +1,12 @@
+{
+  "full_candidate_installed": false,
+  "first_frames": 18,
+  "unknown_controls": 3,
+  "client_version": "0.2.9-dev",
+  "worker_version": "0.3.0-dev experimental",
+  "fps": 29.241596036544514,
+  "capture_misses": 0,
+  "elapsed_seconds": 8.0706949,
+  "last_frames": 254,
+  "phase": 1
+}

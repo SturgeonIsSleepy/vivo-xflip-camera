@@ -6,8 +6,9 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if ($Package -notmatch '^[A-Za-z0-9_.]+$') { throw 'Invalid package name' }
-& $Adb -s $Serial shell am start -W --display $DisplayId -n "$Package/com.sturgeon.xflipcamera.SystemCaptureActivity"
-if ($LASTEXITCODE -ne 0) { throw 'Could not open camera entry' }
+$launchResult = & $Adb -s $Serial shell am start -W --display $DisplayId -n "$Package/com.sturgeon.xflipcamera.SystemCaptureActivity"
+$launchResult
+if ($LASTEXITCODE -ne 0 -or !($launchResult -match '^Status: ok')) { throw 'Could not open camera entry; wake the cover display and open the cover assistant first' }
 $packagePath = (& $Adb -s $Serial shell pm path $Package | Select-Object -First 1).Trim()
 if (!$packagePath.StartsWith('package:/data/app/')) { throw 'Installed APK path unavailable' }
 $apkPath = $packagePath.Substring(8)
