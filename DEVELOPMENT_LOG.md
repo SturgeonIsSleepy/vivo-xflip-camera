@@ -193,3 +193,6 @@
 - 待办更新：P0 动态预览、Binder/Surface/STOP 与快门确认验收按凌晨规划继续，解除条件是有线负责人完成连续画面与左右测试并交接。P1 本次独立入口代码修复及 JVM 检查完成，等待已授权设备执行 docs/code-review-2026-10-14.md 的四组恢复/换图/失权验收；系统回传发布、读取归属与重建风险仍按原规划，协作交接后接续。P2 厂商扩展和合法成像待办复用，不增加重复研究。
 - 已完成的附加目标：恢复已完成的小型报告，不因页面重建重复读取和采样同一照片。读取中的页面仍可能重新解码，未承诺任务跨实例继续或临时权限跨进程保留。
 - 模型/推理强度无法核实，剩余额度无法读取；本轮范围限定为上述独立修复和相称验证，无限额百分比假设。设备仅阻塞相应验收，项目未全部阻塞。
+- 源码已同步：6e811e6ded0b4fd2bc832b0c22c0c2e0774c797f；7 个变更文件远程 blob 与本地一致，其余远程文件和权限位全部保留，9 个协作文件未修改。推送使用 expected main SHA 的更新，没有强制覆盖。
+- 远程验证已读回：https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38493995473 completed / success，head 精确对应本轮源码；实际日志确认 13,630 个断言、2 张原始 JPEG 全图 20,758,528 个像素及哈希、assembleStandardDebug / assembleCoverCompatDebug、lintStandardDebug / lintCoverCompatDebug，BUILD SUCCESSFUL in 44s。原始照片仍为历史证据，不是新版本设备验证。
+- artifact xflip-camera-debug / 11863057147，ZIP 11,959,725 bytes，digest sha256:d4795df7b6f0859c3d88d3b44942c59119da6b6283ef3a4eaee4e2160dac256c，保留至 2026-10-21T01:08:44Z。两个 CI APK 和各自 Lint 报告已上传；源码版本号沿用 0.2.2-dev / 10，未改变实机负责人协作中的版本设置，没有发布实测包或操作手机。README 已更新构建入口，恢复/失权实机验收及 P0/P1 待办继续保留。

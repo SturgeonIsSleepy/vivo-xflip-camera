@@ -65,7 +65,7 @@ java scripts/ParseJava.java
 
 PhotoInspectionActivity 现在把当前选择和小型文字报告写入 saved instance Bundle，优先恢复它们。已完成报告直接恢复，待完成读取只对最新选择重新发起；从分享或选择器换图时立即清空旧报告和复制状态。新增实际接入的 PhotoInspectionState，拒绝旧、重复及已销毁页面的回调。Bitmap 与像素数组不进入 Bundle，不取得新的持久 URI 授权。
 
-验证：bash scripts/check_core.sh 在 JDK 17、--release 17、-Xlint:all、-Werror 下通过 13,630 个断言；新增的 35 个断言验证 A → B → 重建、待完成恢复、重复/旧回调、退出及明确失败报告的归属。可单独运行 java -cp .build/core-checks com.sturgeon.xflipcamera.core.PhotoInspectionStateChecks。java scripts/ParseJava.java 通过 20 个 Java 文件语法解析，git diff --check 通过。此处是 JVM 状态场景验证，未执行 Android Activity 重建或真实权限测试；源码提交后的双 flavor 构建与 Lint 需读回 CI 结果。
+验证：bash scripts/check_core.sh 在 JDK 17、--release 17、-Xlint:all、-Werror 下通过 13,630 个断言；新增的 35 个断言验证 A → B → 重建、待完成恢复、重复/旧回调、退出及明确失败报告的归属。可单独运行 java -cp .build/core-checks com.sturgeon.xflipcamera.core.PhotoInspectionStateChecks。java scripts/ParseJava.java 通过 20 个 Java 文件语法解析，git diff --check 通过。此处是 JVM 状态场景验证，未执行 Android Activity 重建或真实权限测试；远程构建结果见下文。
 
 ### 待实机验收
 
@@ -75,3 +75,9 @@ PhotoInspectionActivity 现在把当前选择和小型文字报告写入 saved i
 4. 使用无权限、损坏或已删除 JPEG：明确显示“检查未完成”，不能计为全黑或有效图像。Bundle 中的 URI 字符串不代表权限仍有效；已有报告是此前的检查记录，重新检查需当前有效授权。
 
 状态恢复依据：[Android 官方 Save UI states](https://developer.android.com/topic/libraries/architecture/views/saving-states-views)，仅保存小型选择标识与报告。P0 动态预览及 SystemCaptureActivity 的恢复风险继续沿用上文计划，由有线负责人验收后解除相应协作限制；没有将此次独立入口修复当作实时镜像成功。
+
+### 晨间源码与构建已核验
+
+- 源码提交：[6e811e6ded0b4fd2bc832b0c22c0c2e0774c797f](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/6e811e6ded0b4fd2bc832b0c22c0c2e0774c797f)，7 个变更文件的远程 Git blob 与本地一致，其余远程文件及权限位均保留；9 个预览/系统入口协作文件保持原值。
+- [CI 38493995473](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38493995473) completed / success，head 精确对应上述源码；日志确认 13,630 个核心断言、2 张原始 JPEG 共 20,758,528 个完整像素及 SHA-256、双 flavor assemble/Lint 全部通过，构建 BUILD SUCCESSFUL in 44s。原始 JPEG 复核不属于新版本实机测试。
+- artifact xflip-camera-debug / 11863057147，11,959,725 bytes，digest sha256:d4795df7b6f0859c3d88d3b44942c59119da6b6283ef3a4eaee4e2160dac256c；保留至 2026-10-21T01:08:44Z。包内为两个 APK 与各自 Lint 报告；版本沿用协作检查点 0.2.2-dev / 10，按源码 SHA 区分，CI 签名未与已安装包核对，也未在手机安装或复测。
