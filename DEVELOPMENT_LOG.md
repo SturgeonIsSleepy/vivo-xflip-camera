@@ -256,3 +256,16 @@
 - 报告 docs/preview-performance-2026-10-14.md。源码、候选 APK 与统计上传后核验远程；已有 0.2.9 实测 Release 保留。最终发布收据与交接见本轮后续记录。
 - 远程源码 5ff5040e305c9a9628cda0593f21aa29a6d84077 已核验 main 一致；对应 CI run 38583427109 completed/success，artifact 11903658385 / xflip-camera-debug / 15,550,646 bytes / sha256:311666f7cc65cada1591aa4def8e2dd4a823f32586dec725fc8f1b6195f5cb87，CI APK 和 Lint 已上传。
 - 本地签名 APK 直传挂起；终止本任务上传进程后，curl 报证书吊销服务离线，保留证书链验证的限时重试仍发送 0 bytes 并超时。未上传本地签名资产，19,817,652 bytes APK 保留本地；release 412835355 已转 draft=true，避免空下载入口。candidate-publication.json 记录真实状态，不把 CI 包称作实测签名包，不为此次文档变更再构建。
+
+## 2026-10-15｜独立外屏原生控件
+
+- 起始提交：8c29dc5c0c947800488fbadda5bcce30312c5992。已确认 GitHub 连接为 SturgeonIsSleepy、Public / main 及 pull/push 权限；读取 README、AGENTS、近期日志、技术基线、两项任务文档、工作日缓存、最新 CI 与 Issue 1 交接。从 GitHub 固定版本恢复构建所需文件，旧临时文件仅在 Git blob 与远程相同时复用。
+- 衔接事实：0.2.9 实测、0.3.0 GPU 工作者性能实验和完整候选包未安装的边界按既有报告保留；run 38583427109 状态为 success，不重新调查已完成的显示捕获/ID 4/Shizuku/算法路线。手机已断开，不请求用户睡前接线。本轮选择 Issue 1 交给代码 agent 的 CoverControls.java；WatermarkProcessor 继续留给独立检查任务，未重复实现。
+- 实现：CoverControls(Context, Callbacks)，onMode(boolean video) / onSettings() 与 attach/detach/setMode/setEnabled；设置、拍照、录像各有独立原生 Button / TYPE_APPLICATION_OVERLAY 小窗口。当前模式点击不重复回调，新模式须由宿主确认后 setMode；禁用、主线程约束、部分加窗失败清理、逆序移除及配置重排均有明确处理。组件不自动申请权限、发送触摸或切换外部相机。
+- 布局：实际接入 CoverControlLayout，运行时 WindowMetrics、Insets 和密度决定左右位置与 64×48 dp 按钮；三矩形不交叠且中间至少 48 dp 贯穿区域留空，空间不足拒绝显示。NOT_TOUCH_MODAL / NOT_FOCUSABLE 仅用于三个按钮窗口，不增加透明整屏容器；没有声称修复既有预览 SurfaceView 的点击对焦限制。
+- 范围边界：遵循独立接口交接，未改 PreviewMirrorWorker、PreviewMirrorService、SystemCaptureActivity、MainActivity、VideoStabilizer、Manifest、app/build.gradle 与工作流共 8 个原文件。组件已编入源码但尚未接入拍摄流程，新直接拍照入口/实际右侧模式/原生设置尚未完成；下一步由接续整合将回调与原有媒体结果归属、安全停止及确认阶段关联，不能单纯连发新的外部拍摄 Intent。
+- 本地真实检查：旧基线核心先通过 13,817 项；新增后 bash scripts/check_core.sh 在 JDK 17 / --release 17 / -Xlint:all / -Werror 下通过 15,375 个断言，其中 1,558 个新增布局断言覆盖 75 组方向/密度/Insets、最小边界、大尺寸/非法值及中央快门空区；独立 CoverControlLayoutChecks 同样通过。java scripts/ParseJava.java 通过 28 个 Java 文件语法解析，git diff --check 通过。Android WindowManager 添加/清理故障与真实触摸分发没有在 JVM 上执行，不把几何检查称为设备验收。
+- 本地环境未发现 PATH 中的 Gradle / ADB；没有本地 Android 构建或手机操作。双 flavor assemble/Lint 和原始 JPEG 检查随源码 CI 执行，结果将读回核验；版本沿用候选 0.3.0-dev / 18，以源码 SHA 区分，不生成未经实测的 Release。
+- 文档 docs/cover-controls.md 保存接口、接入责任、验证命令与四组实机验收。P0 仍是先安装完整 GPU 包复验拍照/录像/设置与长期稳定；P1 本轮独立控件完成，下一项整合入口/模式/设置并验证窗口残留和快门；水印由另一项既有交接继续。P2 成熟防抖与合法成像研究沿用原计划，不引入 Google 专有代码或声称 Media3 为 GCam。
+- 工作日维护复用已核查 2026 年及 2027 年 next_check_not_before=2026-11-01 缓存，未到新查询窗口，无正式更正，不修改日程；此开发任务不受晨间休息日跳过规则影响。
+- 模型/推理强度无法核实，剩余额度无法读取；本轮限定一个可验证组件。仅相关实机验收暂缺设备，项目仍有独立工作可继续。

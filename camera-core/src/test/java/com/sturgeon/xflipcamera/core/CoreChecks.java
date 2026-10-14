@@ -16,11 +16,12 @@ public final class CoreChecks {
         jpegSamplingIsBoundedBeforeDecode();
         assertions += PendingMediaWriteChecks.run();
         assertions += PhotoInspectionStateChecks.run();
+        assertions += CoverControlLayoutChecks.run();
         assertions += VideoMotionPlanChecks.run();
         assertions += PreviewPhaseStateChecks.run();
         invalidInputsFailExplicitly();
         System.out.println("PASS " + assertions + " assertions: EXIF 1..8, raster bounds, "
-                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion");
+                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion, cover controls");
     }
 
     private static void asymmetricRasterFixtures() {
