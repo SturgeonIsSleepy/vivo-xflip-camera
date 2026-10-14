@@ -21,6 +21,12 @@ Media3 Transformer / effect 1.9.0 对每一输出帧应用矩阵补偿，H.264 �
 
 ## 复现
 
+最终完整包 0.2.9-dev / 17 已通过同一实机复验，本地与手机 APK SHA256 均为 `594f41888966fb7b57f223aba3b8f898306f6837a6cd84e51c87227515441387`，19,817,652 bytes。照片实时计数 8、方向与确认页一致；随后同一工作者录像计数 23，计时正常，确认后服务停止。
+
+最终实际录像 1,671,675 bytes，防抖另存 764,620 bytes；独立完整解码源/输出均 82 帧，显示 720×1280、约 2.74 秒、H.264/AAC。播放只有居中的一幅画面，完成后正常恢复预览图，原片保留。使用已上传的实机脚本重跑合成输入，输出哈希与此前完全一致，120 帧及两轴残留抖动指标再次通过。上述复验取代 0.2.9 的待验收边界。
+
+[下载完整实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.9-stabilization-test)。源码 f2e9a8c 的 [GitHub CI](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38564399301)已成功，实际日志确认双 flavor assemble/Lint、13,783 项断言与原始 JPEG 全图/哈希。CI APK 签名可能与手机实测包不同，实测包以上述 Release 附件为准。
+
 调试 APK 内的 StabilizationDeviceTest 只由 ADB instrumentation 显式启动。测试会将输入放进本应用 files 并在相册生成一条测试输出，不自动处理其他文件。APK 不包含 FFmpeg；它仅用于电脑端独立验证。
 
 ```powershell

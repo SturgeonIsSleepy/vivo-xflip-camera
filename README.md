@@ -20,9 +20,11 @@
 - [每天 02:00 开发（含周末和法定假期）](docs/work-task.md)
 - [中国工作日 09:00 检查任务](docs/morning-review-task.md)
 
-0.2.6-dev 已在合盖外屏验证拍照、录像的实时左右纠正，完整安装包哈希与本地一致，确认后保存和返回正常。需电脑初始化 Shell 桥接；当前覆盖层会挡住取景点击对焦，录像计时背景有局部拼接，见 [实时翻转报告](docs/live-preview-2026-10-14.md)。视频防抖和影像算法仍待开发。成片另存发布与清理修复见 [保存与生命周期审查](docs/code-review-2026-10-14.md)。
+0.2.9-dev 已在合盖外屏验证拍照、录像的实时左右纠正及录后视频防抖，确认回传、原片保留、另存和播放正常。防抖为平移补偿，0.3 至 60 秒 SDR 视频，约 9.1% 可见边缘裁切；还没有实时 EIS 和 Google Camera 成像算法。需电脑初始化 Shell 桥接，覆盖层会挡住取景点击对焦，录像计时背景有局部拼接。见 [防抖与最终包报告](docs/video-stabilization-2026-10-14.md)和 [实时翻转报告](docs/live-preview-2026-10-14.md)。
 
 [下载实时翻转实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.6-preview-test)，手机、本地与远程附件 SHA256 三者一致，初始化脚本及限制见上述报告。
+
+[下载最新防抖实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.9-stabilization-test)。打开“外屏系统相机”，运行初始化脚本后直接拍照/录像；录像确认返回后点“视频防抖”，结果另存、原片保留。真实录像源/输出均 82 帧、720×1280、约 2.74 秒并保留音频；合成输入独立测量仅代表该测试场景。
 
 独立“照片像素检查”现已保存最近一次分享/选择器选中的照片及文字报告，避免页面重建后回读最初分享的照片；已完成报告直接恢复。状态核心通过 35 个新增场景断言，页面恢复和临时权限仍待实机验收，见同一审查文档。
 
@@ -36,5 +38,5 @@
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[当前源码双 APK 构建、Lint 与 13,630 个核心断言](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38493995473)已核验成功，通过 Artifacts 中的 xflip-camera-debug 可下载两个 flavor 的 CI APK 及各自 Lint 报告。CameraX 外屏真实预览仍失败，公开系统相机回传路径已有有效成片。待完成：独立外屏入口、预览及成片方向、折叠切屏、Google 成像及逐镜头厂商扩展能力。
+[当前源码双 APK 构建、Lint 与 13,783 个核心断言](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38564399301)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已在合盖实机验证。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
 

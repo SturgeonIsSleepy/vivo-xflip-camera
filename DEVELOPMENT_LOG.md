@@ -232,3 +232,14 @@
 - Windows/ADB 二进制标准输入只传出 917 bytes，-T 仍相同；改为本应用 run-as 的 base64 分块并校验 SHA256 后得到完整测试输入。无前台 instrumentation 被 ROM 暂停，Shell 立即启动外屏自有 Activity 后处理约 11 秒完成；不修改用户电池或系统设置。
 - 公开成果 docs/video-stabilization-2026-10-14.md、生成/实机/独立验证脚本与 docs/evidence/2026-10-14-video-stabilization；仅生成的合成 MP4、统计和哈希公开，真实素材及完整日志不上传。初始化脚本修复首次无桥接进程时的空输出 Trim 错误。
 - 限制：录后平移防抖、0.3 至 60 秒 SDR、约 9.1% 可见边缘裁切与有损编码；没有实时 EIS、旋转/透视/滚动快门补偿或 Google 专有算法。实时翻转的初始化/助手依赖、点击对焦被占用和计时背景拼接仍保留。下一步先上传最终实测包，再交两 agent 做影像算法与状态/清理复核。
+
+## 2026-10-14｜0.2.9 完整包、播放与远程 CI 复验
+
+- 源码 f2e9a8ca47a692cb5d49065f48e567ab974e7335 已上传，并用 ls-remote 确认远程 main 一致。0.2.9-dev / 17 在外屏安装，本地与手机 APK SHA256 同为 594f41888966fb7b57f223aba3b8f898306f6837a6cd84e51c87227515441387，19,817,652 bytes。
+- 从实际安装包重新启动同版 Shell 桥接；真实 CLOSED、display 1、无 override。照片实时预览计数 8，文字方向与确认页一致，确认正常返回保存；同一工作者录像实时计数 23、00:00:01 正常，停止确认返回后预览服务已停止。
+- 最终原生录像防抖：1,671,675 bytes 原片保留，另存 764,620 bytes。独立 FFmpeg 完整解码源/输出均 82 帧、720×1280、约 2.74 秒、H.264/AAC；native-029-metadata.json 只公开格式、帧数、体积、哈希，不含真实场景和 GPS。播放仅一幅居中画面，完成后恢复预览图，替代上一条的播放待验收状态。
+- 已上传的 scripts/test_stabilization_device.py 在最终包重跑成功，输出 709,677 bytes / SHA256 5c4abd2fb24bf676bb675ac4bc583c7e959eb6e37a152efb4a290c96ece780a1，与既有公开合成证据一致；120/120 帧、音频、无黑边和两轴残留指标全部再次通过。
+- 最终本地双 flavor assemble/Lint、13,783 项核心断言及原始 JPEG 验证成功，BUILD SUCCESSFUL in 18s。对应远程 run 38564399301 已 completed/success，head_sha=f2e9a8c；实际日志确认相同检查，BUILD SUCCESSFUL in 1m 4s。
+- CI artifact xflip-camera-debug / 11893304790，15,548,322 bytes，digest sha256:22ba87c6bbb826cff1fc1cc6d5b708670de4e54eaae90b18bdefffe0f719a352，保留至 2026-10-21T12:32:35Z。CI 包与本地实测包的 debug 签名可能不同，Release 使用本机实测 APK，不将两者混为同一文件。
+- 源码、防抖生成/实机/独立验证脚本与非私人证据已可供两 agent 获取；实测 APK 已发布 v0.2.9-stabilization-test，release 412706644 / asset 640357907，19,817,652 bytes、state=uploaded；远程 digest 与手机/本地 SHA256 三者一致。收据 release-receipt.json 已保存。后续只改文档，不重复 Android 构建。
+- 下一步：代码 agent 在有效 JPEG/MP4 回传基线上接合法公开的影像算法，保留原图并明确 RGB/JPEG 与 RAW/连拍的输入边界；检查 agent 审核防抖取消/发布/恢复与 Binder/Surface 边界，提交有内容的必要修复后交有线负责人复测。Google 专有 HDR+ 尚未接通，Media3 不作为 Google Camera 算法宣传。
