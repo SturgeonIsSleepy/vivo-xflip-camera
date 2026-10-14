@@ -56,3 +56,22 @@ java scripts/ParseJava.java
 - Artifacts 的 xflip-camera-debug 含两个 APK 与两个 Lint HTML；ZIP 11,958,242 bytes，digest sha256:5a026e47b999dd2dc8a0d307eed311cf831d5635e9697a74faf74d261f228cc5，当前保留至 2026-10-20T18:24:21Z。
 - app 版本号沿用实机负责人接管的 0.2.2-dev / 10，通过源码 SHA 区分本次修复。没有修改协作中的版本/Manifest/预览链路，也没有重复发布实测 APK；CI 签名与手机上的实测包可能不同。
 - 下一步仍按上述 P0/P1 交回唯一有线负责人。编译、模拟提供者测试与证据复核均不代替本轮手机验证。
+
+## 晨间补充：独立照片检查的选择恢复
+
+起始 main 为 1ea6ef629b9ffedc95f49f5fadfac923503f35a8。凌晨源码 1603d6e 的双 flavor CI 已成功，未发现新的失败检查；Issue 1 的实时预览协作交接没有变化。本轮只修改独立照片检查入口及其状态核心，不接管实时预览或系统回传。
+
+静态可达的问题：通过 ACTION_SEND 分享 A，随后在页面的 OpenDocument 选择 B，原实现没有保存当前 URI/报告；系统重建页面时 onCreate 重新执行原始 ACTION_SEND，读取 A。选择器单独启动时，重建则丢失 B。此结论来自已有代码的状态流，没有宣称在手机上复现。
+
+PhotoInspectionActivity 现在把当前选择和小型文字报告写入 saved instance Bundle，优先恢复它们。已完成报告直接恢复，待完成读取只对最新选择重新发起；从分享或选择器换图时立即清空旧报告和复制状态。新增实际接入的 PhotoInspectionState，拒绝旧、重复及已销毁页面的回调。Bitmap 与像素数组不进入 Bundle，不取得新的持久 URI 授权。
+
+验证：bash scripts/check_core.sh 在 JDK 17、--release 17、-Xlint:all、-Werror 下通过 13,630 个断言；新增的 35 个断言验证 A → B → 重建、待完成恢复、重复/旧回调、退出及明确失败报告的归属。可单独运行 java -cp .build/core-checks com.sturgeon.xflipcamera.core.PhotoInspectionStateChecks。java scripts/ParseJava.java 通过 20 个 Java 文件语法解析，git diff --check 通过。此处是 JVM 状态场景验证，未执行 Android Activity 重建或真实权限测试；源码提交后的双 flavor 构建与 Lint 需读回 CI 结果。
+
+### 待实机验收
+
+1. 从图库分享已知全黑 A，使用选择器改选已知明亮 B，等待报告后重建页面：仍显示 B 的报告，复制内容对应 B；不能回到 A 的全黑结论。
+2. 在 B 读取中触发页面重建：只恢复 B 的选择；新实例可重新读取，旧实例不得覆盖新报告。当前 executor 的中断不保证底层提供者立即停止，未承诺跨重建保留同一读取任务。
+3. 先改选 B 再取消选择器：保留 B；连续分享/选择 A、B 后，只允许最后一次读取的报告显示和复制。
+4. 使用无权限、损坏或已删除 JPEG：明确显示“检查未完成”，不能计为全黑或有效图像。Bundle 中的 URI 字符串不代表权限仍有效；已有报告是此前的检查记录，重新检查需当前有效授权。
+
+状态恢复依据：[Android 官方 Save UI states](https://developer.android.com/topic/libraries/architecture/views/saving-states-views)，仅保存小型选择标识与报告。P0 动态预览及 SystemCaptureActivity 的恢复风险继续沿用上文计划，由有线负责人验收后解除相应协作限制；没有将此次独立入口修复当作实时镜像成功。

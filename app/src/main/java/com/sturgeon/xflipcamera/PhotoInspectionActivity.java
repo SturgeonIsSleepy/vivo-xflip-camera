@@ -16,11 +16,15 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.sturgeon.xflipcamera.core.PhotoInspectionState;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Gallery share target; does not open a camera or modify the original JPEG. */
 public final class PhotoInspectionActivity extends ComponentActivity {
+    private static final String STATE_SOURCE = "inspection.source";
+    private static final String STATE_REPORT = "inspection.report";
     private final ExecutorService reader = Executors.newSingleThreadExecutor();
     private final ActivityResultLauncher<String[]> picker = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(), uri -> {
@@ -28,11 +32,14 @@ public final class PhotoInspectionActivity extends ComponentActivity {
             });
     private TextView result;
     private Button copy;
-    private long request;
-    private String report;
+    private PhotoInspectionState inspection = new PhotoInspectionState(null, null);
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            inspection = new PhotoInspectionState(savedInstanceState.getString(STATE_SOURCE),
+                    savedInstanceState.getString(STATE_REPORT));
+        }
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -50,6 +57,7 @@ public final class PhotoInspectionActivity extends ComponentActivity {
         copy.setEnabled(false);
         copy.setOnClickListener(view -> {
             ClipboardManager clipboard = getSystemService(ClipboardManager.class);
+            String report = inspection.report();
             if (clipboard != null && report != null) {
                 clipboard.setPrimaryClip(ClipData.newPlainText("JPEG 像素检查", report));
             }
@@ -65,7 +73,15 @@ public final class PhotoInspectionActivity extends ComponentActivity {
         content.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(content);
         content.requestApplyInsets();
-        inspectIntent(getIntent());
+        if (inspection.report() != null) {
+            showReport();
+        } else if (inspection.selectedSource() != null) {
+            // Resume the latest picker/share selection, not the original launch intent.
+            // A restored URI can have lost its grant; normal read failures remain explicit.
+            inspect(Uri.parse(inspection.selectedSource()));
+        } else {
+            inspectIntent(getIntent());
+        }
     }
 
     @Override protected void onNewIntent(Intent intent) {
@@ -82,8 +98,7 @@ public final class PhotoInspectionActivity extends ComponentActivity {
     }
 
     private void inspect(Uri uri) {
-        long token = ++request;
-        report = null;
+        long token = inspection.begin(uri.toString());
         copy.setEnabled(false);
         result.setText("正在读取 JPEG 采样像素…");
         reader.execute(() -> {
@@ -96,16 +111,25 @@ public final class PhotoInspectionActivity extends ComponentActivity {
             }
             final String completed = text;
             runOnUiThread(() -> {
-                if (isDestroyed() || request != token) return;
-                report = completed;
-                result.setText(completed);
-                copy.setEnabled(true);
+                if (isDestroyed() || !inspection.complete(token, completed)) return;
+                showReport();
             });
         });
     }
 
+    private void showReport() {
+        result.setText(inspection.report());
+        copy.setEnabled(true);
+    }
+
+    @Override protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(STATE_SOURCE, inspection.selectedSource());
+        outState.putString(STATE_REPORT, inspection.report());
+        super.onSaveInstanceState(outState);
+    }
+
     @Override protected void onDestroy() {
-        request++;
+        inspection.cancel();
         reader.shutdownNow();
         super.onDestroy();
     }

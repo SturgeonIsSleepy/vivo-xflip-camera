@@ -181,3 +181,15 @@
 
 - 远程验证：源码提交 1603d6e48b924862f5e21c2a879497456ced5171；https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38446311535 已 completed / success。实际日志确认 13,595 个断言、原始 JPEG 全图/哈希、assembleStandardDebug、assembleCoverCompatDebug、lintStandardDebug、lintCoverCompatDebug，BUILD SUCCESSFUL in 41s。
 - artifact：xflip-camera-debug / 11838447488，ZIP 11,958,242 bytes，digest sha256:5a026e47b999dd2dc8a0d307eed311cf831d5635e9697a74faf74d261f228cc5，上传 4 个文件（两个 APK 与两个 Lint 报告），保留至 2026-10-20T18:24:21Z。7 个新增/修改文件已核对远程 blob 与本地一致，9 个协作文件保持原值。CI 产物未在手机安装，不能混同于既有实测发布包；实际预览与此次 Provider 故障处理待复测。
+
+## 2026-10-14｜晨间审查与独立检查入口恢复
+
+- 起始提交：1ea6ef629b9ffedc95f49f5fadfac923503f35a8。已核验连接身份 SturgeonIsSleepy、Public 仓库及 pull/push 权限，读取最新 main、项目规则、技术基线、两项任务、近期日志与 Issue 1。北京时间 2026-10-14 属于已核查工作日；复用 2026 年官方缓存及 2027 年 next_check_not_before=2026-11-01，本轮无须查询公告或调整任何日程。
+- 衔接审查：凌晨发布失败修复的 run 38446311535 已 completed / success，未出现新的失败检查。复用其媒体写入与预览审查结论；实时取景仍是用户首要目标，有线负责人对预览链路和系统入口的交接没有变化，不并发修改这部分代码。
+- 确认问题：PhotoInspectionActivity 通过分享 A 启动后，再用 OpenDocument 选 B，没有保存最新选择；页面重建会按原始 Intent 重读 A，选择器单独启动时则丢失 B。此为静态状态流确认，没有真机复现声明。
+- 修复与实际开发：新增并接入 PhotoInspectionState，Bundle 只保存当前 URI 字符串和小型文字报告；恢复时优先当前选择，待完成则重读该选择，已完成则直接恢复报告、避免重复解码。换图立即清空旧报告，旧/重复/销毁后的读取结果不能覆盖新选择。沿用只读 ContentResolver 与现有错误提示，不保存 Bitmap、不扩大文件权限、不修改原图。
+- 本地验证：bash scripts/check_core.sh 通过 13,630 个断言，JDK 17 / --release 17 / -Xlint:all / -Werror；新增 35 个状态场景断言，覆盖分享 A → 选择 B → 完成/未完成重建、快速换图的旧回调、重复完成、退出、失败报告与无效状态。java -cp .build/core-checks com.sturgeon.xflipcamera.core.PhotoInspectionStateChecks 独立通过 35 项；java scripts/ParseJava.java 通过 20 个 Java 文件语法解析；git diff --check 通过。
+- 验证边界：核心场景在 JVM 执行，不是 Android Activity/文件提供者集成测试。Gradle 与 ADB 不在本地 PATH，未执行本地 Android 构建或手机操作；Android 类型、双 flavor assemble/Lint 和原始 JPEG 证据检查将读回源码 CI。没有声称获得真实动态镜像、修复 CameraX 黑屏或接入 Google 专有算法。
+- 待办更新：P0 动态预览、Binder/Surface/STOP 与快门确认验收按凌晨规划继续，解除条件是有线负责人完成连续画面与左右测试并交接。P1 本次独立入口代码修复及 JVM 检查完成，等待已授权设备执行 docs/code-review-2026-10-14.md 的四组恢复/换图/失权验收；系统回传发布、读取归属与重建风险仍按原规划，协作交接后接续。P2 厂商扩展和合法成像待办复用，不增加重复研究。
+- 已完成的附加目标：恢复已完成的小型报告，不因页面重建重复读取和采样同一照片。读取中的页面仍可能重新解码，未承诺任务跨实例继续或临时权限跨进程保留。
+- 模型/推理强度无法核实，剩余额度无法读取；本轮范围限定为上述独立修复和相称验证，无限额百分比假设。设备仅阻塞相应验收，项目未全部阻塞。
