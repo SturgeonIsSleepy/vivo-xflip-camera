@@ -17,6 +17,10 @@ V2256A、Android 14、原 ROM、真实 CLOSED、display 1、无 device-state ove
 
 ## 修复与限制
 
+完整 0.2.6-dev / versionCode 14 现已在同一设备合盖安装复验。手机 base.apk 与本地实测 APK SHA256 均为 `192a7140edf211f60160486a7cf5bcf5d1945350cc62850a760173e1cd91d3ae`，15,739,910 bytes。启动脚本从实际安装包加载工作者，命令结束后进程继续运行，并完成拍照及录像。
+
+完整包照片预览持续到 329 帧，画面文字与原生确认页/返回页方向一致；确认时进入 waiting_preview_controls，返回后服务停止。同一桥接进程继续录像，录制中已纠正 29 帧，计时文字 00:00:01 正常；停止确认后成功返回，MP4 为 1,273,804 bytes，解码显示成功，服务停止。实际状态仍 CLOSED、无 override。此记录取代混合版本验收的限制；物理 USB 断线与重启恢复仍未测试。
+
 工作者取消使用独立 generation，避免旧线程 finally 改写新会话；同一 Surface 只发起一次 START，SurfaceDestroyed 明确 STOP。缓存 Android 14 的显示控制类，防止二次加载 native library 失败。
 
 捕获使用逻辑显示坐标和排除自身图层；快门状态按右侧控制区域的实际颜色与边界识别，不依赖假定 DPI。确认页的白色按钮不会触发预览纠正。此检测仍需后续覆盖更多 ROM/主题和异常弹窗。

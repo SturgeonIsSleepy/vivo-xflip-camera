@@ -209,3 +209,13 @@
 - 本地各次 coverCompat APK / Lint 构建通过；此前核心检查及新合并断言通过，最终双 flavor 全部检查将随提交前执行记录。新增 nohup 直接桥接启动脚本，其断线、重启恢复仍待实测。
 - 限制：覆盖层占用原生取景点按对焦区域，快门/确认正常；4:3 照片及 16:9 视频布局验证，其他比例/方向/切屏待验收；计时区域有小块背景拼接。手机或应用进程重启后仍需桥接初始化，原外屏助手依赖保留。
 - 文档：docs/live-preview-2026-10-14.md、scripts/start_preview_bridge.ps1。代码检查 agent 可复核 generation/Surface/停止/死亡边界；下一步先完成最终包复验和上传，再添加视频防抖，影像算法排在防抖后。没有宣称已新增防抖或 Google 算法。
+
+## 2026-10-14｜完整实时翻转包外屏复验
+
+- 起始 1113c84538af498234193b494ea813d7215a6bdc，远程 main 已核验一致；通过 Issue 1 更新两 agent 的顺序为视频防抖优先、影像算法随后，保留当前实机负责人协作文件。
+- 完整 0.2.6-dev / 14 经外屏文件管理安装，无展开。base.apk 与本地 APK SHA256 均为 192a7140edf211f60160486a7cf5bcf5d1945350cc62850a760173e1cd91d3ae，15,739,910 bytes。
+- scripts/start_preview_bridge.ps1 从实际安装包启动真实 UID 2000 工作者，nohup 启动命令结束后继续完成拍照和录像，进程仍运行。未实测 USB 物理断线、重启及进程丢失恢复。
+- 照片预览 15 → 329 帧，文字与原生确认/返回页方向一致；确认页 waiting_preview_controls，保存返回后服务停止。随后同一工作者录制视频，实时计数 29，00:00:01 正常可读；停止、确认后保存 1,273,804 bytes MP4 并解码显示，服务停止。真实 CLOSED、无 override。
+- 这是完整单一版本实测，取代上一条的混合版本边界。私有照片/视频/截图保留本地；公开只保存版本、状态与统计。两 flavor assemble/Lint 与 13,630 项核心断言在该源码下已完成，日志 live-final-build.log 显示 BUILD SUCCESSFUL in 22s，没有因本次文档更新重复构建。
+- 待办：先上传已实测 APK，再实现保留原片的视频防抖和验证运动补偿，最后接影像算法。初始化/外屏助手依赖、取景点击对焦和计时背景拼接限制仍保留。
+- 已发布 v0.2.6-preview-test，release 412641033 / asset 640176158；远程 state=uploaded、15,739,910 bytes、digest 与实机哈希一致。公开收据 docs/evidence/2026-10-14-live-preview/release-receipt.json，没有真实场景图像。发布指向源码 1113c84。

@@ -1,0 +1,20 @@
+{
+  "name": "xflip-camera-0.2.6-cover-compat-debug.apk",
+  "override": false,
+  "asset_id": 640176158,
+  "release_id": 412641033,
+  "worker_version": "0.2.6-dev",
+  "recording_frames": 29,
+  "release_url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.6-preview-test",
+  "display_id": 1,
+  "digest": "sha256:192a7140edf211f60160486a7cf5bcf5d1945350cc62850a760173e1cd91d3ae",
+  "size": 15739910,
+  "source_commit": "1113c84538af498234193b494ea813d7215a6bdc",
+  "photo_frames": 329,
+  "client_version": "0.2.6-dev",
+  "device_state": "CLOSED",
+  "installed_sha256": "192a7140edf211f60160486a7cf5bcf5d1945350cc62850a760173e1cd91d3ae",
+  "physical_usb_disconnect_tested": false,
+  "video_bytes": 1273804,
+  "state": "uploaded"
+}
