@@ -12,7 +12,7 @@ $packagePath = (& $Adb -s $Serial shell pm path $Package | Select-Object -First 
 if (!$packagePath.StartsWith('package:/data/app/')) { throw 'Installed APK path unavailable' }
 $apkPath = $packagePath.Substring(8)
 if ($apkPath.Contains("'")) { throw 'Unsupported APK path' }
-$existing = (& $Adb -s $Serial shell pidof xflip-preview-bridge).Trim()
+$existing = ((& $Adb -s $Serial shell pidof xflip-preview-bridge) -join ' ').Trim()
 if ($existing -match '^\d+( \d+)*$') { & $Adb -s $Serial shell kill $existing }
 $command = "CLASSPATH='$apkPath' nohup app_process /system/bin --nice-name=xflip-preview-bridge com.sturgeon.xflipcamera.PreviewWorkerStarter '$Package' >/data/local/tmp/xflip-preview-bridge.log 2>&1 </dev/null &"
 & $Adb -s $Serial shell $command

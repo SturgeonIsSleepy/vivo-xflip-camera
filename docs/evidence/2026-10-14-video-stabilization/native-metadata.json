@@ -1,0 +1,40 @@
+{
+  "source": {
+    "ffmpeg_version": "7.1-essentials_build-www.gyan.dev built with gcc 14.2.0 (Rev1, Built by MSYS2 project)",
+    "codec": "h264",
+    "pix_fmt": "yuv420p(tv, bt709, progressive)",
+    "audio_codec": "aac",
+    "fps": 29.55,
+    "source_size": [
+      1280,
+      720
+    ],
+    "size": [
+      720,
+      1280
+    ],
+    "rotate": 0,
+    "duration": 3.43,
+    "bytes": 1961072,
+    "sha256": "e4e1b82a237e49d7605768dfe2511df79def24e19d141b9d22d5693123f8a796"
+  },
+  "output": {
+    "ffmpeg_version": "7.1-essentials_build-www.gyan.dev built with gcc 14.2.0 (Rev1, Built by MSYS2 project)",
+    "codec": "h264",
+    "pix_fmt": "yuv420p(tv, bt709, progressive)",
+    "audio_codec": "aac",
+    "fps": 29.42,
+    "source_size": [
+      1280,
+      720
+    ],
+    "size": [
+      720,
+      1280
+    ],
+    "rotate": 0,
+    "duration": 3.43,
+    "bytes": 873704,
+    "sha256": "104674db9247920f94ab8e58ea4cb7f5df104f594f849f4fa1cedf4914137ebb"
+  }
+}

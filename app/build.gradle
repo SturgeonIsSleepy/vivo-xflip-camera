@@ -11,8 +11,8 @@ android {
         applicationId 'com.sturgeon.xflipcamera'
         minSdk 33
         targetSdk 36
-        versionCode 14
-        versionName '0.2.6-dev'
+        versionCode 17
+        versionName '0.2.9-dev'
     }
 
     flavorDimensions 'cameraAccess'
@@ -43,4 +43,6 @@ dependencies {
     implementation 'androidx.exifinterface:exifinterface:1.4.2'
     implementation 'dev.rikka.shizuku:api:13.1.5'
     implementation 'dev.rikka.shizuku:provider:13.1.5'
+    implementation 'androidx.media3:media3-transformer:1.9.0'
+    implementation 'androidx.media3:media3-effect:1.9.0'
 }

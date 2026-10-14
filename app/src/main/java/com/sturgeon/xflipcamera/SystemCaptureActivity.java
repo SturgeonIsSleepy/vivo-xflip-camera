@@ -53,6 +53,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     private Button flip;
     private VideoView player;
     private CheckBox mirrorPreview;
+    private VideoStabilizer stabilization;
     private final Shizuku.OnRequestPermissionResultListener permissionListener = (requestCode, grant) -> {
         if (requestCode == 31) status.setText(grant == PackageManager.PERMISSION_GRANTED
                 ? "预览翻转已授权，请拍照或录像" : "预览翻转未授权，可关闭此选项继续拍摄");
@@ -82,7 +83,11 @@ public final class SystemCaptureActivity extends ComponentActivity {
         root.addView(image, new FrameLayout.LayoutParams(-1, -1));
         player = new VideoView(this);
         player.setVisibility(android.view.View.GONE);
-        root.addView(player, new FrameLayout.LayoutParams(-1, -1));
+        root.addView(player, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
+        player.setOnCompletionListener(media -> {
+            player.setVisibility(android.view.View.GONE);
+            image.setVisibility(android.view.View.VISIBLE);
+        });
         MediaController mediaControls = new MediaController(this);
         mediaControls.setAnchorView(player);
         player.setMediaController(mediaControls);
@@ -101,7 +106,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
         record.setOnClickListener(view -> capture(true));
         flip = new Button(this);
         flip.setText("翻转成片");
-        flip.setOnClickListener(view -> flipPhoto());
+        flip.setOnClickListener(view -> { if (video) stabilizeVideo(); else flipPhoto(); });
         Button back = new Button(this);
         back.setText("返回");
         back.setOnClickListener(view -> finish());
@@ -114,6 +119,10 @@ public final class SystemCaptureActivity extends ComponentActivity {
         mirrorPreview.setText("系统预览左右纠正（需授权服务）");
         mirrorPreview.setTextColor(Color.WHITE);
         mirrorPreview.setBackgroundColor(0xaa000000);
+        mirrorPreview.setChecked(getSharedPreferences("system_capture", MODE_PRIVATE)
+                .getBoolean("mirror_preview", true));
+        mirrorPreview.setOnCheckedChangeListener((button, checked) -> getSharedPreferences("system_capture", MODE_PRIVATE)
+                .edit().putBoolean("mirror_preview", checked).apply());
         FrameLayout.LayoutParams mirrorLayout = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
         mirrorLayout.bottomMargin = Math.round(48 * getResources().getDisplayMetrics().density);
         root.addView(mirrorPreview, mirrorLayout);
@@ -144,7 +153,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 return;
             }
             if (PreviewWorkerReceiver.availableWorker() == null && !Shizuku.pingBinder()) {
-                status.setText("请先启动 Shizuku，或关闭预览翻转继续拍摄");
+                status.setText("请先初始化预览纠正服务，再重试拍摄");
                 return;
             }
             if (PreviewWorkerReceiver.availableWorker() == null
@@ -249,11 +258,13 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     reading = false;
                     updateControls();
                     image.setImageBitmap(preview);
-                    status.setText(video ? "录像已保存，点击画面播放"
+                    image.setVisibility(android.view.View.VISIBLE);
+                    status.setText(video ? edited ? "防抖视频已另存，原片保留；点击播放" : "录像已保存，点击画面播放"
                             : edited ? "翻转版本已保存，原图保留" : "系统相机照片已保存");
                     if (video) {
                         image.setOnClickListener(view -> {
                             player.setVideoURI(output);
+                            image.setVisibility(android.view.View.GONE);
                             player.setVisibility(android.view.View.VISIBLE);
                             player.start();
                         });
@@ -307,11 +318,41 @@ public final class SystemCaptureActivity extends ComponentActivity {
         });
     }
 
+    private void stabilizeVideo() {
+        if (output == null || !video || pending || editing || reading) return;
+        Uri original = output;
+        player.stopPlayback();
+        player.setVisibility(android.view.View.GONE);
+        editing = true;
+        updateControls();
+        status.setText("正在分析视频运动，原片保留");
+        stabilization = new VideoStabilizer(this, reader);
+        stabilization.start(original, new VideoStabilizer.Listener() {
+            @Override public void progress(String message) {
+                if (!isDestroyed() && original.equals(output)) status.setText(message);
+            }
+            @Override public void completed(Uri result) {
+                if (isDestroyed() || !original.equals(output)) return;
+                output = result;
+                edited = true;
+                editing = false;
+                showPhoto();
+            }
+            @Override public void failed(String reason) {
+                if (isDestroyed() || !original.equals(output)) return;
+                editing = false;
+                updateControls();
+                status.setText("防抖未完成：" + reason);
+            }
+        });
+    }
+
     private void updateControls() {
         if (shutter == null) return;
         shutter.setEnabled(!pending && !editing && !reading);
         record.setEnabled(!pending && !editing && !reading);
-        flip.setEnabled(!pending && !editing && !reading && !video && output != null);
+        flip.setText(video ? "视频防抖" : "翻转成片");
+        flip.setEnabled(!pending && !editing && !reading && output != null && !edited);
         mirrorPreview.setEnabled(!pending && !editing && !reading);
     }
 
@@ -335,6 +376,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
 
     @Override protected void onDestroy() {
         player.stopPlayback();
+        if (stabilization != null) stabilization.cancel();
         Shizuku.removeRequestPermissionResultListener(permissionListener);
         if (isFinishing()) stopService(new Intent(this, PreviewMirrorService.class));
         reader.shutdown();

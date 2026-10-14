@@ -1,0 +1,30 @@
+{
+  "fixture": "synthetic-shake.mp4",
+  "source_sha256": "e38f4b3cbf7fb6e81738007b25f793449cfabd63a7787e25861c39c4916ad7af",
+  "output_sha256": "5c4abd2fb24bf676bb675ac4bc583c7e959eb6e37a152efb4a290c96ece780a1",
+  "resolution": [
+    360,
+    640
+  ],
+  "input_frames": 120,
+  "output_frames": 120,
+  "input_duration_seconds": 4.0,
+  "output_duration_seconds": 4.02,
+  "video_codec": "h264",
+  "audio_codec": "aac",
+  "zoom": 1.1,
+  "input_marker_rms_px": [
+    8.300419947635692,
+    5.657185234371987
+  ],
+  "output_marker_rms_px": [
+    1.3148735404936056,
+    2.1317529358525658
+  ],
+  "motion_ratio_after_removing_zoom": [
+    0.144009530819871,
+    0.342565628333462
+  ],
+  "max_black_border_fraction": 0.0,
+  "passed": true
+}
