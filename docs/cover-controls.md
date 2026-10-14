@@ -41,7 +41,11 @@ java scripts/ParseJava.java
 git diff --check
 ```
 
-JDK 17 / --release 17 / -Xlint:all / -Werror，15,375 个核心断言通过，新增布局断言 1,558 项；涵盖 75 组方向/密度/Insets 组合、最小可用边界、极大尺寸与非法输入，检查矩形不重叠、不越界及中央快门行/区域不被新控件覆盖。语法解析通过 28 个 Java 文件，不能代替 Android API 和类型解析。本地 Gradle、ADB 不在 PATH，没有本地 APK 构建或实机操作；源码提交后的双 flavor assemble/Lint 结果需读回实际 CI。
+JDK 17 / --release 17 / -Xlint:all / -Werror，15,375 个核心断言通过，新增布局断言 1,558 项；涵盖 75 组方向/密度/Insets 组合、最小可用边界、极大尺寸与非法输入，检查矩形不重叠、不越界及中央快门行/区域不被新控件覆盖。语法解析通过 28 个 Java 文件，不能代替 Android API 和类型解析。本地 Gradle、ADB 不在 PATH，没有本地 APK 构建或实机操作；远程 Android 构建结果已核验，见下文。
+
+- 源码 [f275fdc36d042713bc92e86c6f41e6778c784f66](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/f275fdc36d042713bc92e86c6f41e6778c784f66)；7 个变更文件 blob 与本地一致，其余 97 个已有远程文件及权限位完整保留。
+- [CI 38613279289](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38613279289) completed / success，head 对应本轮源码；日志确认 15,375 个断言、2 张原始 JPEG 的 20,758,528 个像素及 SHA-256、assembleStandardDebug / assembleCoverCompatDebug、lintStandardDebug / lintCoverCompatDebug，BUILD SUCCESSFUL in 47s。
+- artifact xflip-camera-debug / 11917708331，15,563,604 bytes，digest sha256:e12d322ae01206514ef011a9ab82adcc36626a64b3b5dc9ccf2ed4249a22d8f1；含两个 APK 与两个 Lint 报告，保留至 2026-10-21T18:14:26Z。版本沿用 0.3.0-dev / 18，CI 签名可能不同于手机现有包。没有新设备安装、重新拍摄或 Release 发布；原始黑 JPEG 复核也不属于新版本真机验证。
 
 ## 后续验收
 

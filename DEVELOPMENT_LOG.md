@@ -269,3 +269,5 @@
 - 文档 docs/cover-controls.md 保存接口、接入责任、验证命令与四组实机验收。P0 仍是先安装完整 GPU 包复验拍照/录像/设置与长期稳定；P1 本轮独立控件完成，下一项整合入口/模式/设置并验证窗口残留和快门；水印由另一项既有交接继续。P2 成熟防抖与合法成像研究沿用原计划，不引入 Google 专有代码或声称 Media3 为 GCam。
 - 工作日维护复用已核查 2026 年及 2027 年 next_check_not_before=2026-11-01 缓存，未到新查询窗口，无正式更正，不修改日程；此开发任务不受晨间休息日跳过规则影响。
 - 模型/推理强度无法核实，剩余额度无法读取；本轮限定一个可验证组件。仅相关实机验收暂缺设备，项目仍有独立工作可继续。
+- 源码已推送 f275fdc36d042713bc92e86c6f41e6778c784f66，使用 expected main SHA 且 force=false；读回 main 一致，7 个变更 blob 与本地相同，其余 97 个远程文件和权限位均保留。8 个原拍摄/预览/构建文件没有修改。
+- 远程 https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38613279289 已 completed / success，head 精确对应本轮源码；实际日志确认 15,375 个断言、原始 JPEG 2 张 / 20,758,528 个完整像素及哈希、两个 flavor assemble 与各自 Lint，通过 BUILD SUCCESSFUL in 47s。上传 artifact xflip-camera-debug / 11917708331，15,563,604 bytes，digest sha256:e12d322ae01206514ef011a9ab82adcc36626a64b3b5dc9ccf2ed4249a22d8f1，4 个文件为两个 APK 和两份 Lint，保留至 2026-10-21T18:14:26Z。README 与组件文档更新为实际验证结果；CI 包未安装，不与既有实测包混同。下一步及设备阻塞沿用上述 P0/P1，未因本次组件完成停用项目任务。

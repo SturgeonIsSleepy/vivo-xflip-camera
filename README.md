@@ -32,7 +32,7 @@
 
 新增独立 [CoverControls 外屏控件组件](docs/cover-controls.md)：左侧设置、右侧拍照/录像使用三个小型原生窗口，按当前尺寸、密度与 Insets 布局，避免新增整屏触摸覆盖。组件尚未接入拍摄页，实际模式切换、设置、快门及生命周期验收待接续；没有宣称新操作界面已可用。
 
-独立“照片像素检查”现已保存最近一次分享/选择器选中的照片及文字报告，避免页面重建后回读最初分享的照片；已完成报告直接恢复。状态核心通过 35 个新增场景断言，页面恢复和临时权限仍待实机验收，见同一审查文档。
+独立“照片像素检查”现已保存最近一次分享/选择器选中的照片及文字报告，避免页面重建后回读最初分享的照片；已完成报告直接恢复。状态核心通过 35 个新增场景断言，页面恢复和临时权限仍待实机验收，见[照片检查恢复审查](docs/code-review-2026-10-14.md)。
 
 ## 技术方向
 
@@ -44,5 +44,5 @@
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[当前源码双 APK 构建、Lint 与 13,783 个核心断言](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38564399301)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已在合盖实机验证。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
+[当前源码双 APK 构建、Lint 与 15,375 个核心断言](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38613279289)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已有合盖实机成果；0.3.0 完整候选包与新增独立控件的接入仍待验收。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
 
