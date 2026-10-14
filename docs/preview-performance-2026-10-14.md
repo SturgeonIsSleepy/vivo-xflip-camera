@@ -17,6 +17,8 @@
 
 完整包准备安装时手机已断开，未安装最终包，原生设置识别、拍照确认、录像及长时间连续稳定性仍待安装复验。用户要求睡前收尾，不再请求重新连接。APK 作为候选包上传，已有实测 0.2.9 Release 保留。
 
+源码 [5ff5040](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/5ff5040e305c9a9628cda0593f21aa29a6d84077) 已保存。[对应 CI](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38583427109) completed/success，artifact xflip-camera-debug / 11903658385 已含两个 CI APK 与 Lint 报告，ZIP 15,550,646 bytes。直接上传本地签名候选 APK 因网络传输超时失败，本地文件保留；空 Release 已转草稿，不能作为下载入口。CI 签名可能与手机现有安装不同。
+
 ## 后续任务
 
 1. 打开直接进入拍照预览，右侧拍照/录像切换，左侧原生设置，遵循实际 display/window 尺寸。

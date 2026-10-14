@@ -1,0 +1,13 @@
+{
+  "source_commit": "5ff5040e305c9a9628cda0593f21aa29a6d84077",
+  "asset_uploaded": false,
+  "local_apk_bytes": 19817652,
+  "ci_status": "completed",
+  "full_candidate_installed": false,
+  "ci_run_id": 38583427109,
+  "release_id": 412835355,
+  "ci_conclusion": "success",
+  "local_apk_sha256": "9a7a8825c99985415fc541b25cd6847113f1209a788a92d410e2bc592d45a1b1",
+  "release_draft": true,
+  "upload_error": "PowerShell transfer stalled; curl TLS revocation service offline, then bounded retry sent zero bytes and timed out"
+}
