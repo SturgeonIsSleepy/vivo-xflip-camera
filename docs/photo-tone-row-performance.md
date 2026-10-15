@@ -21,6 +21,8 @@ git diff --check
 
 JDK 17 / `--release 17 -Xlint:all -Werror`：942,626 项核心断言通过，较基线新增 912,189 项。测试里的 `LegacyPhotoToneRow` 固定保留基线旧循环及三个旧公式，不调用新 HDR 缓存作为预期值。涵盖亮度 0..255、HDR 0.999 边界、六种噪声、饱和 RGB/中性灰/alpha、随机非对称邻域、1/2 像素窄行、顶部/底部邻行别名、缺失及短缓冲失败前不写入。语法解析通过 41 个文件，不代表独立 Android 类型验证。
 
+[源码 fee44f8](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/fee44f8b02ac7581aae9a9e660ca0d0eadb94c7f)的 [CI 38784336760](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38784336760) 已成功，实际日志确认上述核心断言、两张既有 JPEG 的完整像素/哈希、双 flavor APK/Lint、两套各 8 项水印图形回归，`BUILD SUCCESSFUL in 1m 3s`。测试 ZIP artifact `11997850600` 已下载并核对 SHA256 `2394e748fd956880aaabf70214c629366e577acfa4a7211f60248189f13523b6`，两份 JUnit XML 各为 tests=8、failures/errors/skipped=0。APK/Lint artifact `11997715799`，36,710,191 bytes，digest `eb7dfe3a415763a86961eb3fa892982069258f04a462308dc6eda006df6bb2d2`，到期 2026-10-22T18:18:39Z；测试 ZIP 到期 18:18:37Z。未安装这些 CI 包，不与此前本地签名实测文件混同，也不把水印回归称为新核心的 Android 实测。
+
 另在计时外分别对两种模式各执行 12,582,912 像素的逐行 ARGB 对照，差异均为 0。计时为 amd64、Java 17.0.20、128 MiB JVM 堆，16 条固定合成行循环成 3072×4096 的流；四轮短预热、五组交替先后顺序，统计中位数：
 
 | 主机像素循环 | 基线 | 新核心 | 结论 |
