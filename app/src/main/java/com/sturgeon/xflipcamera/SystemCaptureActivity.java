@@ -312,6 +312,9 @@ public final class SystemCaptureActivity extends ComponentActivity {
         if (newPhoto && !collectBurst) burstFrames.clear();
         java.util.List<Uri> burstInputs = new java.util.ArrayList<>(burstFrames);
         if (collectBurst) burstInputs.add(destination);
+        android.content.SharedPreferences photoPreferences = getSharedPreferences("system_capture",MODE_PRIVATE);
+        PhotoEnhancer.Options photoOptions = new PhotoEnhancer.Options(photoPreferences.getBoolean("auto_levels",true),
+                photoPreferences.getBoolean("detail_enhance",true),photoPreferences.getBoolean("hdr_tone",false));
         reading = true;
         if (collectBurst && burstInputs.size() == 3) status.setText("正在合成三张照片，原图保留");
         updateControls();
@@ -355,7 +358,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                         PhotoBurstProcessor.Result fusion = PhotoBurstProcessor.merge(getContentResolver(), burstInputs,
                                 processingCancelled::get, message -> runOnUiThread(() -> {
                                     if (!isDestroyed() && destination.equals(output)) status.setText(message);
-                                }));
+                                }),photoOptions);
                         android.graphics.Bitmap fusedPreview = ImageDecoder.decodeBitmap(ImageDecoder.createSource(getContentResolver(), fusion.uri()),
                                 (decoder, info, source) -> decoder.setTargetSampleSize(4));
                         bitmap.recycle(); bitmap = fusedPreview; displayed = fusion.uri();
@@ -363,6 +366,21 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     } catch (Exception failure) {
                         fusionMessage = "合成未完成，原图保留：" + failure.getMessage();
                         Log.w("XFlipPhotoBurst", "fusion_failed_originals_preserved", failure);
+                    }
+                }
+                if (newPhoto && !video && !collectBurst && photoOptions.enabled()) {
+                    try {
+                        PhotoEnhancer.Result enhancement=PhotoEnhancer.enhance(getContentResolver(),destination,photoOptions,
+                                processingCancelled::get,message->runOnUiThread(()->{
+                                    if(!isDestroyed() && destination.equals(output))status.setText(message);
+                                }));
+                        android.graphics.Bitmap enhancedPreview=ImageDecoder.decodeBitmap(ImageDecoder.createSource(getContentResolver(),enhancement.uri()),
+                                (decoder,info,source)->decoder.setTargetSampleSize(4));
+                        bitmap.recycle();bitmap=enhancedPreview;displayed=enhancement.uri();
+                        fusionMessage="照片处理副本已保存，原图保留";
+                    } catch(Exception failure) {
+                        fusionMessage="照片增强未完成，原图保留";
+                        Log.w("XFlipPhotoEnhancer","enhance_failed_original_preserved",failure);
                     }
                 }
                 boolean marked = false;

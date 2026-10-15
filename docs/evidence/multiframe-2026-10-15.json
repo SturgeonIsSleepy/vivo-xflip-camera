@@ -83,63 +83,6 @@
       "rejected_as_expected": true
     }
   ],
-  "real_photos": [
-    {
-      "name": "XFlipMerged_b096800a-855c-43a0-af40-0eab12685244.jpg",
-      "bytes": 2920729,
-      "sha256": "678b78a4c40a3402a452af6905c73b540299a5c8f90715ed96c96a337ecfbdd7",
-      "dimensions": [
-        3072,
-        4096
-      ],
-      "orientation": 1,
-      "fusion_description": "Robust aligned JPEG fusion; accepted frames=3"
-    },
-    {
-      "name": "XFlipSystem_1792067934669.jpg",
-      "bytes": 3152627,
-      "sha256": "5989a417dfba378857469ac2558dc0964c46c4917aaf663d208822ce9366b046",
-      "dimensions": [
-        3072,
-        4096
-      ],
-      "orientation": 1,
-      "fusion_description": null
-    },
-    {
-      "name": "XFlipSystem_1792067983144.jpg",
-      "bytes": 3164314,
-      "sha256": "3a644d459fab0a345678be2cca162cb332fc2f86936de277c89addee729f921c",
-      "dimensions": [
-        3072,
-        4096
-      ],
-      "orientation": 1,
-      "fusion_description": null
-    },
-    {
-      "name": "XFlipSystem_1792067986262.jpg",
-      "bytes": 3157412,
-      "sha256": "b949d4bafbb54d8807fc16a69392bb33da5ab47087e111a21019656d15790505",
-      "dimensions": [
-        3072,
-        4096
-      ],
-      "orientation": 1,
-      "fusion_description": null
-    },
-    {
-      "name": "XFlipText_be441684-31e4-4381-9f56-d9309dc2fc29.jpg",
-      "bytes": 2345862,
-      "sha256": "5abe2a14cc494df9ed4723bf5be2f08429fc4632cf0cfd33159b437532a33d59",
-      "dimensions": [
-        3072,
-        4096
-      ],
-      "orientation": 1,
-      "fusion_description": "Robust aligned JPEG fusion; accepted frames=3"
-    }
-  ],
   "apk": {
     "bytes": 45245244,
     "sha256": "0165ad4b32d0b8a4dee322285997ddb57951d194ed7ec1f1768fc238c9e64328",
@@ -151,5 +94,11 @@
     "both_assemble_lint": "passed",
     "build_seconds": 79,
     "all_originals_preserved_in_synthetic_tests": true
+  },
+  "device_smoke": {
+    "capture_and_save_passed": true,
+    "originals_retained": true,
+    "watermark_saved": true,
+    "private_photo_identifiers_omitted": true
   }
 }

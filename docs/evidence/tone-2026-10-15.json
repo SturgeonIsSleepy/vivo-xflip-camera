@@ -1,0 +1,170 @@
+{
+  "version": "0.4.1-dev",
+  "version_code": 27,
+  "base_sha": "b77245aaef38a1bb70b46a5c30f5c56a6e545f2f",
+  "synthetic": [
+    {
+      "scenario": "levels",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 1020,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "64eae407bc0e3bbb6f808fbd26fc464497a85ebbc79af5a92281cc473ca19305",
+      "description": "levels=40..215, expanded=true; detail=false; jpeg_hdr_tone=1.0; noise=2.0",
+      "min_before": 40.0,
+      "max_before": 215.0,
+      "min_after": 0.0,
+      "max_after": 255.0
+    },
+    {
+      "scenario": "narrow",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 951,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "8ec4c5ea49c528915219ecfc2d8d784c7ca146f79407e333b4ac1e61d8dd3b53",
+      "description": "levels=90..149, expanded=true; detail=false; jpeg_hdr_tone=1.0; noise=2.965204437873222",
+      "min_before": 90.0,
+      "max_before": 149.0,
+      "min_after": 0.0,
+      "max_after": 254.0
+    },
+    {
+      "scenario": "detail",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 1405,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "6feca0b24c079f787c551f726186f90f15904b1c3344fcf14cb2b1f068145052",
+      "description": "levels=90..148, expanded=false; detail=true; jpeg_hdr_tone=1.0; noise=2.0",
+      "min_before": 89.33333333333333,
+      "max_before": 148.66666666666666,
+      "min_after": 86.0,
+      "max_after": 153.0,
+      "edge_contrast_ratio": 1.0994437992391832
+    },
+    {
+      "scenario": "hdr",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 1387,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "5a9664ccd6185aba978dbcbb2fecc59b2a03c9e7fae84d4f4150e466ad19377c",
+      "description": "levels=0..255, expanded=false; detail=false; jpeg_hdr_tone=0.55; noise=2.0",
+      "min_before": 0.0,
+      "max_before": 255.0,
+      "min_after": 0.0,
+      "max_after": 255.0,
+      "shadow_mean_before": 29.236820888685294,
+      "shadow_mean_after": 45.07580852038479,
+      "highlight_mean_before": 224.01088041431262,
+      "highlight_mean_after": 197.14737758945387,
+      "highlight_texture_ratio": 0.8796015785530891
+    },
+    {
+      "scenario": "flat",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 1490,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "dc9f89207f88c3a6364320cb6b531c4b832c35d6ca63e29c6fe8fe570c1179a7",
+      "description": "levels=100..140, expanded=false; detail=true; jpeg_hdr_tone=1.0; noise=4.447806656809833",
+      "min_before": 100.0,
+      "max_before": 140.0,
+      "min_after": 99.0,
+      "max_after": 142.0,
+      "flat_noise_mse_ratio": 1.025513451592882
+    },
+    {
+      "scenario": "color",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 1817,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "8b7cd38164c81e838fdc8e94c07ef3da700c816980fce72aeb2d0c4a245c6f8f",
+      "description": "levels=70..220, expanded=true; detail=true; jpeg_hdr_tone=0.55; noise=2.0",
+      "min_before": 63.666666666666664,
+      "max_before": 226.0,
+      "min_after": 0.0,
+      "max_after": 255.0
+    },
+    {
+      "scenario": "rotated",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 1609,
+      "dimensions": [
+        960,
+        720
+      ],
+      "sha256": "497ab7c482514fc14253efa695ecf198a435e52f99e4c4da4800043a81d4e3b8",
+      "description": "levels=91..149, expanded=true; detail=true; jpeg_hdr_tone=1.0; noise=2.965204437873222",
+      "min_before": 90.0,
+      "max_before": 150.0,
+      "min_after": 0.0,
+      "max_after": 255.0,
+      "edge_contrast_ratio": 4.699962950340547
+    },
+    {
+      "scenario": "cancel",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 8
+    }
+  ],
+  "fusion_regression": {
+    "scenario": "good",
+    "originals_preserved": true,
+    "instrumentation_passed": true,
+    "accepted_frames": 3,
+    "reference_index": 0,
+    "processing_ms": 1283,
+    "sha256": "37b4e2cd5996fd49963cdfaf4f82dba9b1198fbab92869511c175429a43f42c4",
+    "dimensions": [
+      960,
+      720
+    ],
+    "source_noise_mse": 82.69972789115646,
+    "flat_noise_mse_before": 44.114943310657594,
+    "flat_noise_mse_after": 15.759818594104308,
+    "noise_mse_ratio": 0.3572444485108732,
+    "edge_contrast_ratio": 0.9918396057433583,
+    "orientation": 1
+  },
+  "apk": {
+    "bytes": 45261656,
+    "sha256": "77a20167df57a47726902baf780bfc375ed08df5d23ba1990dd183e49c097cec",
+    "installed_hash_matches": true
+  },
+  "checks": {
+    "core_assertions": 30437,
+    "watermark_tests_each_flavor": 8,
+    "both_build_lint": "passed",
+    "build_seconds": 41,
+    "synthetic_original_hashes_unchanged": true
+  },
+  "device_smoke": {
+    "capture_and_save_passed": true,
+    "originals_retained": true,
+    "watermark_saved": true,
+    "private_photo_identifiers_omitted": true
+  }
+}

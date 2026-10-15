@@ -210,13 +210,14 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
         pauseWorker(true);
         controls.detach();
         android.content.SharedPreferences preferences = getSharedPreferences("system_capture", MODE_PRIVATE);
-        String[] keys = {"watermark_enabled", "auto_stabilize", "burst_enabled"};
+        String[] keys = {"watermark_enabled", "auto_stabilize", "burst_enabled", "auto_levels", "detail_enhance", "hdr_tone"};
         boolean[] values = {preferences.getBoolean(keys[0], false), preferences.getBoolean(keys[1], false),
-                preferences.getBoolean(keys[2], false)};
+                preferences.getBoolean(keys[2], false),preferences.getBoolean(keys[3],true),
+                preferences.getBoolean(keys[4],true),preferences.getBoolean(keys[5],false)};
         Context themed = new android.view.ContextThemeWrapper(screenContext, android.R.style.Theme_Material_Dialog_Alert);
         settingsDialog = new android.app.AlertDialog.Builder(themed)
                 .setTitle("相机设置")
-                .setMultiChoiceItems(new String[]{"照片文字水印：机型与时间", "录后平移防抖（实验）", "连续三张合成：每张需确认"}, values,
+                .setMultiChoiceItems(new String[]{"照片文字水印：机型与时间", "录后平移防抖（实验）", "连续三张合成：每张需确认", "自动色阶：去除两端空白", "文字与纹理增强", "JPEG HDR色调（逆光增强）"}, values,
                         (dialog, index, checked) -> preferences.edit().putBoolean(keys[index], checked).apply())
                 .setPositiveButton("完成", null).create();
         settingsDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
@@ -227,7 +228,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
         settingsDialog.show();
         int width = Math.min(windows.getCurrentWindowMetrics().getBounds().width() - 24,
                 Math.round(420 * screenContext.getResources().getDisplayMetrics().density));
-        settingsDialog.getWindow().setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT);
+        settingsDialog.getWindow().setLayout(width,windows.getCurrentWindowMetrics().getBounds().height()-24);
     }
 
     @Override public void onDestroy() {

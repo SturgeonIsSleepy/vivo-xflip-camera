@@ -20,6 +20,7 @@ public final class CoreChecks {
         assertions += VideoMotionPlanChecks.run();
         assertions += PreviewPhaseStateChecks.run();
         assertions += MultiFrameAccumulatorChecks.run();
+        assertions += PhotoToneCurveChecks.run();
         invalidInputsFailExplicitly();
         System.out.println("PASS " + assertions + " assertions: EXIF 1..8, raster bounds, "
                 + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion, cover controls");
