@@ -21,9 +21,10 @@ public final class CoreChecks {
         assertions += PreviewPhaseStateChecks.run();
         assertions += MultiFrameAccumulatorChecks.run();
         assertions += PhotoToneCurveChecks.run();
+        assertions += PhotoToneRowChecks.run();
         invalidInputsFailExplicitly();
         System.out.println("PASS " + assertions + " assertions: EXIF 1..8, raster bounds, "
-                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion, cover controls");
+                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion, cover controls, tone rows");
     }
 
     private static void asymmetricRasterFixtures() {

@@ -1,0 +1,52 @@
+{
+  "kind": "host_jvm_row_kernel_only",
+  "baseline_commit": "44c200644cb6ab1fc2abecb92be3fc4d8d34cde2",
+  "command": "bash scripts/benchmark_photo_tone.sh 5",
+  "java_version": "17.0.20",
+  "arch": "amd64",
+  "jvm_heap": "128m",
+  "fixture": "16 deterministic synthetic rows streamed repeatedly; no private photo",
+  "width": 3072,
+  "height": 4096,
+  "pixels_per_case": 12582912,
+  "warmup_pairs": 4,
+  "warmup_rows_per_pass": 512,
+  "measurement_pairs": 5,
+  "measurement_order": "alternating legacy-first and candidate-first",
+  "timed_region": "row input copy, pixel kernel and output checksum; excludes image analysis, OpenCV, decode/encode and I/O",
+  "cases": [
+    {
+      "case": "detail_without_hdr",
+      "compression": 1.0,
+      "noise": 3.5,
+      "different_pixels": 0,
+      "legacy_ms": [500.398573, 475.660186, 469.722082, 494.812976, 491.496359],
+      "candidate_ms": [474.993833, 483.626534, 522.891869, 494.289856, 458.301384],
+      "legacy_median_ms": 491.496,
+      "candidate_median_ms": 483.627,
+      "median_speedup": 1.0163,
+      "candidate_loop_thread_allocated_bytes": 0
+    },
+    {
+      "case": "detail_with_hdr",
+      "compression": 0.65,
+      "noise": 3.5,
+      "different_pixels": 0,
+      "legacy_ms": [777.609792, 879.279163, 863.799512, 934.067717, 867.60548],
+      "candidate_ms": [596.929677, 591.49041, 644.719881, 604.612226, 628.594826],
+      "legacy_median_ms": 867.605,
+      "candidate_median_ms": 604.612,
+      "median_speedup": 1.4350,
+      "candidate_loop_thread_allocated_bytes": 0
+    }
+  ],
+  "status": "standalone core; not integrated in PhotoEnhancer",
+  "limitations": [
+    "Single host/JVM microbenchmark, not Android or end-to-end photo timings",
+    "Timing is informational; no flaky speed threshold in CI",
+    "No evidence of meaningful default non-HDR improvement",
+    "Current bitmap/OpenCV full-image allocations are unchanged",
+    "Zero allocation refers to the warmed candidate row loop on this host; excludes fixture, row buffers, mapper construction and static tables",
+    "No vivo X Flip device operation in this run"
+  ]
+}
