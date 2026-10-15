@@ -249,7 +249,7 @@ public final class PreviewMirrorWorker extends Binder {
         int width = maxX - minX + 1, markerHeight = maxY - minY + 1;
         if (hits < 8 || width <= 0 || markerHeight <= 0
                 || width < markerHeight * 0.75f || width > markerHeight * 1.25f) return 0;
-        return movie && markerHeight < height * 0.11f ? 2 : 1;
+        return movie && PreviewPhaseState.isRecordingShape(hits, width, markerHeight) ? 2 : 1;
     }
 
     private static boolean reviewControls(Bitmap frame) {

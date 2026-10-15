@@ -23,4 +23,9 @@ public final class PreviewPhaseState {
 
     public int phase() { return (phase == REVIEW || phase == SETTINGS) && readySamples > 0 ? WAITING : phase; }
     public void reset() { phase = WAITING; readySamples = 0; }
+
+    /** Filled stop squares differ from the circular record button even at small capture sizes. */
+    public static boolean isRecordingShape(int hits, int width, int height) {
+        return width > 0 && height > 0 && hits > width * (double) height * 0.86;
+    }
 }

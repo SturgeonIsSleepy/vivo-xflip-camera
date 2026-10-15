@@ -3,6 +3,8 @@ package com.sturgeon.xflipcamera.core;
 final class PreviewPhaseStateChecks {
     static int run() {
         int checks = 0;
+        check(!PreviewPhaseState.isRecordingShape(78, 10, 10)); checks++;
+        check(PreviewPhaseState.isRecordingShape(98, 10, 10)); checks++;
         PreviewPhaseState state = new PreviewPhaseState();
         check(state.phase() == 0); checks++;
         state.sample(1, false);

@@ -286,3 +286,15 @@
 - 最终验证源码 f1a98b3341ea8ba48ecfd9e5fed93de827bae282（测试适配提交），https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38664547403 已 completed / success，head 精确匹配。standard / coverCompat 各 8 项 native graphics 回归全部通过，failures/errors/skipped 均 0；原图字节、EXIF 1..8 角点/归一尺寸、真实文字像素、元数据与发布/清理故障均实际检查。FD 系统调用不在此验证范围，不能替代手机。
 - 日志确认核心 15,375 项、2 张原始 JPEG 的 20,758,528 个完整像素及哈希、双 APK assemble / 各自 Lint，通过 BUILD SUCCESSFUL in 1m 5s；本地 30 文件语法、差异空白及工作流 YAML/测试命令检查通过。watermark-test-results / 11939674124 含两份 JUnit XML，1,725 bytes，已下载并核对 ZIP SHA256 e8766d1b7efa2e36c9948dfbd16d0b59f81c36edc79910c6bfdbb2fa1ff3b513；xflip-camera-debug / 11940187088，15,574,697 bytes，digest sha256:9d31f0a53aa15f4ceff7b8597ca7cf8e760877ee0eb27c91789e06c83e88b04b。两 artifact 保留至 2026-10-22T01:15:58Z / 01:15:59Z，CI 包未安装，历史 JPEG 不是新设备验收。
 - 两次推送均使用 expected main SHA / force=false，8 个新增或修改文件远程 blob 已核对，其余 99 个原远程文件及权限位保持不变。README 与组件说明补齐真实结果；仍未接入水印按钮或增加新相机算法，P0/P1 待办及设备/FD 边界继续按上述计划。
+
+
+## 2026-10-15｜有线负责人整合与完整包实测
+
+- 起始 dfd7d89，复用两 agent 已交付的 CoverControls/WatermarkProcessor，按 GitHub Issue 1 接口整合 0.3.1-dev / 19；未重写独立组件。只通过仓库通信，未直接操控其他 agent。
+- 冷启动在桥接就绪后直接拍照；右侧模式关闭自己启动的请求码 4102 子相机，等待旧服务销毁再启动下一模式。设置原生外屏对话框提供文字水印/原有实验平移防抖，设置时暂停渲染，录制/确认/原生设置移除三按钮窗口。用红色圆/方填充率区分待机/录制，避免缩小采样误识别隐藏控件。
+- 照片确认后先保存原图，再调用既有水印处理器另存；水印失败保留原图，取消恢复最近保存媒体。保留结果归属检查、处理时禁止播放、静态宿主销毁释放；Debug 视频测试用 manual_entry 避免自动开相机。
+- 两 flavor assemble/Lint、核心 15,377 断言、各 8 个水印 native graphics 测试及原始 JPEG 证据通过，BUILD SUCCESSFUL in 1m 9s。完整 coverCompat 19,982,560 bytes，SHA256 184c3c582f261abf2900cc54b4d12ca1e1daf5112f20e56997cdf3a86a8714de；真实安装 base.apk 哈希一致，客户端和 Shell 工作者同版。
+- 真实 CLOSED / display 1，冷启动、原生设置、水印实际 FD/保存和六次双向模式切换通过。文字场景照片/录像实时方向正确，视频预览 1,494 帧平均 28.6 fps、0 capture_misses。原图与水印均 3072×4096，水印可见、原图仍在；录像确认后完整独立解码 48 帧、720×1280、24 fps、2.01 秒、H.264/AAC。真实图片/视频只保留本地，公开维度、哈希及统计在 docs/evidence/integration-2026-10-15.json。
+- 900ms 自动化连点曾抢在新按钮显示前触发原生取消；按实际窗口就绪复验连续六次正常，记录为短暂加载边界，不凭相位就声称窗口已可点击。一次录制确认因长时间分析触发原生超时未保存，随后短批次重新录制确认保存并独立解码成功。
+- 系统相机闲置退出、电脑初始化/外屏助手依赖、取景点击对焦、计时背景拼接与部分齿轮露出仍保留；未做全方向/开合屏/长录像验收。GPS 实拍只有空 IFD，不把合成 GPS 测试说成真实坐标验收。详见 docs/integration-2026-10-15.md。
+- 防抖配置仍是原有平移，没有冒称成熟算法升级。下一步代码 agent 独立实现 AffineStabilizationPlan 与旋转/平移合成测试，负责人后续接成熟 LK/RANSAC；检查 agent 审查结果取消/重建/窗口清理。影像算法在其后，系统蔡司和 GCam 均未接通。不更改日程或全机设置。

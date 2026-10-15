@@ -1,0 +1,53 @@
+{
+  "original": {
+    "bytes": 4927254,
+    "sha256": "6323ef1c40aba21bf3de17a6b9345f05e80c286c473c433ca060637423f14e40",
+    "storage_dimensions": [
+      3072,
+      4096
+    ],
+    "exif_orientation": null,
+    "display_dimensions": [
+      3072,
+      4096
+    ]
+  },
+  "watermark": {
+    "bytes": 2542503,
+    "sha256": "15872c959515d85d213507d9e87b0f70decc3cef67433ace5a4172c5c6447e20",
+    "dimensions": [
+      3072,
+      4096
+    ],
+    "exif_orientation": 1,
+    "footer_black_fraction": 0.9405888310185185,
+    "footer_white_fraction": 0.050282118055555554,
+    "main_image_mean_absolute_difference": 1.1588308868920896,
+    "make_model_preserved": true,
+    "gps_present_source": true,
+    "gps_present_copy": false,
+    "source_gps_ifd_empty": true,
+    "copy_gps_ifd_empty": true,
+    "gps_note": "Source contains an empty GPS IFD pointer; no real coordinates were available for preservation verification. Synthetic GPS tests passed separately."
+  },
+  "video": {
+    "bytes": 728404,
+    "sha256": "d982da55cfa43b12c43389434012f630c761ea0e1715af89356101556c250460",
+    "decoded_frames": 48,
+    "size": [
+      720,
+      1280
+    ],
+    "fps": 24.0,
+    "duration": 2.01,
+    "video_codec": "h264",
+    "audio_codec": "aac"
+  },
+  "apk": {
+    "version": "0.3.1-dev",
+    "version_code": 19,
+    "bytes": 19982560,
+    "sha256": "184c3c582f261abf2900cc54b4d12ca1e1daf5112f20e56997cdf3a86a8714de",
+    "installed_hash_matches": true
+  }
+}

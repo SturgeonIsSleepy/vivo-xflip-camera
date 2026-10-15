@@ -4,6 +4,8 @@
 
 ## 项目进度
 
+0.3.1-dev 已整合并在真实合盖外屏验证：桥接就绪后打开即拍照，右侧切换照片/录像，左侧原生设置，机型与时间文字水印另存且保留原图。完整同版 GPU 预览实测约 28 fps，拍照及带音频录像正常。成熟防抖仍待升级，系统蔡司及 Google Camera 算法未接通。见 [本轮实机报告](docs/integration-2026-10-15.md)。
+
 已建立最小 Android CameraX 工程：前后摄切换、取景拍照、预览/照片镜像独立控制、窗口与摄像头诊断、成片 EXIF 检查。两个镜像开关默认关闭，照片保存到 Pictures/XFlipCamera。0.1.1-diagnostics 新增独立“照片像素检查”分享入口，后台采样 JPEG 的 RGB 与 EXIF；无需开启相机，结果仅辅助取证，不代表黑屏或镜像已修复。
 
 0.1.6-dev 新增“设置 → 系统相机”回传路径：已在实际合盖外屏连续拍摄并返回两张有效 JPEG，取景和成像由 vivo 原生相机完成。本应用的 CameraX 预览仍黑，原生预览仍有镜像现象，Google 算法尚未接通。独立外屏入口、镜像与折叠验收仍待完成，见[本轮实机报告](docs/device-test-2026-10-13.md)。
@@ -30,9 +32,9 @@
 
 [0.3.0 CI 构建包](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38583427109)已上传到 Artifacts。它的签名可能不同于手机现有包；本地签名候选 APK 直传因网络超时未完成，空 Release 已转草稿。
 
-新增独立 [CoverControls 外屏控件组件](docs/cover-controls.md)：左侧设置、右侧拍照/录像使用三个小型原生窗口，按当前尺寸、密度与 Insets 布局，避免新增整屏触摸覆盖。组件尚未接入拍摄页，实际模式切换、设置、快门及生命周期验收待接续；没有宣称新操作界面已可用。
+新增独立 [CoverControls 外屏控件组件](docs/cover-controls.md)：左侧设置、右侧拍照/录像使用三个小型原生窗口，按当前尺寸、密度与 Insets 布局，避免新增整屏触摸覆盖。0.3.1 已接入并验证实际模式切换、设置、快门和确认；加载时短暂窗口及更多生命周期边界见本轮报告。
 
-新增独立 [自制文字水印处理器](docs/text-watermark.md)：原图只读、EXIF 方向归一，文字副本另存，复用发布与回滚检查。两个 flavor 各 8 项合成图/故障回归通过；FD 系统调用仍待实机，尚未接入设置或拍摄页，不是原生蔡司水印。SDR JPEG 重编码/底部覆盖、元数据及 GPS 保留规则见文档。
+新增独立 [自制文字水印处理器](docs/text-watermark.md)：原图只读、EXIF 方向归一，文字副本另存，复用发布与回滚检查。两个 flavor 各 8 项合成图/故障回归通过；0.3.1 已接入设置与拍摄页，真实 JPEG 的 FD 写入成功；这是自制文字水印。SDR JPEG 重编码/底部覆盖、元数据及 GPS 保留规则见文档。
 
 独立“照片像素检查”现已保存最近一次分享/选择器选中的照片及文字报告，避免页面重建后回读最初分享的照片；已完成报告直接恢复。状态核心通过 35 个新增场景断言，页面恢复和临时权限仍待实机验收，见[照片检查恢复审查](docs/code-review-2026-10-14.md)。
 
@@ -46,5 +48,5 @@
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[当前源码双 APK、Lint、15,375 个核心断言及双 flavor 水印回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38664547403)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告，watermark-test-results 保存两份 JUnit XML。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已有合盖实机成果；0.3.0 完整候选包与新增独立组件的接入仍待验收。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
+[当前源码双 APK、Lint、15,375 个核心断言及双 flavor 水印回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38664547403)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告，watermark-test-results 保存两份 JUnit XML。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已有合盖实机成果；0.3.1 完整包及新增组件已完成上述合盖实测，更多边界仍待验收。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
 

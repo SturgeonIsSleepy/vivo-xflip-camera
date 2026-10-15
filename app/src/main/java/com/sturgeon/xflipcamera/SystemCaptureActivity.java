@@ -25,8 +25,6 @@ import android.widget.MediaController;
 import android.widget.CheckBox;
 
 import androidx.activity.ComponentActivity;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
@@ -54,26 +52,66 @@ public final class SystemCaptureActivity extends ComponentActivity {
     private VideoView player;
     private CheckBox mirrorPreview;
     private VideoStabilizer stabilization;
+    private static final int CAMERA_REQUEST = 4102;
+    private static SystemCaptureActivity active;
+    private Boolean requestedMode;
+    private boolean autoOpen;
+    private Uri lastSaved;
+    private boolean lastSavedVideo;
     private final Shizuku.OnRequestPermissionResultListener permissionListener = (requestCode, grant) -> {
         if (requestCode == 31) status.setText(grant == PackageManager.PERMISSION_GRANTED
                 ? "预览翻转已授权，请拍照或录像" : "预览翻转未授权，可关闭此选项继续拍摄");
     };
-    private final ActivityResultLauncher<Intent> camera = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(), result -> {
-                Log.i("XFlipSystemCapture", "result_code=" + result.getResultCode());
-                stopService(new Intent(this, PreviewMirrorService.class));
-                if (result.getResultCode() == RESULT_OK && photo != null) {
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != CAMERA_REQUEST) return;
+        Log.i("XFlipSystemCapture", "result_code=" + result);
+        PreviewMirrorService.stopForResult(this, () -> {
+            if (isDestroyed()) return;
+            if (requestedMode != null) {
+                boolean next = requestedMode;
+                requestedMode = null;
+                pending = false;
+                discardPendingPhoto();
+                capture(next);
+            } else if (result == RESULT_OK && photo != null) showPhoto();
+            else {
+                pending = false;
+                discardPendingPhoto();
+                if (lastSaved != null) {
+                    output = lastSaved;
+                    video = lastSavedVideo;
                     showPhoto();
                 } else {
-                    pending = false;
-                    discardPendingPhoto();
                     updateControls();
-                    status.setText(video ? "已取消录像" : "已取消拍照");
+                    status.setText("已退出取景，可重新拍照或录像");
                 }
-            });
+            }
+        });
+    }
+
+    static void requestMode(boolean movie) {
+        SystemCaptureActivity owner = active;
+        if (owner == null || owner.isDestroyed() || owner.isFinishing() || owner.reading || owner.editing) return;
+        if (owner.pending) {
+            if (owner.video == movie) return;
+            owner.requestedMode = movie;
+            owner.finishActivity(CAMERA_REQUEST);
+        } else owner.capture(movie);
+    }
+
+    static void workerReady() {
+        SystemCaptureActivity owner = active;
+        if (owner != null && !owner.isFinishing() && owner.autoOpen && !owner.pending && !owner.reading
+                && PreviewWorkerReceiver.availableWorker() != null) {
+            owner.autoOpen = false;
+            owner.capture(false);
+        }
+    }
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        active = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Shizuku.addRequestPermissionResultListener(permissionListener);
         FrameLayout root = new FrameLayout(this);
@@ -140,10 +178,16 @@ public final class SystemCaptureActivity extends ComponentActivity {
             if (photo != null && (!pending || reading)) showPhoto();
         }
         updateControls();
+        String latest = getSharedPreferences("system_capture", MODE_PRIVATE).getString("last_saved", null);
+        lastSaved = latest == null ? null : Uri.parse(latest);
+        lastSavedVideo = getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("last_video", false);
+        autoOpen = !pending && !reading && (savedInstanceState == null || photo == null && output == null)
+                && !getIntent().getBooleanExtra("manual_entry", false);
+        if (autoOpen) new android.os.Handler(getMainLooper()).post(SystemCaptureActivity::workerReady);
     }
 
     private void capture(boolean movie) {
-        if (pending || editing) return;
+        if (pending || editing || reading) return;
         if (mirrorPreview.isChecked()) {
             if (!Settings.canDrawOverlays(this)) {
                 startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -202,9 +246,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     new Intent(this, PreviewMirrorService.class)
                             .putExtra("display_id", getDisplay().getDisplayId()).putExtra("video", video));
             ActivityOptions options = ActivityOptions.makeBasic().setLaunchDisplayId(getDisplay().getDisplayId());
-            intent.putExtra(ActivityResultContracts.StartActivityForResult.EXTRA_ACTIVITY_OPTIONS_BUNDLE,
-                    options.toBundle());
-            camera.launch(intent);
+            startActivityForResult(intent, CAMERA_REQUEST, options.toBundle());
         } catch (RuntimeException failure) {
             stopService(new Intent(this, PreviewMirrorService.class));
             pending = false;
@@ -251,24 +293,56 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Images.Media.IS_PENDING, 0);
                 getContentResolver().update(destination, values, null, null);
+                Uri displayed = destination;
+                boolean marked = false;
+                boolean markFailed = false;
+                if (newPhoto && !video && getSharedPreferences("system_capture", MODE_PRIVATE)
+                        .getBoolean("watermark_enabled", false)) {
+                    try {
+                        String caption = "vivo X Flip  " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm",
+                                java.util.Locale.getDefault()).format(new java.util.Date());
+                        Uri markedUri = WatermarkProcessor.mark(getContentResolver(), destination, caption);
+                        android.graphics.Bitmap markedPreview = ImageDecoder.decodeBitmap(ImageDecoder.createSource(getContentResolver(), markedUri),
+                                (decoder, info, source) -> decoder.setTargetSampleSize(4));
+                        bitmap.recycle();
+                        bitmap = markedPreview;
+                        displayed = markedUri;
+                        marked = true;
+                    } catch (Exception failure) {
+                        markFailed = true;
+                        Log.w("XFlipSystemCapture", "watermark_failed_original_preserved", failure);
+                    }
+                }
                 android.graphics.Bitmap preview = bitmap;
+                Uri savedOutput = displayed;
+                boolean watermarked = marked;
+                boolean watermarkFailed = markFailed;
                 runOnUiThread(() -> {
-                    if (isDestroyed() || !sourceCache.equals(photo)) return;
+                    if (isDestroyed() || !java.util.Objects.equals(sourceCache, photo) || !destination.equals(output)) return;
+                    output = savedOutput;
+                    lastSaved = output;
+                    lastSavedVideo = video;
+                    getSharedPreferences("system_capture", MODE_PRIVATE).edit()
+                            .putString("last_saved", output.toString()).putBoolean("last_video", video).apply();
                     pending = false;
                     reading = false;
                     updateControls();
                     image.setImageBitmap(preview);
                     image.setVisibility(android.view.View.VISIBLE);
                     status.setText(video ? edited ? "防抖视频已另存，原片保留；点击播放" : "录像已保存，点击画面播放"
+                            : watermarked ? "水印副本已保存，原图保留" : watermarkFailed ? "水印未完成，原图已保留"
                             : edited ? "翻转版本已保存，原图保留" : "系统相机照片已保存");
                     if (video) {
                         image.setOnClickListener(view -> {
+                            if (pending || editing || reading) return;
                             player.setVideoURI(output);
                             image.setVisibility(android.view.View.GONE);
                             player.setVisibility(android.view.View.VISIBLE);
                             player.start();
                         });
                     } else image.setOnClickListener(null);
+                    if (newPhoto && video && getSharedPreferences("system_capture", MODE_PRIVATE)
+                            .getBoolean("auto_stabilize", false)) stabilizeVideo();
                 });
             } catch (Exception failure) {
                 if (newPhoto) {
@@ -276,7 +350,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     getContentResolver().delete(saved, null, null);
                 }
                 runOnUiThread(() -> {
-                    if (!isDestroyed() && sourceCache.equals(photo)) {
+                    if (!isDestroyed() && java.util.Objects.equals(sourceCache, photo) && destination.equals(output)) {
                         if (newPhoto) {
                             photo = null;
                             output = null;
@@ -375,6 +449,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     }
 
     @Override protected void onDestroy() {
+        if (active == this) active = null;
         player.stopPlayback();
         if (stabilization != null) stabilization.cancel();
         Shizuku.removeRequestPermissionResultListener(permissionListener);

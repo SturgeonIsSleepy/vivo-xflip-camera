@@ -30,6 +30,7 @@ public final class StabilizationDeviceTest extends Instrumentation {
             File source = new File(getTargetContext().getFilesDir(), "video-stabilization-test.mp4");
             if (!source.isFile()) throw new IllegalStateException("Push the synthetic input to app files first");
             getTargetContext().startActivity(new Intent(getTargetContext(), SystemCaptureActivity.class)
+                    .putExtra("manual_entry", true)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), ActivityOptions.makeBasic().setLaunchDisplayId(1).toBundle());
             try (MediaMetadataRetriever decoder = new MediaMetadataRetriever()) {
                 decoder.setDataSource(source.getAbsolutePath());

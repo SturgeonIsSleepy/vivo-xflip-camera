@@ -23,6 +23,7 @@ public final class PreviewWorkerReceiver extends BroadcastReceiver {
             if (candidate == null || !PreviewMirrorWorker.DESCRIPTOR.equals(candidate.getInterfaceDescriptor())) return;
             worker = candidate;
             PreviewMirrorService.attachExternalWorker(candidate);
+            SystemCaptureActivity.workerReady();
             android.util.Log.i("XFlipPreviewMirror", "shell worker attached, uid=" + uid);
         } catch (android.os.RemoteException failure) {
             android.util.Log.w("XFlipPreviewMirror", "worker already gone", failure);
