@@ -6,6 +6,8 @@
 
 0.3.1-dev 已整合并在真实合盖外屏验证：桥接就绪后打开即拍照，右侧切换照片/录像，左侧原生设置，机型与时间文字水印另存且保留原图。完整同版 GPU 预览实测约 28 fps，拍照及带音频录像正常。成熟防抖仍待升级，系统蔡司及 Google Camera 算法未接通。见 [本轮实机报告](docs/integration-2026-10-15.md)。
 
+[下载最新 0.3.1 外屏控件与水印实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.1-cover-controls-test)。手机、本地与远程附件 SHA256 三者一致；更新后用同版 APK 重启初始化桥接。
+
 已建立最小 Android CameraX 工程：前后摄切换、取景拍照、预览/照片镜像独立控制、窗口与摄像头诊断、成片 EXIF 检查。两个镜像开关默认关闭，照片保存到 Pictures/XFlipCamera。0.1.1-diagnostics 新增独立“照片像素检查”分享入口，后台采样 JPEG 的 RGB 与 EXIF；无需开启相机，结果仅辅助取证，不代表黑屏或镜像已修复。
 
 0.1.6-dev 新增“设置 → 系统相机”回传路径：已在实际合盖外屏连续拍摄并返回两张有效 JPEG，取景和成像由 vivo 原生相机完成。本应用的 CameraX 预览仍黑，原生预览仍有镜像现象，Google 算法尚未接通。独立外屏入口、镜像与折叠验收仍待完成，见[本轮实机报告](docs/device-test-2026-10-13.md)。
@@ -26,7 +28,7 @@
 
 [下载实时翻转实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.6-preview-test)，手机、本地与远程附件 SHA256 三者一致，初始化脚本及限制见上述报告。
 
-[下载最新防抖实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.9-stabilization-test)。打开“外屏系统相机”，运行初始化脚本后直接拍照/录像；录像确认返回后点“视频防抖”，结果另存、原片保留。真实录像源/输出均 82 帧、720×1280、约 2.74 秒并保留音频；合成输入独立测量仅代表该测试场景。
+[下载历史 0.2.9 防抖实测 APK](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.2.9-stabilization-test)。打开“外屏系统相机”，运行初始化脚本后直接拍照/录像；录像确认返回后点“视频防抖”，结果另存、原片保留。真实录像源/输出均 82 帧、720×1280、约 2.74 秒并保留音频；合成输入独立测量仅代表该测试场景。
 
 0.3.0-dev 为预览性能候选版：GPU 路径在混合调试会话实测从约 10 fps 提高到约 29 fps，识别漏检保持方向。双版本构建/Lint、13,817 项断言通过，完整候选包因手机断线尚未安装复验。界面重排、水印和更成熟防抖仍待开发，见 [性能收尾与边界](docs/preview-performance-2026-10-14.md)。
 

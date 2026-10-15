@@ -28,3 +28,11 @@
 原生拍摄仍需点“确定”；原生相机约两分钟闲置会自动退出。设置按钮下方仍可见部分原生齿轮，中央取景点击对焦被既有覆盖层阻挡，视频计时背景仍有局部拼接。未进行开合屏/不同画幅/全旋转矩阵及长时间录像压力验收。
 
 自动防抖配置仅调用已有录后平移算法，不代表效果升级。成熟 OpenCV 光流/RANSAC 和旋转补偿仍待实现及真实运动对照；Google Camera 算法未接通。下一步代码 agent 完成独立 AffineStabilizationPlan 与合成旋转/平移测试，检查 agent 审查本轮结果归属、取消/恢复、设置暂停和窗口清理；所有协作只通过仓库。
+
+## 远程成果收据
+
+源码 [059f28e](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/059f28e7eace0fb07a33e6e868fc279e4aa3c42c) 已推送并核对 main。对应 [CI 38720404954](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38720404954) completed / success；下载的两份 JUnit XML 各 tests=8、failures/errors/skipped=0，ZIP digest 11ae7f52c0141bbfcfa22349d821b7f371f87e5aec04f57a1dad8304d917c027 与 artifact 11965910260 一致。xflip-camera-debug / 11966055164 保存 CI APK 与 Lint，15,579,640 bytes；与本地签名实测包分开。
+
+[下载 0.3.1 实测包](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.1-cover-controls-test)。Release 413678632 / asset 643497848，公开预发布；tag 精确指向源码 059f28e，远程 state=uploaded、19,982,560 bytes、digest 与本地及手机安装包三者一致。不是昨日未完成的 0.3.0 草稿。
+
+同一已安装完整包追加照片预览观测：24.282 秒从 41 至 744 帧，区间 28.95 fps，phase 始终 1、capture_misses=0、unknown_controls 保持 3。窗口列表实见三个独立控件窗口，最终截图文字方向正确；返回后预览服务已退出，无本应用崩溃记录。这仍不是长期稳定性保证。

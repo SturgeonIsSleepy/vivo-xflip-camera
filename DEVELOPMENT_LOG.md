@@ -298,3 +298,7 @@
 - 900ms 自动化连点曾抢在新按钮显示前触发原生取消；按实际窗口就绪复验连续六次正常，记录为短暂加载边界，不凭相位就声称窗口已可点击。一次录制确认因长时间分析触发原生超时未保存，随后短批次重新录制确认保存并独立解码成功。
 - 系统相机闲置退出、电脑初始化/外屏助手依赖、取景点击对焦、计时背景拼接与部分齿轮露出仍保留；未做全方向/开合屏/长录像验收。GPS 实拍只有空 IFD，不把合成 GPS 测试说成真实坐标验收。详见 docs/integration-2026-10-15.md。
 - 防抖配置仍是原有平移，没有冒称成熟算法升级。下一步代码 agent 独立实现 AffineStabilizationPlan 与旋转/平移合成测试，负责人后续接成熟 LK/RANSAC；检查 agent 审查结果取消/重建/窗口清理。影像算法在其后，系统蔡司和 GCam 均未接通。不更改日程或全机设置。
+
+- 源码 059f28e7eace0fb07a33e6e868fc279e4aa3c42c 已推送，远程 main 读回一致；对应 CI 38720404954 completed/success，下载 artifact 11965910260 的两套 JUnit XML 各 8/0/0/0，ZIP digest 一致；CI APK/Lint artifact 11966055164，15,579,640 bytes。
+- 实测 APK 已发布 https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.1-cover-controls-test ，Release 413678632 / asset 643497848，state=uploaded / 19,982,560 bytes，digest 与手机/本地三者一致；tag 核对精确指向源码 059f28e。补充 24.282 秒照片预览区间 28.95 fps、零 capture_misses、phase 1，实际三个原生控件窗口；返回后服务退出。Issue 1 已同步整合源码、验收边界和两个 agent 下一项。
+- 远程机器收据在 db21f8274d28339dce3e2c918e7169285a625a1d 已保存；随后文档更新脚本因 Windows 默认 GBK 读取 UTF-8 文档失败，仅前置 JSON 写入完成。本提交明确指定 UTF-8 补齐 README 下载入口、实机报告和统一日志；APK 与生产源码未改变，不重复构建或安装。最终以本次完整文档为准。
