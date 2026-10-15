@@ -1,0 +1,58 @@
+{
+  "version": "0.3.2-dev",
+  "version_code": 21,
+  "base_commit": "fc02852eab881f24dfba3bdac9a9113ae21311ff",
+  "apk": {
+    "bytes": 19850408,
+    "sha256": "ed7eddc8b67c7ae3fdf4e2c4ca7fef0946fd1f7ace10769ca5677cf59fb02925",
+    "installed_hash_matches": true
+  },
+  "force_stop_reopen": [
+    {
+      "attempt": 1,
+      "app_pid": "30407",
+      "bridge_pid": "519",
+      "same_bridge_pid": true,
+      "same_supervisor_pid": true,
+      "recovery_seconds": 9.865,
+      "mirrored_frames": 19,
+      "phase": 1,
+      "native_control_windows": 3
+    },
+    {
+      "attempt": 2,
+      "app_pid": "454",
+      "bridge_pid": "519",
+      "same_bridge_pid": true,
+      "same_supervisor_pid": true,
+      "recovery_seconds": 7.22,
+      "mirrored_frames": 11,
+      "phase": 1,
+      "native_control_windows": 3
+    },
+    {
+      "attempt": 3,
+      "app_pid": "1007",
+      "bridge_pid": "519",
+      "same_bridge_pid": true,
+      "same_supervisor_pid": true,
+      "recovery_seconds": 10.643,
+      "mirrored_frames": 22,
+      "phase": 1,
+      "native_control_windows": 3
+    }
+  ],
+  "worker_restart": {
+    "old_worker": "519",
+    "new_worker": "4178",
+    "recovered_seconds": 7.955,
+    "preview_phase_ok": true
+  },
+  "build": {
+    "core_assertions": 15377,
+    "native_graphics_tests_each_flavor": 8,
+    "both_assemble_and_lint": "passed",
+    "seconds": 39
+  },
+  "privacy": "No scene photos, videos, GPS, serial number, or raw system logs published."
+}

@@ -102,6 +102,13 @@ public final class MainActivity extends ComponentActivity {
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getDisplay().getDisplayId() != Display.DEFAULT_DISPLAY && !getIntent().hasExtra("camera_id")
+                && !getIntent().getBooleanExtra("diagnostics", false)) {
+            startActivity(new Intent(this, SystemCaptureActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                    ActivityOptions.makeBasic().setLaunchDisplayId(getDisplay().getDisplayId()).toBundle());
+            finish();
+            return;
+        }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestedCameraId = getIntent().getStringExtra("camera_id");
         preferences = getSharedPreferences("mirror-preferences", MODE_PRIVATE);

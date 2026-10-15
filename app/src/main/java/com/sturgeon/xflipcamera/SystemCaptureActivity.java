@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.content.pm.PackageManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -32,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import rikka.shizuku.Shizuku;
 
 /** The OEM app owns camera access; this activity owns the returned photo. */
 public final class SystemCaptureActivity extends ComponentActivity {
@@ -56,12 +54,18 @@ public final class SystemCaptureActivity extends ComponentActivity {
     private static SystemCaptureActivity active;
     private Boolean requestedMode;
     private boolean autoOpen;
+    private boolean foreground;
+    private Boolean waitingMode;
+    private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable workerTimeout = () -> {
+        if (waitingMode != null && PreviewWorkerReceiver.availableWorker() == null) {
+            waitingMode = null;
+            autoOpen = false;
+            status.setText("预览服务未连接，请初始化桥接后重试");
+        }
+    };
     private Uri lastSaved;
     private boolean lastSavedVideo;
-    private final Shizuku.OnRequestPermissionResultListener permissionListener = (requestCode, grant) -> {
-        if (requestCode == 31) status.setText(grant == PackageManager.PERMISSION_GRANTED
-                ? "预览翻转已授权，请拍照或录像" : "预览翻转未授权，可关闭此选项继续拍摄");
-    };
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
         if (request != CAMERA_REQUEST) return;
@@ -78,6 +82,10 @@ public final class SystemCaptureActivity extends ComponentActivity {
             else {
                 pending = false;
                 discardPendingPhoto();
+                if (autoOpen) {
+                    workerReady();
+                    return;
+                }
                 if (lastSaved != null) {
                     output = lastSaved;
                     video = lastSavedVideo;
@@ -102,18 +110,50 @@ public final class SystemCaptureActivity extends ComponentActivity {
 
     static void workerReady() {
         SystemCaptureActivity owner = active;
-        if (owner != null && !owner.isFinishing() && owner.autoOpen && !owner.pending && !owner.reading
-                && PreviewWorkerReceiver.availableWorker() != null) {
-            owner.autoOpen = false;
-            owner.capture(false);
+        if (owner == null || owner.isFinishing() || !owner.foreground || owner.pending || owner.reading
+                || owner.editing || !owner.autoOpen && owner.waitingMode == null) return;
+        boolean movie = owner.waitingMode != null && owner.waitingMode;
+        if (PreviewWorkerReceiver.availableWorker() == null) {
+            owner.waitForWorker(movie);
+            return;
         }
+        owner.autoOpen = false;
+        owner.waitingMode = null;
+        owner.main.removeCallbacks(owner.workerTimeout);
+        owner.capture(movie);
+    }
+
+    private void waitForWorker(boolean movie) {
+        waitingMode = movie;
+        status.setText("正在恢复预览服务，请稍候");
+        main.removeCallbacks(workerTimeout);
+        main.postDelayed(workerTimeout, 6000);
+        PreviewWorkerReceiver.requestWorker(this);
+    }
+
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        autoOpen = !intent.getBooleanExtra("manual_entry", false);
+        workerReady();
+    }
+
+    @Override protected void onStart() {
+        super.onStart();
+        foreground = true;
+        workerReady();
+    }
+
+    @Override protected void onStop() {
+        foreground = false;
+        main.removeCallbacks(workerTimeout);
+        super.onStop();
     }
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         active = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        Shizuku.addRequestPermissionResultListener(permissionListener);
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
         image = new ImageView(this);
@@ -196,13 +236,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 status.setText("允许本应用悬浮窗后重试");
                 return;
             }
-            if (PreviewWorkerReceiver.availableWorker() == null && !Shizuku.pingBinder()) {
-                status.setText("请先初始化预览纠正服务，再重试拍摄");
-                return;
-            }
-            if (PreviewWorkerReceiver.availableWorker() == null
-                    && Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                Shizuku.requestPermission(31);
+            if (PreviewWorkerReceiver.availableWorker() == null) {
+                waitForWorker(movie);
                 return;
             }
         }
@@ -450,9 +485,9 @@ public final class SystemCaptureActivity extends ComponentActivity {
 
     @Override protected void onDestroy() {
         if (active == this) active = null;
+        main.removeCallbacks(workerTimeout);
         player.stopPlayback();
         if (stabilization != null) stabilization.cancel();
-        Shizuku.removeRequestPermissionResultListener(permissionListener);
         if (isFinishing()) stopService(new Intent(this, PreviewMirrorService.class));
         reader.shutdown();
         if (isFinishing() && !pending && photo != null) {

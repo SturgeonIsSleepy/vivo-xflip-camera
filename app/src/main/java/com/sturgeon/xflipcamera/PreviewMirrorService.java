@@ -40,7 +40,11 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
         @Override public void run() {
             if (destroying) return;
             try {
-                boolean live = readWorkerStatus().contains("phase=1,");
+                if (worker == null || !worker.pingBinder()) {
+                    rendererStarted = false;
+                    PreviewWorkerReceiver.requestWorker(PreviewMirrorService.this);
+                }
+                boolean live = rendererStarted && readWorkerStatus().contains("phase=1,");
                 if (controls != null && (settingsDialog == null || !settingsDialog.isShowing())) {
                     if (live) controls.attach(); else controls.detach();
                 }
@@ -72,8 +76,20 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
 
     static void attachExternalWorker(IBinder service) {
         if (active != null) {
+            boolean replaced = active.worker != null && active.worker != service;
             if (active.worker != service) active.stopRendering();
             active.worker = service;
+            if (replaced && active.preview != null && active.windows != null) {
+                // A dead remote GPU producer can abandon its buffer queue. Give the replacement a new one.
+                WindowManager.LayoutParams layout = (WindowManager.LayoutParams) active.preview.getLayoutParams();
+                active.preview.getHolder().removeCallback(active);
+                active.windows.removeViewImmediate(active.preview);
+                active.preview = new SurfaceView(active.screenContext);
+                active.preview.setZOrderOnTop(true);
+                active.preview.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+                active.preview.getHolder().addCallback(active);
+                active.windows.addView(active.preview, layout);
+            }
             active.startRendering();
         }
     }

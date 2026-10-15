@@ -36,7 +36,8 @@
         <activity
             android:name=".SystemCaptureActivity"
             android:exported="true"
-            android:label="外屏系统相机"
+            android:label="外屏相机"
+            android:launchMode="singleTask"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|smallestScreenSize"
             android:resizeableActivity="true">
@@ -61,10 +62,6 @@
             android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"
             android:exported="true"
             android:resizeableActivity="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 </manifest>

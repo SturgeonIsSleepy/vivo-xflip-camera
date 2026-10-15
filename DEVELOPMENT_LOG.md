@@ -302,3 +302,14 @@
 - 源码 059f28e7eace0fb07a33e6e868fc279e4aa3c42c 已推送，远程 main 读回一致；对应 CI 38720404954 completed/success，下载 artifact 11965910260 的两套 JUnit XML 各 8/0/0/0，ZIP digest 一致；CI APK/Lint artifact 11966055164，15,579,640 bytes。
 - 实测 APK 已发布 https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.1-cover-controls-test ，Release 413678632 / asset 643497848，state=uploaded / 19,982,560 bytes，digest 与手机/本地三者一致；tag 核对精确指向源码 059f28e。补充 24.282 秒照片预览区间 28.95 fps、零 capture_misses、phase 1，实际三个原生控件窗口；返回后服务退出。Issue 1 已同步整合源码、验收边界和两个 agent 下一项。
 - 远程机器收据在 db21f8274d28339dce3e2c918e7169285a625a1d 已保存；随后文档更新脚本因 Windows 默认 GBK 读取 UTF-8 文档失败，仅前置 JSON 写入完成。本提交明确指定 UTF-8 补齐 README 下载入口、实机报告和统一日志；APK 与生产源码未改变，不重复构建或安装。最终以本次完整文档为准。
+
+
+## 2026-10-15｜修复用户实际重开后失联
+
+- 起始 fc02852，用户明确反馈原始相机、翻转失败、功能键缺失，推翻此前同进程演示可代表日常可用的判断。实见 app PID 重建、Shell PID 仍在、服务 not_connected 且没有控件窗口。修复工作由唯一有线负责人承担，Issue 1 已同步根因和文件独占，继续仅 GitHub 协作。
+- Receiver 增加应用私有外部目录短请求，Shell 固定 DUMP 接收器重新共享真实 Binder，保留 UID 与描述符验证；授权 Shizuku 支路也等待真实服务连接。应用没拿到工作者不再进入原始相机，前台重开自动恢复，后台不弹起。
+- 首轮 force-stop 暴露原生子相机残留旧任务栈，am start 只带出原生页而不启动应用；入口改 singleTask / onNewIntent，正常图标只保留外屏拍照，旧 Main 外屏入口转发。第二轮故障注入发现 HWUI native abort 与旧缓冲队列：增加独立 Shell 监护，worker 替换时重建 Surface，避免连续崩溃；这属于恢复机制，未声称 native 风险消失。
+- 最终 0.3.2-dev / 21 双 flavor assemble/Lint、15,377 核心断言、各 8 项水印 native graphics 回归及 JPEG 证据通过，BUILD SUCCESSFUL in 39s。19,850,408 bytes，SHA256 ed7eddc8b67c7ae3fdf4e2c4ca7fef0946fd1f7ace10769ca5677cf59fb02925，与手机已安装包一致，最终同版脚本已初始化。
+- 最终包连续三次强制停止后正常入口重开，三个 app PID 均恢复 phase=1 和 3 个独立功能键，监护会话不变且没有重跑初始化；含 ADB/dumpsys 的 9.87/7.22/10.64 秒只作为诊断耗时。主动中断 worker 后同一相机会话约 7.96 秒恢复、左设置可打开；退出预览服务停止。旧中间包失败与最终包结果分开记录，截图/场景均不上传。
+- 报告 docs/reconnect-2026-10-15.md，安全统计 docs/evidence/reconnect-2026-10-15.json；新增 scripts/test_preview_reconnect.ps1 保存可复现的有线进程死亡回归。没有改全机 DPI/性能、日程或防抖/成像算法。
+- 下一步检查 agent 审查新连接、singleTask、Surface 更换与清理；代码 agent 的独立成熟防抖核心保留原任务。手机重启/授权撤销/监护死亡仍需初始化，实际拔线与重启自动授权未验收。后续考虑将绘制移入应用进程消除远端 GPU native 退出风险。
