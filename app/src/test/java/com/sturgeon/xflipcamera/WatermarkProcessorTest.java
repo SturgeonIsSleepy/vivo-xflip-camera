@@ -106,6 +106,7 @@ public class WatermarkProcessorTest {
             assertEquals(1, after.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0));
             assertEquals("Fixture Camera", after.getAttribute(ExifInterface.TAG_MAKE));
             assertEquals("Synthetic Model", after.getAttribute(ExifInterface.TAG_MODEL));
+            assertEquals("Synthetic fusion provenance", after.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION));
             assertEquals("2026:01:02 03:04:05", after.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
             assertEquals(0.01, after.getAttributeDouble(ExifInterface.TAG_EXPOSURE_TIME, -1), 0.00001);
             assertArrayEquals(new double[]{0, 0}, after.getLatLong(), 0.000001); // Synthetic only.
@@ -202,6 +203,7 @@ public class WatermarkProcessorTest {
         metadata.setAttribute(ExifInterface.TAG_ORIENTATION, String.valueOf(orientation));
         metadata.setAttribute(ExifInterface.TAG_MAKE, "Fixture Camera");
         metadata.setAttribute(ExifInterface.TAG_MODEL, "Synthetic Model");
+        metadata.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "Synthetic fusion provenance");
         metadata.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, "2026:01:02 03:04:05");
         metadata.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, "1/100");
         metadata.setLatLong(0, 0);

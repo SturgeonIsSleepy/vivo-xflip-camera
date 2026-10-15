@@ -28,7 +28,7 @@ import java.util.UUID;
 public final class WatermarkProcessor {
     private static final long MAX_PIXELS = 20_000_000L;
     private static final String[] CAPTURE_TAGS = {
-            ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL,
+            ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL, ExifInterface.TAG_IMAGE_DESCRIPTION,
             ExifInterface.TAG_DATETIME, ExifInterface.TAG_DATETIME_ORIGINAL,
             ExifInterface.TAG_DATETIME_DIGITIZED, ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
             ExifInterface.TAG_OFFSET_TIME_ORIGINAL, ExifInterface.TAG_EXPOSURE_TIME,

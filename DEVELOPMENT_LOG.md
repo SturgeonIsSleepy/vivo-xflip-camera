@@ -317,3 +317,16 @@
 - 源码 3ed7e6ea5005d911ce7f44cffc3639c1f01c5b2f 与 main 已核对，CI 38724970989 success / head 一致；下载核对两套 JUnit XML 各 8 项全通过，artifact 11967746158 ZIP hash 与远程相同，CI APK/Lint artifact 11968430618 为 15,583,784 bytes。
 - Release v0.3.2-reconnect-fix / 413709949 已公开预发布，APK asset 643594007 / 19,850,408 bytes / digest 与手机和本地一致；初始化脚本 asset 643600283 / 2269 bytes，SHA256 8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2 已核对。tag 精确指向源码 3ed7e6e，0.3.1 Release 已加已知重开失联及替代版本警示。
 - 额外实机从旧 MainActivity 外屏入口强制停止后重开，实际进入正确取景并切录像；第一次过早点击原生录制未开始，窗口就绪后再点正常，仍记录加载边界。最终视频 9,382,885 bytes 独立解码 551 帧、720×1280、约 22.96 秒、H.264/AAC；确认后服务停止，不将前版 29fps 当成本轮录像帧率。私有视频仍仅本地，统计更新到同一 JSON。
+
+
+## 2026-10-15｜照片三帧对齐降噪与全尺寸实拍
+
+- 起始 24628aeee334708490f7ae511d134dad3ad461ec。用户要求照片多帧降噪和清晰度增强；先查原生输入边界并通过 Issue 1 分配合成对照/审查，保持仅 GitHub 沟通。实机 IMAGE_CAPTURE 长按明确提示不支持连拍，因此实现连续三次真实拍摄确认，再自动融合，不拿截图/重复图/视频帧冒充全尺寸连拍。
+- 新增 MultiFrameAccumulator 与 PhotoBurstProcessor：较清晰参考、OpenCV 4.12 ORB/Hamming/RANSAC/ECC、运动/异常帧拒绝、分块稳健平均及受限亮度锐化；13MP 内 SDR JPEG 归一 EXIF、尺寸不变、JPEG97 另存、保留真实元数据与融合标记，复用 PendingMediaWrite。分块与单帧轮换控制内存；仅打包实机 ARM64 库，实际依赖许可随 APK assets/licenses 保留。
+- 原生左设置增加“连续三张合成：每张需确认”，确认1/2自动进入下一张，右按钮显示2/3、3/3。取消、关闭设置或切录像清空本组，保存的原图保留；销毁取消处理。第三张后对融合结果应用已有文字水印，水印保留 ImageDescription，并增回归断言。发布完成后的读取/后处理错误不再清理已保存原图。
+- 核心 27,677 断言通过，独立噪声 MSE 比值0.3802、运动块参考保护和受限锐化检查通过；双flavor assemble/Lint、各8项水印native graphics及JPEG证据通过，最终BUILD SUCCESSFUL in 1m19s。0.4.0-dev/24，45,245,244bytes，SHA256 0165ad4b32d0b8a4dee322285997ddb57951d194ed7ec1f1768fc238c9e64328，与手机base.apk一致。
+- 真实ARM64手机同生产路径执行good/moving/rotated/unrelated/duplicate/cancel六组，输入哈希逐字节保持；前三组3/3融合，后三组正确拒绝。加入同Android sRGB/JPEG97单帧编码基准，最终平坦MSE比0.3572/0.3515/0.3843、边缘0.9918/0.9940/0.9936，运动区MSE比0.6540；合成处理约1.2–1.4s。初期19%比值包含JPEG重编码影响，以最终匹配基准为准，不外推真实通用质量收益。
+- 真正合盖3张3072×4096回传后融合3/3成功，原图3,152,627/3,164,314/3,157,412bytes均保留；合成2,920,729bytes、水印副本2,345,862bytes，均原尺寸与Orientation1、融合描述仍在。第三张缓存/图库原图哈希相同，真实场景只保留本地，不报告无真值PSNR。右侧2/3、3/3和最终状态截图已私下核对，回传后服务停止。
+- 测试前处理了vivo安装器复用旧完成页：实际versionCode/hash暴露仍是22，停止当前安装器会话并用唯一v24路径后验证真正安装。夹具先放外部目录被NIO拒绝，改为同UID内部文件并逐文件核对哈希；ASCII base64流传输加哈希校验和旧分块回退有效。失败不冒充算法验收。
+- 新增scripts/generate_photo_burst_fixture.py、scripts/test_photo_burst_device.py及debug-only PhotoBurstDeviceTest，公共仅合成图对照与统计。报告docs/multiframe-2026-10-15.md，统一JSON/对照图在docs/evidence。原有手机重启初始化、原生确认/闲置退出、点击对焦和计时拼接限制保留；没有Google专有算法、RAW HDR+、神经生成或超分辨率，未修改日程和全机设置。
+- 代码agent后续优先核查已生成的合成夹具/独立质量评价，避免重复实现；检查agent审查会话取消/原图发布/元数据、对齐拒绝、内存和发布回滚。下一步减少拍摄确认交互，并扩展低照/局部运动实拍质量对照，成熟防抖原任务继续待办。

@@ -11,8 +11,9 @@ android {
         applicationId 'com.sturgeon.xflipcamera'
         minSdk 33
         targetSdk 36
-        versionCode 21
-        versionName '0.3.2-dev'
+        ndk { abiFilters 'arm64-v8a' }
+        versionCode 24
+        versionName '0.4.0-dev'
     }
 
     flavorDimensions 'cameraAccess'
@@ -56,6 +57,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.17'
     implementation project(':camera-core')
+    implementation 'org.opencv:opencv:4.12.0'
     implementation 'androidx.activity:activity:1.10.1'
     def cameraVersion = '1.6.2'
     implementation 'androidx.camera:camera-core:' + cameraVersion

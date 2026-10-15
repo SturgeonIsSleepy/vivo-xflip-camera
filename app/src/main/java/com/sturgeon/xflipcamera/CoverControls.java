@@ -40,6 +40,7 @@ public final class CoverControls {
     private final Button video;
     private final List<Button> added = new ArrayList<>();
     private boolean movie;
+    private int photoProgress;
     private boolean enabled = true;
     private boolean attached;
     private boolean registered;
@@ -116,6 +117,13 @@ public final class CoverControls {
         refresh();
     }
 
+    public void setPhotoProgress(int value) {
+        requireMainThread();
+        if (photoProgress == value) return;
+        photoProgress = value;
+        refresh();
+    }
+
     public boolean isAttached() {
         requireMainThread();
         return attached;
@@ -145,7 +153,7 @@ public final class CoverControls {
             button.setEnabled(enabled);
             button.setAlpha(enabled ? 1f : 0.55f);
         }
-        mark(photo, !movie, "拍照");
+        mark(photo, !movie, photoProgress > 0 ? "拍照 " + photoProgress + "/3" : "拍照");
         mark(video, movie, "录像");
         settings.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(42, 42, 42)));
         settings.setContentDescription("相机设置");
@@ -153,6 +161,7 @@ public final class CoverControls {
 
     private void mark(Button button, boolean selected, String label) {
         button.setSelected(selected);
+        button.setText(label);
         button.setBackgroundTintList(ColorStateList.valueOf(selected
                 ? Color.rgb(36, 92, 145) : Color.rgb(42, 42, 42)));
         button.setContentDescription(label + (selected ? "，当前模式" : "，切换模式"));

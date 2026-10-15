@@ -1,0 +1,155 @@
+{
+  "version": "0.4.0-dev",
+  "version_code": 24,
+  "base_sha": "24628aeee334708490f7ae511d134dad3ad461ec",
+  "synthetic": [
+    {
+      "scenario": "good",
+      "originals_preserved": true,
+      "instrumentation_passed": true,
+      "accepted_frames": 3,
+      "reference_index": 0,
+      "processing_ms": 1361,
+      "sha256": "db97fcb302c20518174fea5380a421eca876dd17171179765814bf1afdd91c70",
+      "dimensions": [
+        960,
+        720
+      ],
+      "source_noise_mse": 82.69972789115646,
+      "flat_noise_mse_before": 44.114943310657594,
+      "flat_noise_mse_after": 15.759818594104308,
+      "noise_mse_ratio": 0.3572444485108732,
+      "edge_contrast_ratio": 0.9918396057433583,
+      "orientation": 1
+    },
+    {
+      "scenario": "moving",
+      "originals_preserved": true,
+      "instrumentation_passed": true,
+      "accepted_frames": 3,
+      "reference_index": 0,
+      "processing_ms": 1236,
+      "sha256": "755d4648b0fd30b5f2d0a935a4592326e5369bf638a93738aebea50397223c7a",
+      "dimensions": [
+        960,
+        720
+      ],
+      "source_noise_mse": 82.58124716553289,
+      "flat_noise_mse_before": 44.132380952380956,
+      "flat_noise_mse_after": 15.512675736961452,
+      "noise_mse_ratio": 0.3515032591080844,
+      "edge_contrast_ratio": 0.9939676735437003,
+      "orientation": 1,
+      "moving_region_mse_ratio": 0.6540209508386797
+    },
+    {
+      "scenario": "rotated",
+      "originals_preserved": true,
+      "instrumentation_passed": true,
+      "accepted_frames": 3,
+      "reference_index": 0,
+      "processing_ms": 1278,
+      "sha256": "4c711bcc4357025a7cd3a87313dc01a48e1bc2420c55f030d9383c86cc02b864",
+      "dimensions": [
+        960,
+        720
+      ],
+      "source_noise_mse": 82.62551020408164,
+      "flat_noise_mse_before": 41.20956916099773,
+      "flat_noise_mse_after": 15.838299319727891,
+      "noise_mse_ratio": 0.3843354745556973,
+      "edge_contrast_ratio": 0.9936369174897685,
+      "orientation": 1
+    },
+    {
+      "scenario": "unrelated",
+      "originals_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 479,
+      "rejected_as_expected": true
+    },
+    {
+      "scenario": "duplicate",
+      "originals_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 75,
+      "rejected_as_expected": true
+    },
+    {
+      "scenario": "cancel",
+      "originals_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 18,
+      "rejected_as_expected": true
+    }
+  ],
+  "real_photos": [
+    {
+      "name": "XFlipMerged_b096800a-855c-43a0-af40-0eab12685244.jpg",
+      "bytes": 2920729,
+      "sha256": "678b78a4c40a3402a452af6905c73b540299a5c8f90715ed96c96a337ecfbdd7",
+      "dimensions": [
+        3072,
+        4096
+      ],
+      "orientation": 1,
+      "fusion_description": "Robust aligned JPEG fusion; accepted frames=3"
+    },
+    {
+      "name": "XFlipSystem_1792067934669.jpg",
+      "bytes": 3152627,
+      "sha256": "5989a417dfba378857469ac2558dc0964c46c4917aaf663d208822ce9366b046",
+      "dimensions": [
+        3072,
+        4096
+      ],
+      "orientation": 1,
+      "fusion_description": null
+    },
+    {
+      "name": "XFlipSystem_1792067983144.jpg",
+      "bytes": 3164314,
+      "sha256": "3a644d459fab0a345678be2cca162cb332fc2f86936de277c89addee729f921c",
+      "dimensions": [
+        3072,
+        4096
+      ],
+      "orientation": 1,
+      "fusion_description": null
+    },
+    {
+      "name": "XFlipSystem_1792067986262.jpg",
+      "bytes": 3157412,
+      "sha256": "b949d4bafbb54d8807fc16a69392bb33da5ab47087e111a21019656d15790505",
+      "dimensions": [
+        3072,
+        4096
+      ],
+      "orientation": 1,
+      "fusion_description": null
+    },
+    {
+      "name": "XFlipText_be441684-31e4-4381-9f56-d9309dc2fc29.jpg",
+      "bytes": 2345862,
+      "sha256": "5abe2a14cc494df9ed4723bf5be2f08429fc4632cf0cfd33159b437532a33d59",
+      "dimensions": [
+        3072,
+        4096
+      ],
+      "orientation": 1,
+      "fusion_description": "Robust aligned JPEG fusion; accepted frames=3"
+    }
+  ],
+  "apk": {
+    "bytes": 45245244,
+    "sha256": "0165ad4b32d0b8a4dee322285997ddb57951d194ed7ec1f1768fc238c9e64328",
+    "installed_hash_matches": true
+  },
+  "checks": {
+    "core_assertions": 27677,
+    "watermark_tests_each_flavor": 8,
+    "both_assemble_lint": "passed",
+    "build_seconds": 79,
+    "all_originals_preserved_in_synthetic_tests": true
+  }
+}

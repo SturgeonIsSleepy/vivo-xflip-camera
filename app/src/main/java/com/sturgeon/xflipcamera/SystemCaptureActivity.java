@@ -66,6 +66,14 @@ public final class SystemCaptureActivity extends ComponentActivity {
     };
     private Uri lastSaved;
     private boolean lastSavedVideo;
+    private final java.util.List<Uri> burstFrames = new java.util.ArrayList<>();
+    private final java.util.concurrent.atomic.AtomicBoolean processingCancelled = new java.util.concurrent.atomic.AtomicBoolean();
+
+    static int burstIndex() {
+        SystemCaptureActivity owner = active;
+        return owner != null && !owner.video && owner.getSharedPreferences("system_capture", MODE_PRIVATE)
+                .getBoolean("burst_enabled", false) ? owner.burstFrames.size() + 1 : 0;
+    }
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
         if (request != CAMERA_REQUEST) return;
@@ -80,6 +88,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 capture(next);
             } else if (result == RESULT_OK && photo != null) showPhoto();
             else {
+                burstFrames.clear();
                 pending = false;
                 discardPendingPhoto();
                 if (autoOpen) {
@@ -206,6 +215,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
         root.addView(mirrorPreview, mirrorLayout);
         setContentView(root);
         if (savedInstanceState != null) {
+            java.util.ArrayList<String> frames = savedInstanceState.getStringArrayList("burst_frames");
+            if (frames != null) for (String uri : frames) burstFrames.add(Uri.parse(uri));
             String uri = savedInstanceState.getString("photo");
             photo = uri == null ? null : Uri.parse(uri);
             String destination = savedInstanceState.getString("output");
@@ -243,6 +254,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
         }
         player.stopPlayback();
         player.setVisibility(android.view.View.GONE);
+        if (movie || !getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("burst_enabled", false)) burstFrames.clear();
         video = movie;
         edited = false;
         ContentValues values = new ContentValues();
@@ -296,9 +308,15 @@ public final class SystemCaptureActivity extends ComponentActivity {
         Uri sourceCache = photo;
         Uri destination = output;
         boolean newPhoto = pending;
+        boolean collectBurst = newPhoto && !video && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("burst_enabled", false);
+        if (newPhoto && !collectBurst) burstFrames.clear();
+        java.util.List<Uri> burstInputs = new java.util.ArrayList<>(burstFrames);
+        if (collectBurst) burstInputs.add(destination);
         reading = true;
+        if (collectBurst && burstInputs.size() == 3) status.setText("正在合成三张照片，原图保留");
         updateControls();
         reader.execute(() -> {
+            boolean originalPublished = false;
             try {
                 android.graphics.Bitmap bitmap = null;
                 if (video) {
@@ -327,16 +345,34 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 }
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                getContentResolver().update(destination, values, null, null);
+                int publishedRows = getContentResolver().update(destination, values, null, null);
+                if (newPhoto && publishedRows != 1) throw new IllegalStateException("Original photo publish failed");
+                originalPublished = true;
                 Uri displayed = destination;
+                String fusionMessage = null;
+                if (collectBurst && burstInputs.size() == 3) {
+                    try {
+                        PhotoBurstProcessor.Result fusion = PhotoBurstProcessor.merge(getContentResolver(), burstInputs,
+                                processingCancelled::get, message -> runOnUiThread(() -> {
+                                    if (!isDestroyed() && destination.equals(output)) status.setText(message);
+                                }));
+                        android.graphics.Bitmap fusedPreview = ImageDecoder.decodeBitmap(ImageDecoder.createSource(getContentResolver(), fusion.uri()),
+                                (decoder, info, source) -> decoder.setTargetSampleSize(4));
+                        bitmap.recycle(); bitmap = fusedPreview; displayed = fusion.uri();
+                        fusionMessage = "多帧降噪增强已保存（" + fusion.acceptedFrames() + "/3 有效帧），三张原图保留";
+                    } catch (Exception failure) {
+                        fusionMessage = "合成未完成，原图保留：" + failure.getMessage();
+                        Log.w("XFlipPhotoBurst", "fusion_failed_originals_preserved", failure);
+                    }
+                }
                 boolean marked = false;
                 boolean markFailed = false;
-                if (newPhoto && !video && getSharedPreferences("system_capture", MODE_PRIVATE)
-                        .getBoolean("watermark_enabled", false)) {
+                if (newPhoto && !video && (!collectBurst || burstInputs.size() == 3)
+                        && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("watermark_enabled", false)) {
                     try {
                         String caption = "vivo X Flip  " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm",
                                 java.util.Locale.getDefault()).format(new java.util.Date());
-                        Uri markedUri = WatermarkProcessor.mark(getContentResolver(), destination, caption);
+                        Uri markedUri = WatermarkProcessor.mark(getContentResolver(), displayed, caption);
                         android.graphics.Bitmap markedPreview = ImageDecoder.decodeBitmap(ImageDecoder.createSource(getContentResolver(), markedUri),
                                 (decoder, info, source) -> decoder.setTargetSampleSize(4));
                         bitmap.recycle();
@@ -352,6 +388,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 Uri savedOutput = displayed;
                 boolean watermarked = marked;
                 boolean watermarkFailed = markFailed;
+                String burstStatus = fusionMessage;
                 runOnUiThread(() -> {
                     if (isDestroyed() || !java.util.Objects.equals(sourceCache, photo) || !destination.equals(output)) return;
                     output = savedOutput;
@@ -364,7 +401,14 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     updateControls();
                     image.setImageBitmap(preview);
                     image.setVisibility(android.view.View.VISIBLE);
-                    status.setText(video ? edited ? "防抖视频已另存，原片保留；点击播放" : "录像已保存，点击画面播放"
+                    if (collectBurst && burstInputs.size() < 3) {
+                        burstFrames.clear(); burstFrames.addAll(burstInputs);
+                        status.setText("已保存 " + burstInputs.size() + "/3 张，请继续拍摄并确认");
+                        main.post(() -> capture(false));
+                        return;
+                    }
+                    if (collectBurst) burstFrames.clear();
+                    status.setText(burstStatus != null ? burstStatus + (watermarked ? "（含文字水印）" : "") : video ? edited ? "防抖视频已另存，原片保留；点击播放" : "录像已保存，点击画面播放"
                             : watermarked ? "水印副本已保存，原图保留" : watermarkFailed ? "水印未完成，原图已保留"
                             : edited ? "翻转版本已保存，原图保留" : "系统相机照片已保存");
                     if (video) {
@@ -380,7 +424,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                             .getBoolean("auto_stabilize", false)) stabilizeVideo();
                 });
             } catch (Exception failure) {
-                if (newPhoto) {
+                if (newPhoto && !originalPublished) {
                     getContentResolver().delete(destination, null, null);
                     getContentResolver().delete(saved, null, null);
                 }
@@ -481,10 +525,14 @@ public final class SystemCaptureActivity extends ComponentActivity {
         state.putBoolean("video", video);
         state.putBoolean("edited", edited);
         state.putBoolean("mirror_preview", mirrorPreview.isChecked());
+        java.util.ArrayList<String> frames = new java.util.ArrayList<>();
+        for (Uri uri : burstFrames) frames.add(uri.toString());
+        state.putStringArrayList("burst_frames", frames);
     }
 
     @Override protected void onDestroy() {
         if (active == this) active = null;
+        processingCancelled.set(true);
         main.removeCallbacks(workerTimeout);
         player.stopPlayback();
         if (stabilization != null) stabilization.cancel();

@@ -46,6 +46,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
                 }
                 boolean live = rendererStarted && readWorkerStatus().contains("phase=1,");
                 if (controls != null && (settingsDialog == null || !settingsDialog.isShowing())) {
+                    controls.setPhotoProgress(movie ? 0 : SystemCaptureActivity.burstIndex());
                     if (live) controls.attach(); else controls.detach();
                 }
             } catch (RuntimeException error) {
@@ -209,12 +210,13 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
         pauseWorker(true);
         controls.detach();
         android.content.SharedPreferences preferences = getSharedPreferences("system_capture", MODE_PRIVATE);
-        String[] keys = {"watermark_enabled", "auto_stabilize"};
-        boolean[] values = {preferences.getBoolean(keys[0], false), preferences.getBoolean(keys[1], false)};
+        String[] keys = {"watermark_enabled", "auto_stabilize", "burst_enabled"};
+        boolean[] values = {preferences.getBoolean(keys[0], false), preferences.getBoolean(keys[1], false),
+                preferences.getBoolean(keys[2], false)};
         Context themed = new android.view.ContextThemeWrapper(screenContext, android.R.style.Theme_Material_Dialog_Alert);
         settingsDialog = new android.app.AlertDialog.Builder(themed)
                 .setTitle("相机设置")
-                .setMultiChoiceItems(new String[]{"照片文字水印：机型与时间", "录后平移防抖（实验）"}, values,
+                .setMultiChoiceItems(new String[]{"照片文字水印：机型与时间", "录后平移防抖（实验）", "连续三张合成：每张需确认"}, values,
                         (dialog, index, checked) -> preferences.edit().putBoolean(keys[index], checked).apply())
                 .setPositiveButton("完成", null).create();
         settingsDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
