@@ -49,5 +49,33 @@
     "bytes": 19982560,
     "sha256": "184c3c582f261abf2900cc54b4d12ca1e1daf5112f20e56997cdf3a86a8714de",
     "installed_hash_matches": true
+  },
+  "preview_interval": {
+    "seconds": 24.282,
+    "mirrored_frames": 703,
+    "fps": 28.95148669796557,
+    "capture_misses": 0,
+    "phase": 1,
+    "mode": "photo",
+    "unknown_controls": 3,
+    "native_control_windows": 3
+  },
+  "ci": {
+    "run": 38720404954,
+    "source_sha": "059f28e7eace0fb07a33e6e868fc279e4aa3c42c",
+    "conclusion": "success",
+    "apk_artifact": 11966055164,
+    "watermark_tests_artifact": 11965910260
+  },
+  "release": {
+    "id": 413678632,
+    "tag": "v0.3.1-cover-controls-test",
+    "source_sha": "059f28e7eace0fb07a33e6e868fc279e4aa3c42c",
+    "asset_id": 643497848,
+    "asset_state": "uploaded",
+    "asset_bytes": 19982560,
+    "asset_sha256": "184c3c582f261abf2900cc54b4d12ca1e1daf5112f20e56997cdf3a86a8714de",
+    "local_installed_remote_hashes_equal": true,
+    "url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.1-cover-controls-test"
   }
 }
