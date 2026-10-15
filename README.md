@@ -6,6 +6,8 @@
 
 0.3.1 用户实际重开暴露翻转与控件失联，现已在 0.3.2-dev 修复连接恢复及旧任务栈，并增加工作进程监护与 Surface 重建。最终包完成三次强制停止后正常重开，以及一次工作进程中断后的自动恢复。手机重启仍需初始化，不能把同进程演示当长期稳定验收。见 [启动恢复修复报告](docs/reconnect-2026-10-15.md)。
 
+[下载最新 0.3.2 修复 APK 与初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.2-reconnect-fix)。APK 已安装并与手机/远程附件核对哈希；使用新版脚本可恢复应用重开及工作进程中断，整机重启仍需初始化。
+
 0.3.1-dev 已整合并在真实合盖外屏验证：桥接就绪后打开即拍照，右侧切换照片/录像，左侧原生设置，机型与时间文字水印另存且保留原图。完整同版 GPU 预览实测约 28 fps，拍照及带音频录像正常。成熟防抖仍待升级，系统蔡司及 Google Camera 算法未接通。见 [本轮实机报告](docs/integration-2026-10-15.md)。
 
 [下载历史 0.3.1 实测 APK（存在重开失联问题）](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.1-cover-controls-test)。手机、本地与远程附件 SHA256 三者一致；更新后用同版 APK 重启初始化桥接。

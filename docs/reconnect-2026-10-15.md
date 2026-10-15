@@ -26,3 +26,11 @@
 手机已安装并初始化最终包。新版脚本 scripts/start_preview_bridge.ps1 随源码提供；更新 APK 后按脚本启动同版工作者，之后退出重开和本轮故障注入可自动恢复。手机重启、撤销授权或监护进程也被杀死仍需要重新初始化；没有实测物理 USB 拔线或整机重启后的自动授权，不能声称免电脑启动已经实现。
 
 原生确认/闲置退出、取景触摸对焦遮挡、计时背景拼接、各种画幅/旋转及长期压力仍为既有待办。GPU 原生崩溃此次通过隔离和重建实现恢复，后续可把绘制迁回应用进程以消除远端 Surface 风险。代码 agent 的成熟防抖开发继续待办，检查 agent 优先审查新连接和任务栈生命周期。
+
+## 远程收据与后续回归
+
+源码 [3ed7e6e](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/3ed7e6ea5005d911ce7f44cffc3639c1f01c5b2f) 与 [CI 38724970989](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38724970989) head 一致，CI success。下载的两套水印 JUnit XML 各 8 项通过，artifact 11967746158 ZIP SHA256 与远程一致；CI APK/Lint artifact 11968430618，15,583,784 bytes。
+
+[下载 0.3.2 修复版及初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.3.2-reconnect-fix)。Release 413709949 / APK asset 643594007、脚本 asset 643600283 均 uploaded；APK digest 与手机/本地三者一致，脚本 SHA256 8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2 与本地一致，tag 指向源码 3ed7e6e。0.3.1 Release 已补充已知失联问题与替代版本说明。
+
+补充旧 MainActivity 外屏入口：应用强制停止后从该入口启动，实际转入 SystemCaptureActivity、正确实时取景和右侧录像模式。模式初开约 1.8 秒时第一次原生录制点击未开始，待窗口就绪再次点击正常，记录为系统相机初开就绪边界。最终录制/确认/保存完成，独立完整解码 551 帧、720×1280、约 22.96 秒、H.264/AAC，录像原生平均帧率约 19.95；不把前版 29fps 覆盖渲染当成本轮录像帧率。最终版本没有恢复旧入口的黑屏 CameraX 页面。

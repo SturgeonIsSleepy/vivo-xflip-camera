@@ -313,3 +313,7 @@
 - 最终包连续三次强制停止后正常入口重开，三个 app PID 均恢复 phase=1 和 3 个独立功能键，监护会话不变且没有重跑初始化；含 ADB/dumpsys 的 9.87/7.22/10.64 秒只作为诊断耗时。主动中断 worker 后同一相机会话约 7.96 秒恢复、左设置可打开；退出预览服务停止。旧中间包失败与最终包结果分开记录，截图/场景均不上传。
 - 报告 docs/reconnect-2026-10-15.md，安全统计 docs/evidence/reconnect-2026-10-15.json；新增 scripts/test_preview_reconnect.ps1 保存可复现的有线进程死亡回归。没有改全机 DPI/性能、日程或防抖/成像算法。
 - 下一步检查 agent 审查新连接、singleTask、Surface 更换与清理；代码 agent 的独立成熟防抖核心保留原任务。手机重启/授权撤销/监护死亡仍需初始化，实际拔线与重启自动授权未验收。后续考虑将绘制移入应用进程消除远端 GPU native 退出风险。
+
+- 源码 3ed7e6ea5005d911ce7f44cffc3639c1f01c5b2f 与 main 已核对，CI 38724970989 success / head 一致；下载核对两套 JUnit XML 各 8 项全通过，artifact 11967746158 ZIP hash 与远程相同，CI APK/Lint artifact 11968430618 为 15,583,784 bytes。
+- Release v0.3.2-reconnect-fix / 413709949 已公开预发布，APK asset 643594007 / 19,850,408 bytes / digest 与手机和本地一致；初始化脚本 asset 643600283 / 2269 bytes，SHA256 8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2 已核对。tag 精确指向源码 3ed7e6e，0.3.1 Release 已加已知重开失联及替代版本警示。
+- 额外实机从旧 MainActivity 外屏入口强制停止后重开，实际进入正确取景并切录像；第一次过早点击原生录制未开始，窗口就绪后再点正常，仍记录加载边界。最终视频 9,382,885 bytes 独立解码 551 帧、720×1280、约 22.96 秒、H.264/AAC；确认后服务停止，不将前版 29fps 当成本轮录像帧率。私有视频仍仅本地，统计更新到同一 JSON。

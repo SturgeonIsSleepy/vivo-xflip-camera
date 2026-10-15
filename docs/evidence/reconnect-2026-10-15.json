@@ -54,5 +54,36 @@
     "both_assemble_and_lint": "passed",
     "seconds": 39
   },
-  "privacy": "No scene photos, videos, GPS, serial number, or raw system logs published."
+  "privacy": "No scene photos, videos, GPS, serial number, or raw system logs published.",
+  "final_video": {
+    "bytes": 9382885,
+    "sha256": "ebffa06a66752a0bbc80a37d2ae75f0cba88b849e3694abb03401430d28aa0df",
+    "frames": 551,
+    "size": [
+      720,
+      1280
+    ],
+    "fps": 19.95,
+    "duration": 22.96,
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "legacy_entry_redirect": true,
+    "photo_to_video_control": true,
+    "record_review_saved": true
+  },
+  "release": {
+    "id": 413709949,
+    "tag": "v0.3.2-reconnect-fix",
+    "source_sha": "3ed7e6ea5005d911ce7f44cffc3639c1f01c5b2f",
+    "apk_asset": 643594007,
+    "script_asset": 643600283,
+    "local_installed_remote_hashes_equal": true
+  },
+  "ci": {
+    "run": 38724970989,
+    "conclusion": "success",
+    "apk_artifact": 11968430618,
+    "watermark_tests_artifact": 11967746158,
+    "both_test_xml_verified": true
+  }
 }
