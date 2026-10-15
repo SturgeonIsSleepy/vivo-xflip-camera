@@ -37,4 +37,10 @@ JPEG HDR色调用双边对数亮度基础层压缩来平衡已记录的亮暗，
 
 APK为ARM64，45,261,656bytes，SHA256 `77a20167df57a47726902baf780bfc375ed08df5d23ba1990dd183e49c097cec`，手机已安装文件与本地一致。[公开收据只包含合成样本及软件检查](evidence/tone-2026-10-15.json)。手机重启初始化、系统每张确认和既有点击对焦等限制保留。
 
+## 上传交付
+
+实测源码为 `605014ac7a7ca111ce66be0956e4ce41d903b15d`。[CI 38744983176](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38744983176)已成功，APK/Lint artifact `11978385837`已上传；测试 artifact `11978355875`下载后校验ZIP摘要，两套JUnit各8项、失败/错误/跳过均为0。
+
+[交付预发布页](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.1-photo-tone-test)已发布，tag核对指向上述实测源码。[CI APK 下载](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38744983176/artifacts/11978385837)可供其他agent取用。受当前上传连接超时/重置影响，本地签名实测APK、无损ZIP及小分卷均未完整上传，Release没有APK附件，未把不完整上传标为成功。CI包来自同一源码但签名可能不同；手机已经安装并验证本地包，无需为本次交接重装。全尺寸处理耗时仍需优化。
+
 参考：[OpenCV CLAHE](https://docs.opencv.org/4.12.0/d6/db6/classcv_1_1CLAHE.html)、[Durand/Dorsey 基础层与细节层思路](https://people.csail.mit.edu/fredo/PUBLI/Siggraph2002/)。使用已有OpenCV双边滤波和自主色调代码，没有复制论文项目源码或Google专有算法。

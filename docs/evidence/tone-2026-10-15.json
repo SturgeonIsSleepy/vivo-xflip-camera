@@ -166,5 +166,31 @@
     "originals_retained": true,
     "watermark_saved": true,
     "private_photo_identifiers_omitted": true
+  },
+  "ci": {
+    "run": 38744983176,
+    "source_sha": "605014ac7a7ca111ce66be0956e4ce41d903b15d",
+    "conclusion": "success",
+    "apk_artifact": 11978385837,
+    "apk_artifact_bytes": 36705889,
+    "apk_artifact_digest": "12b0f3f8f617408227bd3f8c79cea8678e17266cf9def8666657b7f46bc38b41",
+    "test_artifact": 11978355875,
+    "test_archive_digest": "83978e8dc51eee67487e50ef247dfaebe7869b62994e8bf08f927065772b9498",
+    "test_xml_each_flavor": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "delivery": {
+    "release_id": 413861188,
+    "release_url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.1-photo-tone-test",
+    "published": true,
+    "verified_tag_sha": "605014ac7a7ca111ce66be0956e4ce41d903b15d",
+    "tested_local_apk_uploaded": false,
+    "local_apk_upload_failure": "timeout_or_connection_reset_including_zip_and_small_part",
+    "ci_apk_uploaded": true,
+    "ci_apk_identical_to_installed": "not_claimed_debug_signature_may_differ"
   }
 }
