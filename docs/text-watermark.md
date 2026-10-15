@@ -35,9 +35,16 @@ java scripts/ParseJava.java
 gradle --no-daemon :camera-core:check :app:testStandardDebugUnitTest :app:testCoverCompatDebugUnitTest :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
 ```
 
-本地已执行核心 15,375 个断言、语法和差异空白检查；本地没有 Gradle/ADB，native graphics、双 APK/Lint 须读回实际远程结果。此轮未连接 X Flip，字体/中文、HDR 拒绝、真实权限变化和完整流程仍待手机复验。测试定义本身不构成通过证明。
+本地已执行核心 15,375 个断言、30 个 Java 文件语法及差异空白检查，并解析工作流 YAML/核对双 flavor 测试命令。本地没有 Gradle/ADB，以下 Android 结果来自实际远程执行。此轮未连接 X Flip，字体/中文、HDR 拒绝、真实权限变化和完整流程仍待手机复验。
 
-首轮 CI 38664028710 的 8 项测试有 4 项失败，JUnit XML 显示 ExifInterface(FileDescriptor) 在 Os.dup 返回 null 后抛 NPE，不是角点或文字像素断言失败。对照 AndroidX 与 Robolectric 源码后，仅在测试中把已登记的临时 FileDescriptor 映射到相同 File，调用真实 ExifInterface(File) 解析/写入字节；未知描述符直接使测试失败。图形实现和元数据解析没有改为空操作，生产 FD 路径没有修改。测试仍不覆盖真实 Android dup/lseek/描述符所有权，须由设备验收补齐。修正适配后的结果需重新读回 CI。
+首轮 CI 38664028710 的 8 项测试有 4 项失败，JUnit XML 显示 ExifInterface(FileDescriptor) 在 Os.dup 返回 null 后抛 NPE，不是角点或文字像素断言失败。对照 AndroidX 与 Robolectric 源码后，仅在测试中把已登记的临时 FileDescriptor 映射到相同 File，调用真实 ExifInterface(File) 解析/写入字节；未知描述符直接使测试失败。图形实现和元数据解析没有改为空操作，生产 FD 路径没有修改。测试仍不覆盖真实 Android dup/lseek/描述符所有权，须由设备验收补齐。
+
+### 远程结果已读回
+
+- 功能提交 [4fa509a](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/4fa509a0c315cbdb4327e75903153d636bdea489)，测试适配后源码 [f1a98b3](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/f1a98b3341ea8ba48ecfd9e5fed93de827bae282)。[CI 38664547403](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38664547403) completed / success，head 精确对应 f1a98b3。
+- standard / coverCompat 各 8 项测试通过，失败、错误、跳过均为 0；实际日志及下载的两份 JUnit XML 均已核验。核心 15,375 项、2 张原始 JPEG 共 20,758,528 个像素/哈希、双 assemble/Lint 也通过，BUILD SUCCESSFUL in 1m 5s。历史黑 JPEG 复核不是新版本真机验证。
+- watermark-test-results / 11939674124，1,725 bytes，ZIP SHA-256 e8766d1b7efa2e36c9948dfbd16d0b59f81c36edc79910c6bfdbb2fa1ff3b513 已与实际下载核对，保留至 2026-10-22T01:15:58Z。
+- xflip-camera-debug / 11940187088，15,574,697 bytes，digest sha256:9d31f0a53aa15f4ceff7b8597ca7cf8e760877ee0eb27c91789e06c83e88b04b，两个 APK/两个 Lint 报告，保留至 2026-10-22T01:15:59Z。仍为 0.3.0-dev / 18，通过源码 SHA 区分；未安装实机、未创建实测 Release，CI debug 签名可能不同。
 
 ## 下一步
 
