@@ -37,7 +37,15 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "platforms;android-36" "build-tools;35.0.0"
       - name: Test direction core and build Android app
-        run: gradle --no-daemon :camera-core:check :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
+        run: gradle --no-daemon :camera-core:check :app:testStandardDebugUnitTest :app:testCoverCompatDebugUnitTest :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
+      - name: Upload native-graphics test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watermark-test-results
+          path: app/build/test-results/test*DebugUnitTest/*.xml
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload APK and lint report
         if: success()
         uses: actions/upload-artifact@v4

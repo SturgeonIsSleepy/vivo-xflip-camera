@@ -16,7 +16,8 @@ public final class ParseJava {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) throw new IllegalStateException("JDK compiler module is required");
         List<String> files = new ArrayList<>();
-        for (String directory : new String[]{"app/src/main/java", "camera-core/src"}) {
+        for (String directory : new String[]{"app/src/main/java", "app/src/test/java", "camera-core/src"}) {
+            if (!Files.isDirectory(Path.of(directory))) continue;
             try (var paths = Files.walk(Path.of(directory))) {
                 paths.filter(path -> path.toString().endsWith(".java"))
                         .forEach(path -> files.add(path.toString()));

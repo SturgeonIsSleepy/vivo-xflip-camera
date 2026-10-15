@@ -271,3 +271,14 @@
 - 模型/推理强度无法核实，剩余额度无法读取；本轮限定一个可验证组件。仅相关实机验收暂缺设备，项目仍有独立工作可继续。
 - 源码已推送 f275fdc36d042713bc92e86c6f41e6778c784f66，使用 expected main SHA 且 force=false；读回 main 一致，7 个变更 blob 与本地相同，其余 97 个远程文件和权限位均保留。8 个原拍摄/预览/构建文件没有修改。
 - 远程 https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38613279289 已 completed / success，head 精确对应本轮源码；实际日志确认 15,375 个断言、原始 JPEG 2 张 / 20,758,528 个完整像素及哈希、两个 flavor assemble 与各自 Lint，通过 BUILD SUCCESSFUL in 47s。上传 artifact xflip-camera-debug / 11917708331，15,563,604 bytes，digest sha256:e12d322ae01206514ef011a9ab82adcc36626a64b3b5dc9ccf2ed4249a22d8f1，4 个文件为两个 APK 和两份 Lint，保留至 2026-10-21T18:14:26Z。README 与组件文档更新为实际验证结果；CI 包未安装，不与既有实测包混同。下一步及设备阻塞沿用上述 P0/P1，未因本次组件完成停用项目任务。
+
+## 2026-10-15｜晨间审查与原图保留的文字水印
+
+- 起始提交：b1d2689224ab87d37e279ed1e4bfe9ddf5b5ec18。连接身份 SturgeonIsSleepy、Public / main 与 pull/push 已确认；读取最新 README、AGENTS、日志/待办、技术基线、两项任务、工作日缓存和 Issue 1。Asia/Shanghai 的 2026-10-15 是已核查工作日；次年检查不早于 11-01，不重复查询、不调整日程。
+- 审查衔接：凌晨 CoverControls 的 run 38613279289 为 success，本地旧核心 15,375 项也通过；复用已完成结论，没有新的失败检查。不把未接入组件的几何保证当真实触摸验收。已知系统回传恢复/发布、视频退出边界继续原计划，不做无依据重构。
+- 实际开发：按 Issue 1 检查任务接口新增 WatermarkProcessor.mark(ContentResolver, Uri, String)。JPEG 原图只读，20MP 上限且双边至少 128，软件解码归一 EXIF；普通文字只绘制于另存副本底部，sRGB / JPEG 95，不改变显示尺寸，无商标图案、不称原生蔡司。拍摄 EXIF/GPS 白名单保留、Orientation=1、Software 标记编辑副本；原图不写入或清理。
+- 发布/回滚复用 PendingMediaWrite：资源关闭及元数据完成后恰好发布一行，失败不报成功，清理拒绝不覆盖原错误。非法文字/尺寸、解码/输入失权在输出创建前拒绝；未接入拍摄/设置页面，未增加运行时库、Manifest 权限或 Google 专有代码。
+- 验证增量：Robolectric 4.17 / JUnit 4.13.2 仅 testImplementation，API 34 NATIVE graphics 实际图形/JPEG 回归定义 8 个方法，覆盖 EXIF 1..8 非对称角点/宽高、文字像素差异、真实拍摄字段与合成 GPS、原图字节、非法输入、0 行发布、清理异常、失权、损坏和写入失败。MediaStore 是故障可控假提供者，不是手机测试。CI 增加双 flavor unit test 与 JUnit XML；不能凭测试定义声称通过，须读回结果。
+- 本地 JDK 17 核心检查仍 15,375 项；ParseJava 增加 app/src/test 语法覆盖，类型和 Android/JUnit 依赖由实际构建确认。Gradle/ADB 不在 PATH，无本地 APK/真机操作。真实 MediaStore、中文字体、HDR/广色域与生命周期取消待设备/整合验证。
+- P0 继续复验完整 GPU 候选及长期实时方向；P1 两组件按原交接整合入口、左右控件/设置与文字另存，验证快门、原图、确认/退出和错误归属；P2 厂商水印、成熟防抖、合法成像沿用已有路线。docs/text-watermark.md 保存内存、元数据、底部覆盖/有损代价及复验命令，不反复生成同规划。
+- 模型/推理强度无法核实，剩余额度无法读取；本轮仅上述独立目标，设备仅阻塞相关验收，不停用既有项目任务。
