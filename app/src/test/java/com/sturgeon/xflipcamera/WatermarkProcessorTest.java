@@ -27,29 +27,39 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
+import org.robolectric.annotation.RealObject;
+import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowContentResolver;
+import org.robolectric.util.ReflectionHelpers.ClassParameter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.IdentityHashMap;
 
 /** Real native graphics plus a fake owned MediaStore; no camera, phone, network image or real GPS. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34, manifest = Config.NONE)
+@Config(sdk = 34, manifest = Config.NONE,
+        instrumentedPackages = {"androidx.exifinterface.media"}, shadows = WatermarkProcessorTest.ExifFdShadow.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class WatermarkProcessorTest {
     private static final Uri SOURCE = Uri.parse("content://media/external/images/media/1");
+    private static final Map<FileDescriptor, File> FILE_DESCRIPTORS = new IdentityHashMap<>();
     @Rule public TemporaryFolder temporary = new TemporaryFolder();
     private FixtureProvider provider;
     private ContentResolver resolver;
     private File source;
 
     @Before public void setUp() throws Exception {
+        FILE_DESCRIPTORS.clear();
         source = temporary.newFile("source.jpg");
         provider = new FixtureProvider(temporary.getRoot(), source);
         ProviderInfo info = new ProviderInfo();
@@ -225,6 +235,22 @@ public class WatermarkProcessorTest {
         assertTrue(Math.abs(Color.blue(expected) - Color.blue(actual)) <= 20);
     }
 
+    /**
+     * Robolectric's Linux shadow does not implement Os.dup used by ExifInterface(FD).
+     * Use the real ExifInterface(File) on the exact fixture backing that descriptor.
+     * This still reads/writes actual EXIF bytes, but does not test Android FD duplication.
+     */
+    @Implements(value = ExifInterface.class, isInAndroidSdk = false)
+    public static class ExifFdShadow {
+        @RealObject private ExifInterface real;
+
+        @Implementation protected void __constructor__(FileDescriptor descriptor) {
+            File file = FILE_DESCRIPTORS.get(descriptor);
+            if (file == null) throw new AssertionError("Unregistered fixture descriptor");
+            Shadow.invokeConstructor(ExifInterface.class, real, ClassParameter.from(File.class, file));
+        }
+    }
+
     private static final class FixtureProvider extends ContentProvider {
         private final File directory;
         private final Map<Uri, File> files = new HashMap<>();
@@ -275,7 +301,9 @@ public class WatermarkProcessorTest {
             }
             File file = files.get(uri);
             if (file == null) throw new FileNotFoundException("Unknown synthetic item");
-            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.parseMode(mode));
+            ParcelFileDescriptor result = ParcelFileDescriptor.open(file, ParcelFileDescriptor.parseMode(mode));
+            FILE_DESCRIPTORS.put(result.getFileDescriptor(), file);
+            return result;
         }
     }
 }

@@ -282,3 +282,4 @@
 - 本地 JDK 17 核心检查仍 15,375 项；ParseJava 增加 app/src/test 语法覆盖，类型和 Android/JUnit 依赖由实际构建确认。Gradle/ADB 不在 PATH，无本地 APK/真机操作。真实 MediaStore、中文字体、HDR/广色域与生命周期取消待设备/整合验证。
 - P0 继续复验完整 GPU 候选及长期实时方向；P1 两组件按原交接整合入口、左右控件/设置与文字另存，验证快门、原图、确认/退出和错误归属；P2 厂商水印、成熟防抖、合法成像沿用已有路线。docs/text-watermark.md 保存内存、元数据、底部覆盖/有损代价及复验命令，不反复生成同规划。
 - 模型/推理强度无法核实，剩余额度无法读取；本轮仅上述独立目标，设备仅阻塞相关验收，不停用既有项目任务。
+- 首次源码 4fa509a0c315cbdb4327e75903153d636bdea489 已推送；run 38664028710 失败，standard 的 8 项测试中 4 项在输出 EXIF 构造失败，未执行后续 coverCompat/完整构建，未宣称通过。已下载并读取 artifact 11940406555 的真实 JUnit XML：NPE 来自 ExifInterface(FileDescriptor) 经 Os.dup 得到 null。对照 AndroidX 和 Robolectric 4.17 源码，测试 Linux shadow 缺少 dup 实现；仅增加测试适配，把已登记 FD 映射为同一临时文件，调用真实 ExifInterface(File)，保留实际元数据字节验证，不改生产 FD/保存代码。真实 dup/lseek/所有权仍待手机；另开启完整异常日志，适配后重新运行检查。

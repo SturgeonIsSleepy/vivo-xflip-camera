@@ -37,6 +37,8 @@ gradle --no-daemon :camera-core:check :app:testStandardDebugUnitTest :app:testCo
 
 本地已执行核心 15,375 个断言、语法和差异空白检查；本地没有 Gradle/ADB，native graphics、双 APK/Lint 须读回实际远程结果。此轮未连接 X Flip，字体/中文、HDR 拒绝、真实权限变化和完整流程仍待手机复验。测试定义本身不构成通过证明。
 
+首轮 CI 38664028710 的 8 项测试有 4 项失败，JUnit XML 显示 ExifInterface(FileDescriptor) 在 Os.dup 返回 null 后抛 NPE，不是角点或文字像素断言失败。对照 AndroidX 与 Robolectric 源码后，仅在测试中把已登记的临时 FileDescriptor 映射到相同 File，调用真实 ExifInterface(File) 解析/写入字节；未知描述符直接使测试失败。图形实现和元数据解析没有改为空操作，生产 FD 路径没有修改。测试仍不覆盖真实 Android dup/lseek/描述符所有权，须由设备验收补齐。修正适配后的结果需重新读回 CI。
+
 ## 下一步
 
 先由有线负责人复验完整 GPU 候选，再把 CoverControls 和本方法接入设置/照片另存流程，验收快门、原图及退出/错误归属。成熟防抖与合法成像复用已有路线，不因文字副本扩展算法声明。
