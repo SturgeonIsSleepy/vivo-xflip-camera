@@ -38,6 +38,16 @@ java -cp .build/core-checks com.sturgeon.xflipcamera.core.PendingMediaWriteCheck
 - 发布阶段注入预构造 OutOfMemoryError，检查同一实例传播与新项清理；清理注入 AssertionError，检查原发布 IOException 与 suppressed，以及未清理项仍存在的真实状态。
 - 提供者模型检查输出描述符在发布前已关闭，实际 FD 的 dup/lseek/内核所有权仍不在主机覆盖范围。
 
-共享既有 EXIF FD 测试适配的登记表，未改生产输出/成像/拍摄集成或依赖。当前语法检查42文件与差异空白检查通过，新增测试结果以本轮后续实际CI读回为准，不能把新增定义计为已经运行。
+共享既有 EXIF FD 测试适配的登记表，未改生产输出/成像/拍摄集成或依赖。本地语法检查42文件与差异空白检查通过；新增测试已由下述真实 CI 执行核验。
+
+## 完整验证与后续
+
+[回归源码 cc97e21](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/cc97e21986c456d83f21344e8532c96a28967414) 的 [CI 38833842432](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38833842432) 已 completed/success，日志为 `BUILD SUCCESSFUL in 44s`。实际执行942,702核心断言、两张历史黑JPEG完整解码/哈希、双APK/Lint，standard和coverCompat各17项图形回归，即水印8项加共享保存9项。
+
+已下载 `watermark-test-results` / `12018303388`，3,316 bytes，ZIP SHA256 `5e5567b93658dfddaf75a85c0202ae9a224b80fea7396e7a409817711b6d500d` 匹配。实际4份JUnit XML，各flavor对应两个测试类，分别9/8项，失败/错误/跳过全为0。Artifact名和日志标签沿用历史水印名称，但已包含JPEG保存，不误记为水印新增17项。
+
+APK/Lint artifact `12018413140`，36,710,133 bytes，digest `cb1b12ff582b495f4094f9cd3bd50de082885a7d975321a5d6261ed2d3d78a99`，到期2026-10-23T01:13:33Z；测试ZIP到期01:13:32Z。未安装CI包或制作新实测Release，签名不与此前手机实测包混同。两次代码提交已使用预期main SHA且非强制推送，读回6个变更blob并保留其余156个原文件/权限位。
+
+下一项由负责人协调逐行核心接入，验收真实OpenCV路径像素、单张/三帧、取消与13MP端到端耗时/峰值。共享输出还需在真实MediaStore上做正常保存及权限/生命周期检查；不在无人值守运行中制造真实堆耗尽。其余直方图/噪声/光晕和多曝光/视频防抖沿用现有待办。
 
 真实 MediaStore、Android 文件描述符系统调用、低内存与开合屏生命周期仍待有线负责人。沿用现有 Robolectric FD 到同一临时文件的测试适配，不把 EXIF 字节检查当 dup/lseek 或真机验证。
