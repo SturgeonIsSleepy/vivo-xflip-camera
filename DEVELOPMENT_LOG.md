@@ -368,3 +368,15 @@
 - 保存上述进展后，额外新增JpegPhotoWriterTest的9个真实图形/JPEG/EXIF测试方法：归一EXIF1..8后角点/宽高/所选元数据和工作图只读；写前/发布前取消与发布后保留；0/2行发布、元数据/输出失权；发布Error同实例与回滚、清理Error诊断及未清理状态。可控提供者逐次检查源图和旧结果字节/归属；测试源图仅合成色块/零坐标，不含私人照片。沿用既有FD到同文件Exif适配，仅增加测试登记接口，不改保存器或拍摄/算法集成。新增定义尚待本轮后续CI执行；本地42文件语法与git diff --check通过，未假称手机或本地Android运行。
 - 额外回归已提交cc97e21986c456d83f21344e8532c96a28967414，CI https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38833842432 completed/success且head一致。日志确认942,702核心断言、两张历史JPEG的20,758,528个完整像素与哈希、两flavor各17项图形测试（原水印8+新JPEG保存9）、双APK/Lint，BUILD SUCCESSFUL in 44s。已下载artifact12018303388 / 3,316bytes，ZIP SHA256 5e5567b93658dfddaf75a85c0202ae9a224b80fea7396e7a409817711b6d500d匹配；实际4份XML分别9/8项，每份失败/错误/跳过均0。沿用artifact名watermark-test-results，现在包含两个测试类；APK/Lint artifact12018413140 / 36,710,133bytes / digest cb1b12ff582b495f4094f9cd3bd50de082885a7d975321a5d6261ed2d3d78a99，保留至2026-10-23T01:13:33Z，测试ZIP至01:13:32Z。
 - 两次源码推送均使用expected main SHA / force=false并读回核对；6个新增/修改文件blob匹配，其余156个原远程文件与权限位保留。并发保留的保存/拍摄/成像集成、版本/依赖/工作流均未改。README与审查文档补齐实际结果；后续仅文档，无新运行时代码，不重复构建。未安装CI包、不创建实测Release；真实MediaStore/Android FD系统调用/低内存/开合屏仍待有线负责人，原始Error继续抛出、不保证OOM恢复，既有待办已将本轮两项标完成。
+
+## 2026-10-17｜只读多曝光元数据初筛
+
+- 起始提交：0a9e62f0dd92c30449bac794cf96d025ab8ced3c。已确认GitHub身份SturgeonIsSleepy、Public/main与pull/push；固定远程SHA读取README/AGENTS、近期日志及待办、技术基线、两项任务、工作日缓存、最新CI和Issue1。最新main仍为昨日交付，无新整合/实机结果；保留Error事务修复与34项图形回归，未重复基准或影像功能。
+- 按Issue1现有协调，不并发修改PhotoEnhancer/PhotoToneCurve/JpegPhotoWriter/PhotoBurstProcessor或拍摄/预览/版本/依赖/Manifest。逐行核心仍待负责人接入；本轮选择后续真正不同曝光输入的前置小目标，并在评论6221707934先给接口/边界。
+- 实际新增ExposureBracketAssessment：恰好3帧，检查有限正曝光时间/光圈/ISO/焦距、13MP内归一尺寸、相机标识/光圈/焦距一致、无闪光及完整文件摘要不同。按log2(t/N²)排序，并检查此代理与计入ISO后的log2(t*ISO/N²)每侧均至少1EV；1EV是本项目保守首阶段策略，不是HDR通用标准。ISO-only、增益抵消、相同曝光、缺字段/尺寸或镜头不一致均拒绝；光圈/焦距1%容差逐对比较，不依赖输入排列。返回仅元数据候选及索引/相对档位，Frame.toString隐藏原图标识；不将EXIF、摘要或候选当真实采集、同场景或质量证明。
+- Android只读JpegExposureInspector读取3个content URI，单文件32MiB预算、每次读/skip检查取消、逐流SHA-256不保留整张RGB；原图只读、不创建媒体/日志/上传。BoundedDigestInputStream位于解析器mark/reset缓冲下，skip也纳入摘要，读/available的I/O、预算和取消错误保持粘滞，解析器吞掉异常后仍不能返回候选；预算边界最多探测1个额外字节。库内部元数据分配、阻塞提供者的强制中断、真实性或完整JPEG像素解码均非保证范围。
+- 依据：核对Android Camera2官方CaptureResult中曝光时间、ISO增益、光圈/实际结果与AE覆盖规则，以及AndroidX官方ExifInterface输入流源码（只读、调用方关闭，兼容性捕获I/O）。将t/N²及ISO乘积仅作为项目代理，未复制外部算法代码。没有控制系统/Google相机曝光，没有集成闭源Google代码或把自制检查称GCam/HDR+。
+- 本地实际验证：基线942,702项通过；新增后bash scripts/check_core.sh在JDK17/--release17/-Xlint:all/-Werror通过942,894项（新增192），覆盖6种顺序、双跨度、ISO-only/抵消、阈值、缺字段/重复/镜头/尺寸/闪光及流摘要/mark/reset/skip/预算/取消粘滞。java scripts/ParseJava.java通过48文件语法，git diff --check通过。无PATH中Gradle/ADB，未在本地构建或操作手机。
+- 新增JpegExposureInspectorTest的10项NATIVE graphics/真实JPEG-EXIF定义，包含元数据排序、缺字段、ISO/补偿标记不冒充实际曝光、重复文件和尾字节摘要、非content/失权/坏文件/取消/预算、只读及描述符关闭模型；专门演示相同像素仅改EXIF也可成为“元数据候选”，防止错误真实性声明。此时尚待源码CI实际执行，不能把测试定义说成通过。
+- 本轮待办：[x] 独立只读初筛与核心/流验证；[ ] 读取双flavor新增回归、构建/Lint和原始JPEG证据的真实CI结果；[ ] 负责人核验系统路径能否取得真实不同曝光输入、实际曝光/场景/像素证据后再设计低内存融合。逐行整合及13MP总耗时/Java-native峰值沿用原待办，不重复研究或基准。原始拍摄、EXIF、指纹等真实私有数据只在授权设备本地，本轮公开测试全为合成。
+- 仅集成/真机能力核验暂缺负责人设备/协调，其他独立工作继续。模型/推理强度无法核实，剩余额度无法读取；不编造额度或模型设置。复用2026已核查工作日缓存、2027下一检查不早于11-01，未查新年表/改日程；晨间休息日规则不用于本次每日开发。

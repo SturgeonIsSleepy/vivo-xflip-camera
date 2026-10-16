@@ -58,6 +58,8 @@
 
 ## 验证状态
 
+新增[只读多曝光元数据初筛组件](docs/exposure-bracket-screening.md)，拒绝同曝光、ISO-only、缺字段或重复文件等本路线不适用输入。仅返回元数据候选，不证明真实采集/同场景/可用像素，未接入拍摄、不生成HDR。
+
 通用保存事务已修复 Error 跳过回滚及清理错误覆盖原始失败，新增9项共享JPEG/EXIF/取消故障回归；主机测试不代表真实OOM可恢复。详见[本轮保存审查](docs/code-review-2026-10-16.md)。
 
 新增[逐行色调核心与 13MP 主机对照](docs/photo-tone-row-performance.md)，保持旧公式的像素结果；HDR 合成像素循环在该主机约 1.435 倍，默认无 HDR 未证明明显收益。按集成文件协调暂未接入 `PhotoEnhancer`，不代表手机提速或 OpenCV 峰值内存已优化。
