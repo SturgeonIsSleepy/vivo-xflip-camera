@@ -28,6 +28,16 @@ java -cp .build/core-checks com.sturgeon.xflipcamera.core.PendingMediaWriteCheck
 
 ## 有界后续验证
 
-通用核心已经被现有 JPEG 保存路径调用，本修复无需等待性能核心接入。接下来补实际 JpegPhotoWriter 的编码/EXIF、取消时机、单行发布与清理故障回归，使用合成像素和可控提供者；不并发修改负责人保留的拍摄/成像集成文件。
+通用核心已经被现有 JPEG 保存路径调用，本修复无需等待性能核心接入。[修复 02f1567](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/02f1567ae5bc644fc2e46ba145faf9959a0713b1) 的 [CI 38833455721](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38833455721) 已成功，日志确认 942,702 个核心断言、历史 JPEG 完整解码、双 flavor 各 8 项既有水印回归、双 APK/Lint，BUILD SUCCESSFUL in 1m 6s。
+
+额外新增 `JpegPhotoWriterTest` 的 9 个测试方法，使用真实 Bitmap/ImageDecoder/JPEG/EXIF 与故障可控的提供者：
+
+- 已归一的工作图从 EXIF 1..8 源生成，保存后方向1、非对称角点/宽高正确，所选拍摄字段/合成GPS/处理描述保留；原 Bitmap 不变。归一发生在 ImageDecoder，不能据此声称 JpegPhotoWriter 会修复任意未归一 Bitmap。
+- 写入前取消、编码/EXIF后发布前取消均回滚新项；发布之后的取消保留已完成结果。
+- 发布0/2行、元数据读取失权、输出写入失权均不能报告成功；原图和既存输出逐字节保持。
+- 发布阶段注入预构造 OutOfMemoryError，检查同一实例传播与新项清理；清理注入 AssertionError，检查原发布 IOException 与 suppressed，以及未清理项仍存在的真实状态。
+- 提供者模型检查输出描述符在发布前已关闭，实际 FD 的 dup/lseek/内核所有权仍不在主机覆盖范围。
+
+共享既有 EXIF FD 测试适配的登记表，未改生产输出/成像/拍摄集成或依赖。当前语法检查42文件与差异空白检查通过，新增测试结果以本轮后续实际CI读回为准，不能把新增定义计为已经运行。
 
 真实 MediaStore、Android 文件描述符系统调用、低内存与开合屏生命周期仍待有线负责人。沿用现有 Robolectric FD 到同一临时文件的测试适配，不把 EXIF 字节检查当 dup/lseek 或真机验证。

@@ -53,13 +53,15 @@ import java.util.IdentityHashMap;
 public class WatermarkProcessorTest {
     private static final Uri SOURCE = Uri.parse("content://media/external/images/media/1");
     private static final Map<FileDescriptor, File> FILE_DESCRIPTORS = new IdentityHashMap<>();
+    static void clearFixtureDescriptors() { FILE_DESCRIPTORS.clear(); }
+    static void registerFixtureDescriptor(FileDescriptor descriptor, File file) { FILE_DESCRIPTORS.put(descriptor, file); }
     @Rule public TemporaryFolder temporary = new TemporaryFolder();
     private FixtureProvider provider;
     private ContentResolver resolver;
     private File source;
 
     @Before public void setUp() throws Exception {
-        FILE_DESCRIPTORS.clear();
+        clearFixtureDescriptors();
         source = temporary.newFile("source.jpg");
         provider = new FixtureProvider(temporary.getRoot(), source);
         ProviderInfo info = new ProviderInfo();
@@ -304,7 +306,7 @@ public class WatermarkProcessorTest {
             File file = files.get(uri);
             if (file == null) throw new FileNotFoundException("Unknown synthetic item");
             ParcelFileDescriptor result = ParcelFileDescriptor.open(file, ParcelFileDescriptor.parseMode(mode));
-            FILE_DESCRIPTORS.put(result.getFileDescriptor(), file);
+            registerFixtureDescriptor(result.getFileDescriptor(), file);
             return result;
         }
     }
