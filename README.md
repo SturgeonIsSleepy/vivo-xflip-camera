@@ -66,5 +66,5 @@
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[当前源码双 APK、Lint、942,702 个核心断言及双 flavor JPEG/水印回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38833842432)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告，watermark-test-results 保存四份 JUnit XML，每个版本各17项测试。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已有合盖实机成果；0.3.1 完整包及新增组件已完成上述合盖实测，更多边界仍待验收。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
+[当前源码双 APK、Lint、942,894 个核心断言及双 flavor 图形/元数据回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38946658536)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告，watermark-test-results 保存六份 JUnit XML，每个版本各27项测试。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已有合盖实机成果；0.3.1 完整包及新增组件已完成上述合盖实测，更多边界仍待验收。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
 

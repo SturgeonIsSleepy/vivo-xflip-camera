@@ -25,6 +25,8 @@
 
 自有初始流缓冲为16KiB摘要/skip缓冲加16KiB解析器前缓冲，不保留三张全分辨率RGB。Exif库可能另分配或扩展元数据缓冲，未测手机PSS/峰值；不把上述数组尺寸当总内存。取消检查在读边界执行，不能承诺强制中断阻塞提供者。只检查JPEG头及元数据，不证明压缩像素流完整可解码，不读日期/定位用于真实性判断。
 
+摘要只描述本次观察到的字节流，不证明提供者读取期间保持不变。宿主负责保留调用时相同的输入快照、URI授权、请求归属及取消；不能把旧结果应用于后来替换的新照片。
+
 ## 验证
 
 ```sh
@@ -33,7 +35,11 @@ java scripts/ParseJava.java
 gradle --no-daemon :camera-core:check :app:testStandardDebugUnitTest :app:testCoverCompatDebugUnitTest :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:lintStandardDebug :app:lintCoverCompatDebug
 ```
 
-本地主机JDK17核心942,894项通过，比基线增加192项；48文件语法及差异空白检查通过，不等同Android类型或设备验收。新定义10项Robolectric API34/NATIVE graphics JPEG回归，实际执行结果等待本轮CI读回；没有手机操作或本地Android构建。
+本地主机JDK17核心942,894项通过，比基线增加192项；48文件语法及差异空白检查通过，不等同Android类型或设备验收。新增10项Robolectric API34/NATIVE graphics JPEG回归已实际执行并通过；没有手机操作或本地Android构建。
+
+[源码dba482b](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/dba482baeb05a9f57601d916e2f871060d3e8887)的[CI 38946658536](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38946658536)已completed/success，实际日志确认942,894核心断言、两张历史JPEG完整解码/哈希、双APK/Lint、两flavor各27项回归（旧水印8、共享JPEG9、新曝光10），BUILD SUCCESSFUL in 57s。
+
+测试artifact `12066362235`，5,160 bytes，已下载核对ZIP SHA256 `a3394f707a6dbf97d88dc7fb16db54a5f5104e03decc642d854e67b3d84c0782`；实际六份JUnit XML分别10/9/8项各两份，失败/错误/跳过全0。artifact沿用历史名字watermark-test-results，不误记为新增27项水印。APK/Lint artifact `12066177289`，36,725,085 bytes，digest `68efb0dc645dded40b0d62715f13c16254cda98ff50d20f969153bd4c0c54d08`，到期2026-10-23T18:22:27Z，测试ZIP到期18:22:26Z。CI包未安装，签名不与既有手机实测包混同；不发布新的实测Release。
 
 ## 技术依据与后续
 
