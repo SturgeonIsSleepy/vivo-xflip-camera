@@ -27,12 +27,15 @@ public final class PendingMediaWrite {
             int rows = storage.publish(output);
             if (rows != 1) throw new IOException("Media publish expected one row, updated " + rows);
             return output;
-        } catch (IOException | RuntimeException failure) {
+        } catch (IOException | RuntimeException | Error failure) {
             try {
                 storage.deletePending(output);
-            } catch (IOException | RuntimeException cleanup) {
+            } catch (IOException | RuntimeException | Error cleanup) {
                 // A broken provider may reuse the same exception instance; do not self-suppress.
-                if (cleanup != failure) failure.addSuppressed(cleanup);
+                if (cleanup != failure) {
+                    try { failure.addSuppressed(cleanup); }
+                    catch (OutOfMemoryError unavailable) { /* Diagnostics cannot replace the original failure. */ }
+                }
             }
             throw failure;
         }

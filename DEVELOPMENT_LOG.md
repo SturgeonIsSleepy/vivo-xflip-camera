@@ -354,3 +354,13 @@
 - 阻塞及解除：接入由仓库文件协调解除；X Flip 性能/真机图像验收需有线负责人设备，不要求本轮用户操作，其他独立验证可继续。模型/推理强度无法核实，剩余额度无法读取，没有虚构额度或改变模型的声明。复用2026已核查工作日表与2027 next_check_not_before=2026-11-01，本轮不重复查年表、不更改两项任务。
 - 远程核验：源码 fee44f8b02ac7581aae9a9e660ca0d0eadb94c7f 已使用 expected main SHA / force=false 推送并读回一致，10 个新增/修改文件 blob 和权限位匹配，其他150个原远程文件及权限位保留。PhotoEnhancer/PhotoToneCurve/JpegPhotoWriter/拍摄/版本/工作流的原 blob 均未改。
 - CI https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38784336760 已 completed/success，head 精确对应本轮源码。真实日志确认942,626核心断言、2张原始JPEG的20,758,528完整像素及哈希、两个flavor各8项水印回归、双APK assemble与Lint，BUILD SUCCESSFUL in 1m 3s。已下载测试artifact11997850600 / 1,721bytes，ZIP SHA256 2394e748fd956880aaabf70214c629366e577acfa4a7211f60248189f13523b6匹配，两份JUnit XML各8项且失败/错误/跳过均0。APK/Lint artifact11997715799 / 36,710,191bytes / digest eb7dfe3a415763a86961eb3fa892982069258f04a462308dc6eda006df6bb2d2，保留至2026-10-22T18:18:39Z，测试ZIP至18:18:37Z。未安装CI包、不发新实测Release，主机性能与手机及未接入状态边界不变。收尾仅补验证文档，无源码变动，不重复构建。
+
+## 2026-10-16｜晨间保存事务审查与 Error 回滚
+
+- 起始提交：d5be7e5e14a328beca1e5e40eda8f13880cbb610。GitHub 连接身份 SturgeonIsSleepy、Public/main、pull/push 权限已确认；读取 README/AGENTS、近期日志/待办、技术基线、两项任务、工作日缓存、最新5轮CI与Issue1。Asia/Shanghai 实际日期2026-10-16是已核查工作日；次年检查不早于11-01，不重新搜索、不修改任何日程。凌晨独立逐行核心的CI38784336760成功且仍未接入，复用其断言与范围，不重复基准或成像开发。
+- 审查范围：共享JpegPhotoWriter、PhotoEnhancer/PhotoBurstProcessor保存调用、PendingMediaWrite及既有图形回归。发现通用事务仅捕获IOException/RuntimeException：写入或发布Error会跳过清理，清理Error会覆盖原始失败。新增故障测试在旧核心分别失败于“New partial output is removed once”和“Cleanup Error cannot mask the primary failure”，均退出1，不是推测的真机现象。
+- 实际修复：PendingMediaWrite对已获得身份的新输出，在IOException/RuntimeException/Error下均尝试一次回滚，并抛出同一原始实例；清理Error作为suppressed诊断，防自我抑制，诊断自身分配失败也不替换原错误。插入失败没有可归属输出时不删除任何未知项。成功发布项、源图和旧输出不回滚；没有吞掉Error或保证真实OOM后进程可用。两个Error分支仅故障注入，未耗尽堆、未在手机制造OOM。
+- 本地验证：修改前旧核心942,626项通过；故障回归在旧核心失败，修复后bash scripts/check_core.sh通过942,702项（新增76），独立write-errors/cleanup-errors选择分别54/22项通过。主机JDK17、--release17/-Xlint:all/-Werror。尚未执行本轮Android构建/真机测试；源码推送后读回CI，不能以此前成功替代本轮结果。
+- 已在Issue1评论6205654194交接具体复现与修复范围。不修改并发保留的JpegPhotoWriter、PhotoEnhancer、PhotoToneCurve、PhotoBurstProcessor或拍摄集成；集成文件的进一步问题先交接，不并发重写。
+- 本轮规划：[x] Error回滚/异常归属修复和独立复现；[ ] 额外推进共享JPEG输出的真实编码/EXIF、取消前后、发布/清理故障与源图保护图形回归；[ ] 负责人协调后接逐行核心并做13MP手机端总耗时/Java和native峰值。现有直方图/噪声/光晕、真正不同曝光输入、成熟防抖沿用既定待办，不重复记录不变研究。
+- 模型/推理强度无法核实，剩余额度无法读取；没有限额信号，先保存本次真实修复，再推进上述限定验证目标。没有设备仅暂停本轮真机检查，不停用仍有独立工作的既有任务，不请求本轮用户操作。

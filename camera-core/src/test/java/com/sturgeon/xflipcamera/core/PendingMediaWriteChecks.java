@@ -14,12 +14,21 @@ public final class PendingMediaWriteChecks {
         creationFailuresOwnNothing();
         writeAndPublishFailuresRollBackOnlyTheirOutput();
         cleanupFailurePreservesThePrimaryFailure();
+        errorsRollBackAndRethrowTheSameInstance();
+        cleanupErrorsCannotReplaceThePrimaryFailure();
         return assertions;
     }
 
     public static void main(String[] args) {
-        System.out.println("PASS " + run() + " media-write assertions: publish rows, "
-                + "partial writes, rollback ownership, primary and cleanup failures");
+        int count;
+        if (args.length == 0) count = run();
+        else if (args.length == 1 && args[0].equals("write-errors")) {
+            assertions = 0; errorsRollBackAndRethrowTheSameInstance(); count = assertions;
+        } else if (args.length == 1 && args[0].equals("cleanup-errors")) {
+            assertions = 0; cleanupErrorsCannotReplaceThePrimaryFailure(); count = assertions;
+        } else throw new IllegalArgumentException("Use no arguments, write-errors or cleanup-errors");
+        System.out.println("PASS " + count + " media-write assertions: publish rows, "
+                + "partial writes, rollback ownership, primary and cleanup failures including Error");
     }
 
     private static void successfulWritesKeepPreviousItems() {
@@ -58,7 +67,7 @@ public final class PendingMediaWriteChecks {
         for (int rows : new int[]{0, 2, -1}) {
             Store store = new Store();
             store.publishRows = rows;
-            Exception problem = failure(store);
+            Throwable problem = failure(store);
             check(problem instanceof IOException && problem.getMessage().contains("updated " + rows),
                     "Unexpected publish rows cannot report success");
             check(store.writeCalls == 1 && store.publishCalls == 1, "Write closes before publish");
@@ -95,6 +104,47 @@ public final class PendingMediaWriteChecks {
         preserved(reused);
     }
 
+    private static void errorsRollBackAndRethrowTheSameInstance() {
+        for (boolean atPublish : new boolean[]{false, true}) {
+            for (Error problem : new Error[]{new OutOfMemoryError("Injected allocation failure, not real heap exhaustion"),
+                    new LinkageError("Injected encoder linkage failure"), new AssertionError("Injected writer failure")}) {
+                Store store = new Store();
+                if (atPublish) store.publishFailure = problem; else store.writeFailure = problem;
+                check(failure(store) == problem, "Error must propagate unchanged, never become success/IOException");
+                check(store.partialBytesWritten, "Injected Error follows an owned partial write");
+                check(store.publishCalls == (atPublish ? 1 : 0), "Failed encoding cannot publish");
+                rolledBack(store);
+            }
+        }
+        Store failedInsert = new Store();
+        Error insertion = new OutOfMemoryError("Injected insertion failure before output exists");
+        failedInsert.insertFailure = insertion;
+        check(failure(failedInsert) == insertion, "Insertion Error remains primary");
+        check(failedInsert.created == null && failedInsert.deleteCalls == 0,
+                "No unknown output is deleted after insertion Error");
+        preserved(failedInsert);
+    }
+
+    private static void cleanupErrorsCannotReplaceThePrimaryFailure() {
+        for (Throwable primary : new Throwable[]{new IOException("write failure"), new SecurityException("write denial"),
+                new OutOfMemoryError("Injected primary allocation failure")}) {
+            Store store = new Store();
+            Error cleanup = new AssertionError("Injected delete failure");
+            store.writeFailure = primary; store.deleteFailure = cleanup;
+            check(failure(store) == primary, "Cleanup Error cannot mask the primary failure");
+            check(store.deleteCalls == 1 && store.pending.contains(store.created),
+                    "Failed Error cleanup was attempted, not claimed successful");
+            check(primary.getSuppressed().length == 1 && primary.getSuppressed()[0] == cleanup,
+                    "Cleanup Error is retained as suppressed diagnostic");
+            preserved(store);
+        }
+        Store reused = new Store();
+        Error same = new OutOfMemoryError("Injected provider reuses Error instance");
+        reused.writeFailure = same; reused.deleteFailure = same;
+        check(failure(reused) == same && same.getSuppressed().length == 0, "Error cannot self-suppress");
+        preserved(reused);
+    }
+
     private static void rolledBack(Store store) {
         check(store.deleteCalls == 1 && store.pending.isEmpty(), "New partial output is removed once");
         check(!store.visible.contains(store.created), "Failed output cannot be reported as visible");
@@ -111,9 +161,9 @@ public final class PendingMediaWriteChecks {
         catch (IOException failure) { throw new AssertionError("Unexpected write failure", failure); }
     }
 
-    private static Exception failure(Store store) {
+    private static Throwable failure(Store store) {
         try { PendingMediaWrite.execute(store); }
-        catch (IOException | RuntimeException expected) { return expected; }
+        catch (IOException | RuntimeException | Error expected) { return expected; }
         throw new AssertionError("Failure was silently accepted");
     }
 
@@ -125,7 +175,7 @@ public final class PendingMediaWriteChecks {
     private static final class Store implements PendingMediaWrite.Storage<String> {
         final Set<String> visible = new LinkedHashSet<>(Set.of("source", "older-photo"));
         final Set<String> pending = new LinkedHashSet<>();
-        Exception insertFailure, writeFailure, publishFailure, deleteFailure;
+        Throwable insertFailure, writeFailure, publishFailure, deleteFailure;
         boolean nullInsert, partialBytesWritten;
         int serial, writeCalls, publishCalls, deleteCalls, publishRows = 1;
         String created;
@@ -160,9 +210,10 @@ public final class PendingMediaWriteChecks {
             pending.remove(output);
         }
 
-        private static void raise(Exception problem) throws IOException {
+        private static void raise(Throwable problem) throws IOException {
             if (problem instanceof IOException) throw (IOException) problem;
             if (problem instanceof RuntimeException) throw (RuntimeException) problem;
+            if (problem instanceof Error) throw (Error) problem;
         }
     }
 }
