@@ -36,6 +36,17 @@ android {
             buildConfigField 'boolean', 'BASIC_CAPTURE', 'true'
             resValue 'string', 'app_name', 'X Flip 相机基础版'
         }
+        lab {
+            initWith debug
+            applicationIdSuffix '.lab'
+            versionNameSuffix '-lab'
+            resValue 'string', 'app_name', 'X Flip 影像实验'
+        }
+    }
+
+    sourceSets.lab {
+        java.srcDirs += 'src/debug/java'
+        manifest.srcFile 'src/debug/AndroidManifest.xml'
     }
 
     compileOptions {

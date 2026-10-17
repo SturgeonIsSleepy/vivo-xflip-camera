@@ -19,3 +19,5 @@ gradle :camera-core:check :app:assembleCoverCompatBasic :app:lintCoverCompatBasi
 基础版仍需要外屏助手及每次手机重启后的桥接初始化，系统每张需确认。未做整机重启自动授权、内屏/展开/前摄和全旋转矩阵或长时间耐久验收，不能把短时回归说成永久稳定。未改变设备全局DPI或偏好；本次服务读取外屏运行时density=200，与早期160不同。
 
 后续增强版需求为可选显示直方图和PS式黑白场滑块。先与稳定APK隔离，接入前两天已验证的逐行核心，用成熟开源算法与独立对照衡量收益，不单纯调大锐化；真正多曝光输入仍未取得。
+
+实测包已发布：[基础版下载](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-basic)，ZIP解压后安装。资产649227308 / 18,414,835bytes / SHA256 `4b64257cd060768d5ffbfe4dac3e1644be25cd2220dcd221e545e9497c4ce3dc`，远程digest核对一致，tag精确指向d8e4bb89ad3bc7a5b395b80836534f46265173b9；CI38992698267成功。此版本冻结，后续增强版独立包安装。

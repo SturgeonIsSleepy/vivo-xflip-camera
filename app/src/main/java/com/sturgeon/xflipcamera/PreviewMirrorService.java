@@ -30,24 +30,17 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
     private boolean movie;
     private int displayId;
     private boolean rendererStarted;
-    private CoverControls controls;
     private Context screenContext;
-    private android.app.AlertDialog settingsDialog;
     private Runnable afterStopped;
     private boolean destroying;
     private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
-    private final Runnable controlsPoll = new Runnable() {
+    private final Runnable workerPoll = new Runnable() {
         @Override public void run() {
             if (destroying) return;
             try {
                 if (worker == null || !worker.pingBinder()) {
                     rendererStarted = false;
                     PreviewWorkerReceiver.requestWorker(PreviewMirrorService.this);
-                }
-                boolean live = rendererStarted && readWorkerStatus().contains("phase=1,");
-                if (controls != null && (settingsDialog == null || !settingsDialog.isShowing())) {
-                    controls.setPhotoProgress(movie ? 0 : SystemCaptureActivity.burstIndex());
-                    if (live) controls.attach(); else controls.detach();
                 }
             } catch (RuntimeException error) {
                 android.util.Log.w("XFlipPreviewMirror", "control update failed", error);
@@ -125,17 +118,7 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
             layout.gravity = Gravity.TOP | Gravity.LEFT;
             layout.x = (size.x - width) / 2;
             windows.addView(preview, layout);
-            if (!BuildConfig.BASIC_CAPTURE) {
-                controls = new CoverControls(context, new CoverControls.Callbacks() {
-                @Override public void onMode(boolean videoMode) {
-                    controls.setEnabled(false);
-                    SystemCaptureActivity.requestMode(videoMode);
-                }
-                @Override public void onSettings() { openSettings(); }
-                });
-                controls.setMode(movie);
-            }
-            main.post(controlsPoll);
+            main.post(workerPoll);
             worker = PreviewWorkerReceiver.availableWorker();
             if (worker != null) startRendering();
             else {
@@ -162,6 +145,8 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
             data.writeTypedObject(preview.getSurfaceControl(), 0);
             data.writeInt(displayId);
             data.writeBoolean(movie);
+            data.writeBoolean(!BuildConfig.BASIC_CAPTURE && getSharedPreferences("system_capture", MODE_PRIVATE)
+                    .getBoolean("live_histogram", true));
             worker.transact(PreviewMirrorWorker.START, data, result, 0);
             result.readException();
             rendererStarted = true;
@@ -195,53 +180,9 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
         return status;
     }
 
-    private void pauseWorker(boolean value) {
-        if (worker == null) return;
-        Parcel data = Parcel.obtain(), reply = Parcel.obtain();
-        try {
-            data.writeInterfaceToken(PreviewMirrorWorker.DESCRIPTOR);
-            data.writeBoolean(value);
-            worker.transact(PreviewMirrorWorker.PAUSE, data, reply, 0);
-            reply.readException();
-        } catch (Exception error) { android.util.Log.w("XFlipPreviewMirror", "pause failed", error); }
-        finally { data.recycle(); reply.recycle(); }
-    }
-
-    private void openSettings() {
-        if (settingsDialog != null && settingsDialog.isShowing()) return;
-        pauseWorker(true);
-        controls.detach();
-        android.content.SharedPreferences preferences = getSharedPreferences("system_capture", MODE_PRIVATE);
-        String[] keys = {"watermark_enabled", "auto_stabilize", "burst_enabled", "auto_levels", "detail_enhance", "hdr_tone"};
-        boolean[] values = {preferences.getBoolean(keys[0], false), preferences.getBoolean(keys[1], false),
-                preferences.getBoolean(keys[2], false),preferences.getBoolean(keys[3],true),
-                preferences.getBoolean(keys[4],true),preferences.getBoolean(keys[5],false)};
-        Context themed = new android.view.ContextThemeWrapper(screenContext, android.R.style.Theme_Material_Dialog_Alert);
-        settingsDialog = new android.app.AlertDialog.Builder(themed)
-                .setTitle("相机设置")
-                .setMultiChoiceItems(new String[]{"照片文字水印：机型与时间", "录后平移防抖（实验）", "连续三张合成：每张需确认", "自动色阶：去除两端空白", "文字与纹理增强", "JPEG HDR色调（逆光增强）"}, values,
-                        (dialog, index, checked) -> preferences.edit().putBoolean(keys[index], checked).apply())
-                .setPositiveButton("完成", null).create();
-        settingsDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
-        settingsDialog.setOnDismissListener(dialog -> {
-            settingsDialog = null;
-            if (!destroying) pauseWorker(false);
-        });
-        settingsDialog.show();
-        int width = Math.min(windows.getCurrentWindowMetrics().getBounds().width() - 24,
-                Math.round(420 * screenContext.getResources().getDisplayMetrics().density));
-        settingsDialog.getWindow().setLayout(width,windows.getCurrentWindowMetrics().getBounds().height()-24);
-    }
-
     @Override public void onDestroy() {
         destroying = true;
-        main.removeCallbacks(controlsPoll);
-        if (settingsDialog != null) settingsDialog.dismiss();
-        if (controls != null) {
-            try { controls.detach(); } catch (RuntimeException error) {
-                android.util.Log.w("XFlipPreviewMirror", "controls cleanup failed", error);
-            }
-        }
+        main.removeCallbacks(workerPoll);
         active = null;
         stopRendering();
         try {

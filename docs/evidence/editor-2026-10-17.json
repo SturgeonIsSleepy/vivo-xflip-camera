@@ -1,0 +1,136 @@
+{
+  "version": "0.4.2-lab",
+  "base_sha": "d8e4bb89ad3bc7a5b395b80836534f46265173b9",
+  "package": "org.codeaurora.snapcam.lab",
+  "synthetic": [
+    {
+      "scenario": "manual",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 121,
+      "save_ms": 106,
+      "dimensions": [
+        960,
+        720
+      ],
+      "description": "input_levels=40..215; nlm=false; tone=off"
+    },
+    {
+      "scenario": "color",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 116,
+      "save_ms": 103,
+      "dimensions": [
+        960,
+        720
+      ],
+      "description": "input_levels=32..224; nlm=false; tone=off"
+    },
+    {
+      "scenario": "denoise",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 5856,
+      "save_ms": 2415,
+      "dimensions": [
+        960,
+        720
+      ],
+      "description": "input_levels=0..255; nlm=true; tone=off",
+      "noise_mse_ratio": 0.3676295876999365,
+      "flat_noise_std_ratio": 0.4594234511352413,
+      "text_edge_contrast_ratio": 1.0001128762764588,
+      "tile_max_channel_error": 0
+    },
+    {
+      "scenario": "identity",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 75,
+      "save_ms": 58,
+      "dimensions": [
+        960,
+        720
+      ],
+      "description": "input_levels=0..255; nlm=false; tone=off"
+    },
+    {
+      "scenario": "rotated",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 148,
+      "save_ms": 133,
+      "dimensions": [
+        960,
+        720
+      ],
+      "description": "input_levels=90..149; nlm=false; tone=off"
+    },
+    {
+      "scenario": "cancel",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 348
+    },
+    {
+      "scenario": "full",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 21875,
+      "save_ms": 21807,
+      "dimensions": [
+        3072,
+        4096
+      ],
+      "description": "input_levels=0..255; nlm=true; tone=off"
+    }
+  ],
+  "previous_tone_regression": {
+    "hdr": {
+      "max_channel_error_vs_previous_device_output": 0
+    },
+    "detail": {
+      "max_channel_error_vs_previous_device_output": 0
+    }
+  },
+  "core_assertions": 944181,
+  "graphics_tests_each_flavor": 27,
+  "basic_release": {
+    "id": 415523527,
+    "asset": 649227308,
+    "zip_bytes": 18414835,
+    "zip_sha256": "4b64257cd060768d5ffbfe4dac3e1644be25cd2220dcd221e545e9497c4ce3dc",
+    "ci_run": 38992698267,
+    "ci_conclusion": "success"
+  },
+  "apk": {
+    "bytes": 45512720,
+    "sha256": "89b8b4786b112df91057331c6885dd6424bcb3c09ecdf1c577c6337758d10f70",
+    "installed_hash_matches": true
+  },
+  "private_photo_identifiers_omitted": true,
+  "device_ui": {
+    "folded_live_histogram_on_and_off": true,
+    "editor_in_existing_camera_activity": true,
+    "no_extra_preview_button_windows": true,
+    "original_comparison_and_histogram_toggle": true,
+    "full_size_editor_save": true,
+    "original_preserved_byte_for_byte": true,
+    "saved_options_match_displayed_controls": true,
+    "final_apk_manual_save": true,
+    "basic_bridge_restored": true,
+    "private_photo_identifiers_omitted": true
+  },
+  "provenance": {
+    "algorithm_suite_apk_sha256": "a5469b134c497165726bb085bd549008b8f9d3209e20c9c2595cb069dd97cd2b",
+    "final_apk_denoise_rerun": true,
+    "processing_algorithm_unchanged_after_suite": true,
+    "full_size_save_ms_single_run": 21807,
+    "small_save_ms_runs": [
+      1218,
+      2415
+    ],
+    "no_peak_memory_measurement": true
+  }
+}

@@ -3,8 +3,8 @@ import argparse,base64,hashlib,json,re,subprocess
 from pathlib import Path
 import numpy as np
 from PIL import Image
-p=argparse.ArgumentParser();p.add_argument('--serial',required=True);p.add_argument('--adb',default='adb');p.add_argument('--scenario',choices=['levels','narrow','detail','hdr','flat','color','rotated','cancel'],required=True);p.add_argument('directory',type=Path);a=p.parse_args()
-pkg='org.codeaurora.snapcam';prefix=[a.adb,'-s',a.serial]
+p=argparse.ArgumentParser();p.add_argument('--serial',required=True);p.add_argument('--adb',default='adb');p.add_argument('--package',default='org.codeaurora.snapcam');p.add_argument('--scenario',choices=['levels','narrow','detail','hdr','flat','color','rotated','cancel'],required=True);p.add_argument('directory',type=Path);a=p.parse_args()
+pkg=a.package;assert re.fullmatch(r'[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+',pkg);prefix=[a.adb,'-s',a.serial]
 def adb(*cmd,timeout=40):return subprocess.run(prefix+list(cmd),check=True,capture_output=True,timeout=timeout).stdout.decode(errors='replace')
 remote='files/tone-fixtures';adb('shell','run-as',pkg,'mkdir','-p',remote)
 data=(a.directory/f'{a.scenario}.jpg').read_bytes();path=f'{remote}/{a.scenario}.jpg'

@@ -6,6 +6,10 @@
 
 0.4.2-basic 只保留基础拍照、实时左右纠正和原始JPEG保存。已移除拍摄页自有悬浮按钮，避免与系统控件重叠；旧增强/水印/录像/多帧偏好在此构建均不生效。实机完成两次保存、重拍、取消和三次强制停止后重开，见 [基础版实测及初始化限制](docs/basic-camera-2026-10-17.md)。构建任务为 `:app:assembleCoverCompatBasic`。前两天的核心加速、保存修复及曝光初筛已续接；增强版的直方图/算法后续单独验证。
 
+[下载基础版实测APK压缩包](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-basic)，解压后安装。同版APK与手机一致，tag固定d8e4bb8，CI38992698267成功。
+
+独立 `coverCompatLab` 增强构建提供可选实时直方图、同窗口拍后黑白场滑块/原图对照/另存和可选OpenCV RGB NLM降噪，并接入前两天逐行核心。包名带`.lab`，不覆盖基础版；13MP降噪约22秒，默认关闭，不是实时降噪。见 [编辑与降噪验证及限制](docs/photo-editor-2026-10-17.md)。
+
 0.4.1-dev 新增自动色阶、文字纹理增强和可选JPEG HDR色调，单张/三帧均支持，原图保留；已完成合盖实机功能检查与八组手机合成图算法检查。HDR是已有JPEG信息的色调映射，目前不是多曝光HDR采集。见 [新功能报告](docs/photo-tone-2026-10-15.md)。
 
 [0.4.1 交付说明](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.1-photo-tone-test)与 [CI APK 下载](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38744983176/artifacts/11978385837)已发布。手机已安装本地实测版；该签名 APK 直传及压缩/分卷上传因网络中断失败，Release 无安装包附件。CI 包来自同一源码，签名可能不同，不代表与手机安装文件逐字节一致。全尺寸处理耗时仍需优化。

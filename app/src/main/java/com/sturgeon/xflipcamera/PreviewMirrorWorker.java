@@ -42,13 +42,14 @@ public final class PreviewMirrorWorker extends Binder {
             SurfaceControl exclude = data.readTypedObject(SurfaceControl.CREATOR);
             int displayId = data.readInt();
             boolean movie = data.readBoolean();
+            boolean histogram = data.dataAvail() > 0 && data.readBoolean();
             long session = ++generation;
             paused = false;
             frameCount = 0;
             startedNs = System.nanoTime();
             captureNanos = 0;
             phase = captureMisses = unknownControls = 0;
-            renderThread = new Thread(() -> render(target, exclude, displayId, movie, session), "cover-preview");
+            renderThread = new Thread(() -> render(target, exclude, displayId, movie, histogram, session), "cover-preview");
             renderThread.start();
         } else if (code == STOP || code == 16777115) {
             stop();
@@ -78,7 +79,7 @@ public final class PreviewMirrorWorker extends Binder {
     }
 
     @SuppressWarnings("unchecked")
-    private void render(Surface target, SurfaceControl exclude, int displayId, boolean movie, long session) {
+    private void render(Surface target, SurfaceControl exclude, int displayId, boolean movie, boolean histogram, long session) {
         try {
             if (Process.myUid() != 2000 && Process.myUid() != 0) {
                 throw new SecurityException("Preview capture requires the actual shell or root UID");
@@ -122,6 +123,8 @@ public final class PreviewMirrorWorker extends Binder {
             Method getTasks = Class.forName("android.app.IActivityTaskManager")
                     .getMethod("getTasks", int.class, boolean.class, boolean.class, int.class);
             Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+            Paint histogramPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            long[] bins = new long[256]; long nextHistogramNs = 0;
             Rect source = new Rect(previewLeft, 0, previewLeft + previewWidth, screenHeight);
             Rect destination = new Rect(0, 0, target.isValid() ? previewWidth : 0, screenHeight);
             int timerWidth = Math.min(previewWidth - 4, Math.round(screenHeight * 0.44f));
@@ -195,6 +198,20 @@ public final class PreviewMirrorWorker extends Binder {
                 Bitmap hardware = (Bitmap) asBitmap.invoke(buffer);
                 try {
                     if (hardware != null && session == generation) {
+                        if (histogram && tickNs >= nextHistogramNs) {
+                            Bitmap sample = hardware.copy(Bitmap.Config.ARGB_8888, false);
+                            try {
+                                java.util.Arrays.fill(bins, 0);
+                                int step = Math.max(2, screenHeight / 96);
+                                for (int y = source.top; y < source.bottom; y += step) {
+                                    for (int x = source.left; x < source.right; x += step) {
+                                        int color = sample.getPixel(x,y);
+                                        bins[(color >>> 16) & 255]++;bins[(color >>> 8) & 255]++;bins[color & 255]++;
+                                    }
+                                }
+                            } finally { if (sample != null) sample.recycle(); }
+                            nextHistogramNs = tickNs + 500000000L;
+                        }
                         Canvas canvas = target.lockHardwareCanvas();
                         try {
                             destination.set(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -202,6 +219,7 @@ public final class PreviewMirrorWorker extends Binder {
                             canvas.scale(-1, 1, canvas.getWidth() / 2f, canvas.getHeight() / 2f);
                             canvas.drawBitmap(hardware, source, destination, paint);
                             canvas.restore();
+                            if (histogram) drawHistogram(canvas,bins,histogramPaint);
                             if (phase == PreviewPhaseState.RECORDING) canvas.drawBitmap(hardware, timer, timerTarget, paint);
                         } finally { target.unlockCanvasAndPost(canvas); }
                         frameCount++;
@@ -226,6 +244,17 @@ public final class PreviewMirrorWorker extends Binder {
             if (session == generation) try { clear(target); } catch (RuntimeException ignored) { }
             target.release();
             exclude.release();
+        }
+    }
+
+    private static void drawHistogram(Canvas canvas, long[] bins, Paint paint) {
+        float left=8,bottom=canvas.getHeight()-8,right=Math.min(canvas.getWidth()-8,164),top=bottom-60;
+        paint.setColor(0xb0000000);canvas.drawRect(left-3,top-3,right+3,bottom+3,paint);
+        paint.setColor(Color.WHITE);
+        long maximum=1;for(long count:bins)maximum=Math.max(maximum,count);
+        for(int x=0;x<256;x++) {
+            float position=left+(right-left)*x/255f;
+            canvas.drawLine(position,bottom,position,bottom-(bottom-top)*bins[x]/maximum,paint);
         }
     }
 

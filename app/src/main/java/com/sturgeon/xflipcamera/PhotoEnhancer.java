@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
 import com.sturgeon.xflipcamera.core.PhotoToneCurve;
+import com.sturgeon.xflipcamera.core.PhotoToneRowProcessor;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -92,6 +93,7 @@ public final class PhotoEnhancer {
             }
             int[] colors=new int[width];byte[] before=new byte[width],center=new byte[width],after=new byte[width];
             byte[] local=new byte[width],smooth=new byte[width];float[] baseRow=new float[width];
+            PhotoToneRowProcessor rows=new PhotoToneRowProcessor(options.detail(),compression,noise);
             for(int y=0;y<height;y++) {
                 check(cancelled);bitmap.getPixels(colors,0,width,0,y,width,1);gray.get(y,0,center);
                 if(options.detail()) {
@@ -99,19 +101,7 @@ public final class PhotoEnhancer {
                     contrast.get(y,0,local);blur.get(y,0,smooth);
                 }
                 if(compression<0.999)hdrBase.get(y,0,baseRow);
-                for(int x=0;x<width;x++) {
-                    int level=center[x]&255;
-                    int mapped=compression<0.999?PhotoToneCurve.hdrLuma(level,baseRow[x],compression,noise):level;
-                    if(options.detail() && x>0 && x+1<width && Math.abs(level-(smooth[x]&255))>=Math.max(2,noise*1.8)) {
-                        int lo=255,hi=0;
-                        for(int xx=x-1;xx<=x+1;xx++) {
-                            lo=Math.min(lo,Math.min(before[xx]&255,Math.min(center[xx]&255,after[xx]&255)));
-                            hi=Math.max(hi,Math.max(before[xx]&255,Math.max(center[xx]&255,after[xx]&255)));
-                        }
-                        mapped+=PhotoToneCurve.detailDelta(level,smooth[x]&255,local[x]&255,noise,lo,hi);
-                    }
-                    colors[x]=PhotoToneCurve.withLuma(colors[x],Math.max(0,Math.min(255,mapped)));
-                }
+                rows.process(colors,before,center,after,local,smooth,baseRow);
                 bitmap.setPixels(colors,0,width,0,y,width,1);
             }
             return "levels="+curve.black+".."+curve.white+", expanded="+curve.stretched

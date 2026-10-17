@@ -51,6 +51,10 @@ public final class SystemCaptureActivity extends ComponentActivity {
     private CheckBox mirrorPreview;
     private VideoStabilizer stabilization;
     private static final int CAMERA_REQUEST = 4102;
+    private Uri originalPhoto;
+    private FrameLayout root;
+    private PhotoEditor editor;
+    private Uri editorSource;
     private static SystemCaptureActivity active;
     private Boolean requestedMode;
     private boolean autoOpen;
@@ -125,7 +129,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     static void workerReady() {
         SystemCaptureActivity owner = active;
         if (owner == null || owner.isFinishing() || !owner.foreground || owner.pending || owner.reading
-                || owner.editing || !owner.autoOpen && owner.waitingMode == null) return;
+                || owner.editing || owner.editor != null || !owner.autoOpen && owner.waitingMode == null) return;
         boolean movie = owner.waitingMode != null && owner.waitingMode;
         if (PreviewWorkerReceiver.availableWorker() == null) {
             owner.waitForWorker(movie);
@@ -148,6 +152,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        if (editor != null) { autoOpen = false; return; }
         autoOpen = !intent.getBooleanExtra("manual_entry", false);
         workerReady();
     }
@@ -168,7 +173,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
         super.onCreate(savedInstanceState);
         active = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        FrameLayout root = new FrameLayout(this);
+        root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
         image = new ImageView(this);
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -197,8 +202,13 @@ public final class SystemCaptureActivity extends ComponentActivity {
         record.setText("录像");
         record.setOnClickListener(view -> capture(true));
         flip = new Button(this);
-        flip.setText("翻转成片");
-        flip.setOnClickListener(view -> { if (video) stabilizeVideo(); else flipPhoto(); });
+        flip.setText("直方图/算法");
+        flip.setOnClickListener(view -> {
+            if (video) stabilizeVideo();
+            else if (output != null && !pending && !reading && !editing) {
+                openEditor(originalPhoto == null ? output : originalPhoto, null);
+            }
+        });
         Button back = new Button(this);
         back.setText("返回");
         back.setOnClickListener(view -> finish());
@@ -212,7 +222,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
         }
         root.addView(controls, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
         mirrorPreview = new CheckBox(this);
-        mirrorPreview.setText("系统预览左右纠正（需授权服务）");
+        mirrorPreview.setText("实时左右纠正");
         mirrorPreview.setTextColor(Color.WHITE);
         mirrorPreview.setBackgroundColor(0xaa000000);
         mirrorPreview.setChecked(BuildConfig.BASIC_CAPTURE || getSharedPreferences("system_capture", MODE_PRIVATE)
@@ -221,8 +231,17 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 .edit().putBoolean("mirror_preview", checked).apply());
         FrameLayout.LayoutParams mirrorLayout = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
         mirrorLayout.bottomMargin = Math.round(48 * getResources().getDisplayMetrics().density);
-        root.addView(mirrorPreview, mirrorLayout);
-        if (BuildConfig.BASIC_CAPTURE) mirrorPreview.setVisibility(android.view.View.GONE);
+        LinearLayout previewOptions = new LinearLayout(this);
+        previewOptions.setBackgroundColor(0xaa000000);
+        previewOptions.addView(mirrorPreview);
+        CheckBox liveHistogram = new CheckBox(this);
+        liveHistogram.setText("取景直方图"); liveHistogram.setTextColor(Color.WHITE);
+        liveHistogram.setChecked(getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("live_histogram", true));
+        liveHistogram.setOnCheckedChangeListener((button, checked) -> getSharedPreferences("system_capture", MODE_PRIVATE)
+                .edit().putBoolean("live_histogram", checked).apply());
+        previewOptions.addView(liveHistogram);
+        root.addView(previewOptions, mirrorLayout);
+        if (BuildConfig.BASIC_CAPTURE) previewOptions.setVisibility(android.view.View.GONE);
         setContentView(root);
         if (savedInstanceState != null) {
             java.util.ArrayList<String> frames = savedInstanceState.getStringArrayList("burst_frames");
@@ -234,6 +253,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
             pending = savedInstanceState.getBoolean("pending");
             reading = savedInstanceState.getBoolean("reading");
             video = savedInstanceState.getBoolean("video");
+            String original = savedInstanceState.getString("original_photo");
+            originalPhoto = original == null ? null : Uri.parse(original);
             edited = savedInstanceState.getBoolean("edited");
             mirrorPreview.setChecked(BuildConfig.BASIC_CAPTURE || savedInstanceState.getBoolean("mirror_preview"));
             if (photo != null && (!pending || reading)) showPhoto();
@@ -242,15 +263,34 @@ public final class SystemCaptureActivity extends ComponentActivity {
         String latest = getSharedPreferences("system_capture", MODE_PRIVATE).getString("last_saved", null);
         lastSaved = latest == null ? null : Uri.parse(latest);
         lastSavedVideo = !BuildConfig.BASIC_CAPTURE && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("last_video", false);
+        if (originalPhoto == null && !lastSavedVideo) {
+            String original = getSharedPreferences("system_capture", MODE_PRIVATE).getString("last_original", null);
+            originalPhoto = original == null ? null : Uri.parse(original);
+        }
         if (BuildConfig.BASIC_CAPTURE && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("last_video", false)) lastSaved = null;
         autoOpen = !pending && !reading && (savedInstanceState == null || photo == null && output == null)
                 && !getIntent().getBooleanExtra("manual_entry", false);
         if (autoOpen) new android.os.Handler(getMainLooper()).post(SystemCaptureActivity::workerReady);
+        if (!BuildConfig.BASIC_CAPTURE && savedInstanceState != null && savedInstanceState.getString("editor_source") != null) {
+            autoOpen = false;
+            openEditor(Uri.parse(savedInstanceState.getString("editor_source")), savedInstanceState.getBundle("editor"));
+        }
+    }
+
+    private void openEditor(Uri source, Bundle state) {
+        if (BuildConfig.BASIC_CAPTURE || editor != null) return;
+        editorSource = source; autoOpen = false;
+        editor = new PhotoEditor(this, source, state, saved -> {
+            editor = null; editorSource = null;
+            if (isDestroyed()) return;
+            setContentView(root);
+            if (saved != null) { output = saved; edited = true; showPhoto(); }
+        });
     }
 
     private void capture(boolean movie) {
         if (BuildConfig.BASIC_CAPTURE && movie) return;
-        if (pending || editing || reading) return;
+        if (pending || editing || reading || editor != null) return;
         if (mirrorPreview.isChecked()) {
             if (!Settings.canDrawOverlays(this)) {
                 startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -325,8 +365,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
         java.util.List<Uri> burstInputs = new java.util.ArrayList<>(burstFrames);
         if (collectBurst) burstInputs.add(destination);
         android.content.SharedPreferences photoPreferences = getSharedPreferences("system_capture",MODE_PRIVATE);
-        PhotoEnhancer.Options photoOptions = BuildConfig.BASIC_CAPTURE ? PhotoEnhancer.Options.NONE : new PhotoEnhancer.Options(photoPreferences.getBoolean("auto_levels",true),
-                photoPreferences.getBoolean("detail_enhance",true),photoPreferences.getBoolean("hdr_tone",false));
+        PhotoEnhancer.Options photoOptions = BuildConfig.BASIC_CAPTURE ? PhotoEnhancer.Options.NONE : new PhotoEnhancer.Options(photoPreferences.getBoolean("auto_levels",false),
+                photoPreferences.getBoolean("detail_enhance",false),photoPreferences.getBoolean("hdr_tone",false));
         reading = true;
         if (collectBurst && burstInputs.size() == 3) status.setText("正在合成三张照片，原图保留");
         updateControls();
@@ -422,10 +462,12 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 runOnUiThread(() -> {
                     if (isDestroyed() || !java.util.Objects.equals(sourceCache, photo) || !destination.equals(output)) return;
                     output = savedOutput;
+                    if (newPhoto) originalPhoto = video ? null : destination;
                     lastSaved = output;
                     lastSavedVideo = video;
                     getSharedPreferences("system_capture", MODE_PRIVATE).edit()
-                            .putString("last_saved", output.toString()).putBoolean("last_video", video).apply();
+                            .putString("last_saved", output.toString()).putBoolean("last_video", video)
+                            .putString("last_original", originalPhoto == null ? null : originalPhoto.toString()).apply();
                     pending = false;
                     reading = false;
                     updateControls();
@@ -440,7 +482,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     if (collectBurst) burstFrames.clear();
                     status.setText(burstStatus != null ? burstStatus + (watermarked ? "（含文字水印）" : "") : video ? edited ? "防抖视频已另存，原片保留；点击播放" : "录像已保存，点击画面播放"
                             : watermarked ? "水印副本已保存，原图保留" : watermarkFailed ? "水印未完成，原图已保留"
-                            : edited ? "翻转版本已保存，原图保留" : "系统相机照片已保存");
+                            : edited ? "调整副本已保存，原图保留" : "系统相机照片已保存");
                     if (video) {
                         image.setOnClickListener(view -> {
                             if (pending || editing || reading) return;
@@ -469,33 +511,6 @@ public final class SystemCaptureActivity extends ComponentActivity {
                         updateControls();
                         status.setText("媒体读取失败：" + failure.getClass().getSimpleName());
                     }
-                });
-            }
-        });
-    }
-
-    private void flipPhoto() {
-        if (output == null || video || pending || editing) return;
-        Uri original = output;
-        editing = true;
-        updateControls();
-        status.setText("正在翻转成片，原图保留");
-        reader.execute(() -> {
-            try {
-                Uri edited = PhotoPostProcessor.flip(getContentResolver(), original);
-                runOnUiThread(() -> {
-                    if (isDestroyed() || !original.equals(output)) return;
-                    output = edited;
-                    this.edited = true;
-                    editing = false;
-                    showPhoto();
-                });
-            } catch (Exception failure) {
-                runOnUiThread(() -> {
-                    if (isDestroyed() || !original.equals(output)) return;
-                    editing = false;
-                    updateControls();
-                    status.setText("翻转失败，原图保留：" + failure.getClass().getSimpleName());
                 });
             }
         });
@@ -534,8 +549,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
         if (shutter == null) return;
         shutter.setEnabled(!pending && !editing && !reading);
         record.setEnabled(!pending && !editing && !reading);
-        flip.setText(video ? "视频防抖" : "翻转成片");
-        flip.setEnabled(!pending && !editing && !reading && output != null && !edited);
+        flip.setText(video ? "视频防抖" : "直方图/算法");
+        flip.setEnabled(!pending && !editing && !reading && output != null && (!video || !edited));
         mirrorPreview.setEnabled(!pending && !editing && !reading);
     }
 
@@ -553,6 +568,10 @@ public final class SystemCaptureActivity extends ComponentActivity {
         state.putBoolean("pending", pending);
         state.putBoolean("reading", reading);
         state.putBoolean("video", video);
+        state.putString("original_photo", originalPhoto == null ? null : originalPhoto.toString());
+        if (editor != null) {
+            state.putString("editor_source", editorSource.toString()); state.putBundle("editor", editor.saveState());
+        }
         state.putBoolean("edited", edited);
         state.putBoolean("mirror_preview", mirrorPreview.isChecked());
         java.util.ArrayList<String> frames = new java.util.ArrayList<>();
@@ -562,6 +581,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
 
     @Override protected void onDestroy() {
         if (active == this) active = null;
+        if (editor != null) editor.close();
         processingCancelled.set(true);
         main.removeCallbacks(workerTimeout);
         player.stopPlayback();

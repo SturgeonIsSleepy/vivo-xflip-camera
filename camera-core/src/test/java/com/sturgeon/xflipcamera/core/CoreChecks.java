@@ -22,6 +22,7 @@ public final class CoreChecks {
         assertions += MultiFrameAccumulatorChecks.run();
         assertions += PhotoToneCurveChecks.run();
         assertions += PhotoToneRowChecks.run();
+        assertions += InputLevelsChecks.run();
         assertions += ExposureBracketChecks.run();
         assertions += BoundedDigestChecks.run();
         invalidInputsFailExplicitly();
