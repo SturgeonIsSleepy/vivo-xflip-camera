@@ -29,3 +29,12 @@
 [公开软件/合成检查收据](evidence/editor-2026-10-17.json)。基线重启初始化、外屏助手、系统确认等限制仍保留；未扩展前摄/内屏/全旋转/长期耐久验收。
 
 真实合盖还验证了直方图显示/关闭、原图对照、同窗口编辑、完整实拍另存与原始JPEG逐字节保留；最终安装包再完成一次色阶另存与NLM对照，未复现展开拦截。最终实验APK45,512,720bytes，SHA256 `89b8b4786b112df91057331c6885dd6424bcb3c09ecdf1c577c6337758d10f70` 与手机已安装包一致。七组合成检查后处理算法未再改变，后续为界面承载、实时直方图和保存提示修复；具体包校验与重跑范围见收据。手机最后恢复基础版桥接，实验版独立保留。
+
+
+## 已发布交付
+
+[下载独立实验版APK压缩包及初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-editor-lab)。Release415534970 / ZIP资产649284619，18,434,875bytes，远程SHA256 `2bb3e963df9d18b0a88f1064f089c10215ef018f3bd4a7675380ee0e15e9a903` 已核对；ZIP内APK也再次校验为手机实际安装文件。脚本资产649285056，SHA256 `8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2`，tag精确指向实测源码5ca935798003b54217a9ba28df93f33bfca77a69。
+
+[CI38994690542](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38994690542)完成成功，head一致。下载测试artifact12086184130，ZIP摘要c73f200282f7740c4b70b41f73e4455ca608e27a1d479ba2a2ac98107a64dbab匹配，实际6份JUnit XML合计54项、失败/错误/跳过0。四个APK及Lint artifact12086218890已上传；CI debug签名不等同本地实测签名，安装优先用Release内的已核对包。
+
+两个独立应用使用各自包名初始化，切换有线桥接目标时需重跑脚本。日常基础版用脚本默认Package；实验版加 `-Package org.codeaurora.snapcam.lab`。本轮结束时已恢复基础版目标，基础包校验仍为e7b226989a6948f4675eff65b7b5c090f73b2f0dedfc9515f3102c9cdb343332。

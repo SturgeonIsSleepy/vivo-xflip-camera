@@ -132,5 +132,39 @@
       2415
     ],
     "no_peak_memory_measurement": true
+  },
+  "release": {
+    "asset_bytes": 18434875,
+    "id": 415534970,
+    "url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-editor-lab",
+    "tag_sha": "5ca935798003b54217a9ba28df93f33bfca77a69",
+    "asset_id": 649284619,
+    "asset_digest": "sha256:2bb3e963df9d18b0a88f1064f089c10215ef018f3bd4a7675380ee0e15e9a903",
+    "script_digest": "sha256:8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2",
+    "script_asset_id": 649285056
+  },
+  "ci": {
+    "artifacts": [
+      {
+        "id": 12086218890,
+        "name": "xflip-camera-debug",
+        "size_in_bytes": 73489621,
+        "digest": "sha256:fad02edaf64e291e99fcfbc87835af9eee1e70aa0d0209b074ef3f6c8cc61fff"
+      },
+      {
+        "id": 12086184130,
+        "name": "watermark-test-results",
+        "size_in_bytes": 5154,
+        "digest": "sha256:c73f200282f7740c4b70b41f73e4455ca608e27a1d479ba2a2ac98107a64dbab"
+      }
+    ],
+    "run": 38994690542,
+    "failures_errors_skips": 0.0,
+    "source_sha": "5ca935798003b54217a9ba28df93f33bfca77a69",
+    "test_digest": "c73f200282f7740c4b70b41f73e4455ca608e27a1d479ba2a2ac98107a64dbab",
+    "total_tests": 54.0,
+    "xml_files": 6,
+    "conclusion": "success",
+    "test_artifact": 12086184130
   }
 }
