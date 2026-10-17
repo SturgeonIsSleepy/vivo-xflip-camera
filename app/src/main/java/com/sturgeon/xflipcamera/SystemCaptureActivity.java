@@ -91,6 +91,10 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 burstFrames.clear();
                 pending = false;
                 discardPendingPhoto();
+                if (BuildConfig.BASIC_CAPTURE) {
+                    finish();
+                    return;
+                }
                 if (autoOpen) {
                     workerReady();
                     return;
@@ -108,6 +112,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     }
 
     static void requestMode(boolean movie) {
+        if (BuildConfig.BASIC_CAPTURE && movie) return;
         SystemCaptureActivity owner = active;
         if (owner == null || owner.isDestroyed() || owner.isFinishing() || owner.reading || owner.editing) return;
         if (owner.pending) {
@@ -201,18 +206,23 @@ public final class SystemCaptureActivity extends ComponentActivity {
         controls.addView(record, new LinearLayout.LayoutParams(0, -2, 1));
         controls.addView(flip, new LinearLayout.LayoutParams(0, -2, 1));
         controls.addView(back, new LinearLayout.LayoutParams(0, -2, 1));
+        if (BuildConfig.BASIC_CAPTURE) {
+            record.setVisibility(android.view.View.GONE);
+            flip.setVisibility(android.view.View.GONE);
+        }
         root.addView(controls, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
         mirrorPreview = new CheckBox(this);
         mirrorPreview.setText("系统预览左右纠正（需授权服务）");
         mirrorPreview.setTextColor(Color.WHITE);
         mirrorPreview.setBackgroundColor(0xaa000000);
-        mirrorPreview.setChecked(getSharedPreferences("system_capture", MODE_PRIVATE)
+        mirrorPreview.setChecked(BuildConfig.BASIC_CAPTURE || getSharedPreferences("system_capture", MODE_PRIVATE)
                 .getBoolean("mirror_preview", true));
         mirrorPreview.setOnCheckedChangeListener((button, checked) -> getSharedPreferences("system_capture", MODE_PRIVATE)
                 .edit().putBoolean("mirror_preview", checked).apply());
         FrameLayout.LayoutParams mirrorLayout = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
         mirrorLayout.bottomMargin = Math.round(48 * getResources().getDisplayMetrics().density);
         root.addView(mirrorPreview, mirrorLayout);
+        if (BuildConfig.BASIC_CAPTURE) mirrorPreview.setVisibility(android.view.View.GONE);
         setContentView(root);
         if (savedInstanceState != null) {
             java.util.ArrayList<String> frames = savedInstanceState.getStringArrayList("burst_frames");
@@ -225,19 +235,21 @@ public final class SystemCaptureActivity extends ComponentActivity {
             reading = savedInstanceState.getBoolean("reading");
             video = savedInstanceState.getBoolean("video");
             edited = savedInstanceState.getBoolean("edited");
-            mirrorPreview.setChecked(savedInstanceState.getBoolean("mirror_preview"));
+            mirrorPreview.setChecked(BuildConfig.BASIC_CAPTURE || savedInstanceState.getBoolean("mirror_preview"));
             if (photo != null && (!pending || reading)) showPhoto();
         }
         updateControls();
         String latest = getSharedPreferences("system_capture", MODE_PRIVATE).getString("last_saved", null);
         lastSaved = latest == null ? null : Uri.parse(latest);
-        lastSavedVideo = getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("last_video", false);
+        lastSavedVideo = !BuildConfig.BASIC_CAPTURE && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("last_video", false);
+        if (BuildConfig.BASIC_CAPTURE && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("last_video", false)) lastSaved = null;
         autoOpen = !pending && !reading && (savedInstanceState == null || photo == null && output == null)
                 && !getIntent().getBooleanExtra("manual_entry", false);
         if (autoOpen) new android.os.Handler(getMainLooper()).post(SystemCaptureActivity::workerReady);
     }
 
     private void capture(boolean movie) {
+        if (BuildConfig.BASIC_CAPTURE && movie) return;
         if (pending || editing || reading) return;
         if (mirrorPreview.isChecked()) {
             if (!Settings.canDrawOverlays(this)) {
@@ -308,12 +320,12 @@ public final class SystemCaptureActivity extends ComponentActivity {
         Uri sourceCache = photo;
         Uri destination = output;
         boolean newPhoto = pending;
-        boolean collectBurst = newPhoto && !video && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("burst_enabled", false);
+        boolean collectBurst = !BuildConfig.BASIC_CAPTURE && newPhoto && !video && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("burst_enabled", false);
         if (newPhoto && !collectBurst) burstFrames.clear();
         java.util.List<Uri> burstInputs = new java.util.ArrayList<>(burstFrames);
         if (collectBurst) burstInputs.add(destination);
         android.content.SharedPreferences photoPreferences = getSharedPreferences("system_capture",MODE_PRIVATE);
-        PhotoEnhancer.Options photoOptions = new PhotoEnhancer.Options(photoPreferences.getBoolean("auto_levels",true),
+        PhotoEnhancer.Options photoOptions = BuildConfig.BASIC_CAPTURE ? PhotoEnhancer.Options.NONE : new PhotoEnhancer.Options(photoPreferences.getBoolean("auto_levels",true),
                 photoPreferences.getBoolean("detail_enhance",true),photoPreferences.getBoolean("hdr_tone",false));
         reading = true;
         if (collectBurst && burstInputs.size() == 3) status.setText("正在合成三张照片，原图保留");
@@ -385,7 +397,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 }
                 boolean marked = false;
                 boolean markFailed = false;
-                if (newPhoto && !video && (!collectBurst || burstInputs.size() == 3)
+                if (!BuildConfig.BASIC_CAPTURE && newPhoto && !video && (!collectBurst || burstInputs.size() == 3)
                         && getSharedPreferences("system_capture", MODE_PRIVATE).getBoolean("watermark_enabled", false)) {
                     try {
                         String caption = "vivo X Flip  " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm",

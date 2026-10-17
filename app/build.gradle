@@ -12,8 +12,9 @@ android {
         minSdk 33
         targetSdk 36
         ndk { abiFilters 'arm64-v8a' }
-        versionCode 27
-        versionName '0.4.1-dev'
+        versionCode 28
+        versionName '0.4.2'
+        buildConfigField 'boolean', 'BASIC_CAPTURE', 'false'
     }
 
     flavorDimensions 'cameraAccess'
@@ -24,6 +25,16 @@ android {
         coverCompat {
             dimension 'cameraAccess'
             applicationId 'org.codeaurora.snapcam'
+        }
+    }
+
+    buildTypes {
+        debug { versionNameSuffix '-dev' }
+        basic {
+            initWith debug
+            versionNameSuffix '-basic'
+            buildConfigField 'boolean', 'BASIC_CAPTURE', 'true'
+            resValue 'string', 'app_name', 'X Flip 相机基础版'
         }
     }
 

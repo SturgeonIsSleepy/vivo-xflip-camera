@@ -2,7 +2,8 @@
     [Parameter(Mandatory=$true)][string]$Serial,
     [Parameter(Mandatory=$true)][string]$EvidenceDirectory,
     [string]$Adb = 'adb',
-    [string]$Package = 'org.codeaurora.snapcam'
+    [string]$Package = 'org.codeaurora.snapcam',
+    [switch]$BasicCapture
 )
 $ErrorActionPreference = 'Stop'
 if ($Package -notmatch '^[A-Za-z0-9_.]+$') { throw 'Invalid package name' }
@@ -22,13 +23,15 @@ for ($attempt = 1; $attempt -le 3; $attempt++) {
         $state = (& $Adb -s $Serial shell dumpsys activity service "$Package/com.sturgeon.xflipcamera.PreviewMirrorService") -join "`n"
         $windows = (& $Adb -s $Serial shell dumpsys window windows) -join "`n"
         $frames = [regex]::Match($state, 'mirrored_frames=(\d+)')
-        $ready = $state.Contains('phase=1,') -and $state.Contains('video=false') -and $frames.Success -and [int]$frames.Groups[1].Value -ge 10 -and $windows.Contains('XFlip cover settings') -and $windows.Contains('XFlip cover photo') -and $windows.Contains('XFlip cover video')
+        $controlCount = @('XFlip cover settings', 'XFlip cover photo', 'XFlip cover video' | Where-Object { $windows.Contains($_) }).Count
+        $expectedControls = if ($BasicCapture) { 0 } else { 3 }
+        $ready = $state.Contains('phase=1,') -and $state.Contains('video=false') -and $frames.Success -and [int]$frames.Groups[1].Value -ge 10 -and $controlCount -eq $expectedControls
         if (!$ready) { Start-Sleep -Milliseconds 300 }
     } while (!$ready -and $clock.Elapsed.TotalSeconds -lt 10)
     $currentBridge = ((& $Adb -s $Serial shell pidof xflip-preview-bridge) -join ' ').Trim()
     $currentSupervisor = ((& $Adb -s $Serial shell cat /data/local/tmp/xflip-preview-supervisor.pid) -join '').Trim()
     if (!$ready -or $currentBridge -notmatch '^\d+$' -or $currentSupervisor -ne $supervisor) { throw "Reconnect failed on attempt $attempt" }
-    $results += [pscustomobject]@{attempt=$attempt;app_pid=((& $Adb -s $Serial shell pidof $Package)-join ' ').Trim();bridge_pid=$currentBridge;same_bridge_pid=($currentBridge -eq $bridge);same_supervisor_pid=$true;recovery_seconds=[Math]::Round($clock.Elapsed.TotalSeconds,3);mirrored_frames=[int]$frames.Groups[1].Value;phase=1;native_control_windows=3}
+    $results += [pscustomobject]@{attempt=$attempt;app_pid=((& $Adb -s $Serial shell pidof $Package)-join ' ').Trim();bridge_pid=$currentBridge;same_bridge_pid=($currentBridge -eq $bridge);same_supervisor_pid=$true;recovery_seconds=[Math]::Round($clock.Elapsed.TotalSeconds,3);mirrored_frames=[int]$frames.Groups[1].Value;phase=1;native_control_windows=$controlCount}
     & $Adb -s $Serial shell screencap -d 4630946993847360387 -p /sdcard/Download/xflip-reconnect-check.png
     & $Adb -s $Serial pull /sdcard/Download/xflip-reconnect-check.png (Join-Path $EvidenceDirectory "reconnect-$attempt.png") | Out-Null
 }

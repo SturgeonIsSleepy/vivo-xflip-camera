@@ -125,14 +125,16 @@ public final class PreviewMirrorService extends Service implements SurfaceHolder
             layout.gravity = Gravity.TOP | Gravity.LEFT;
             layout.x = (size.x - width) / 2;
             windows.addView(preview, layout);
-            controls = new CoverControls(context, new CoverControls.Callbacks() {
+            if (!BuildConfig.BASIC_CAPTURE) {
+                controls = new CoverControls(context, new CoverControls.Callbacks() {
                 @Override public void onMode(boolean videoMode) {
                     controls.setEnabled(false);
                     SystemCaptureActivity.requestMode(videoMode);
                 }
                 @Override public void onSettings() { openSettings(); }
-            });
-            controls.setMode(movie);
+                });
+                controls.setMode(movie);
+            }
             main.post(controlsPoll);
             worker = PreviewWorkerReceiver.availableWorker();
             if (worker != null) startRendering();

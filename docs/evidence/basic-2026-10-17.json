@@ -1,0 +1,22 @@
+{
+  "version": "0.4.2-basic",
+  "version_code": 28,
+  "base_sha": "d15fbb188f42e1e0d2d938c3fef00755f57b5d0f",
+  "apk_bytes": 45261516,
+  "apk_sha256": "e7b226989a6948f4675eff65b7b5c090f73b2f0dedfc9515f3102c9cdb343332",
+  "installed_hash_matches": true,
+  "folded_device": true,
+  "own_preview_button_windows": 0,
+  "reconnect_attempts_passed": 3,
+  "diagnostic_recovery_seconds": [1.959, 2.267, 2.284],
+  "photo_saves_passed": 2,
+  "retake_passed": true,
+  "cancel_exits_preview_service": true,
+  "readable_preview_and_photo_direction_match": true,
+  "original_jpeg_preserved_byte_for_byte": true,
+  "core_assertions": 942894,
+  "cover_compat_graphics_tests": 27,
+  "basic_build_and_lint": "passed",
+  "build_seconds": 49,
+  "private_photo_identifiers_omitted": true
+}
