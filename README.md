@@ -68,9 +68,11 @@
 
 通用保存事务已修复 Error 跳过回滚及清理错误覆盖原始失败，新增9项共享JPEG/EXIF/取消故障回归；主机测试不代表真实OOM可恢复。详见[本轮保存审查](docs/code-review-2026-10-16.md)。
 
-新增[逐行色调核心与 13MP 主机对照](docs/photo-tone-row-performance.md)，保持旧公式的像素结果；HDR 合成像素循环在该主机约 1.435 倍，默认无 HDR 未证明明显收益。按集成文件协调暂未接入 `PhotoEnhancer`，不代表手机提速或 OpenCV 峰值内存已优化。
+新增[逐行色调核心与 13MP 主机对照](docs/photo-tone-row-performance.md)，已在10-17接入 `PhotoEnhancer`，旧/新设备合成输出最大通道差0。早期主机HDR行循环约1.435倍不代表手机总流程提速，默认无HDR未证明明显收益。
+
+本轮新增[NLM滚动原始行缓存](docs/denoise-row-window.md)，3072×4096的原始缓存payload由48MiB整图副本改为6.375MiB行缓存，保持512/16分块输入像素一致。缓存差额不等于真实进程峰值降幅，速度及ARM64 NLM输出待设备复测；冻结基础版和实验版下载不变。本地核心66,775,056项通过，新增真实Bitmap回归待本轮CI。
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[当前源码双 APK、Lint、942,894 个核心断言及双 flavor 图形/元数据回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38946658536)已核验成功，Artifacts 中的 xflip-camera-debug 包含两个 flavor 的 CI APK 及各自 Lint 报告，watermark-test-results 保存六份 JUnit XML，每个版本各27项测试。CameraX 外屏仍黑，系统回传与 Shell 预览纠正路径已有合盖实机成果；0.3.1 完整包及新增组件已完成上述合盖实测，更多边界仍待验收。待完成：初始化独立性、取景点击对焦、更多运动/方向与折叠切屏、Google 成像及逐镜头厂商扩展能力。
+本轮缓存源码的Android CI待提交后核验。此前[10-17源码四APK、Lint、944,181核心断言及双flavor图形/元数据回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/38994690542)已核验成功，测试ZIP含六份JUnit XML，各27项。CameraX外屏仍黑，系统回传与Shell预览纠正、基础版和实验编辑版已有上述合盖实机成果；新增候选与前摄/内屏/全方向/长期耐久不能据此视为验收。待完成：初始化独立性、取景点击对焦、运动/方向与折叠切屏、Google成像及逐镜头厂商扩展。
 

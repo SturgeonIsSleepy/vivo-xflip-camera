@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
 import com.sturgeon.xflipcamera.core.InputLevels;
+import com.sturgeon.xflipcamera.core.UnmodifiedRowWindow;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.function.BooleanSupplier;
@@ -74,31 +75,39 @@ final class PhotoAdjustmentProcessor {
     private static void denoise(Bitmap bitmap, BooleanSupplier cancelled, Consumer<String> progress) throws IOException {
         if(!OpenCVLoader.initLocal()) throw new IOException("OpenCV初始化失败");
         Core.setNumThreads(2);
-        // Immutable source keeps adjacent tiles from reading already filtered pixels.
-        Bitmap original=bitmap.copy(Bitmap.Config.ARGB_8888,false);
-        if(original==null) throw new IOException("降噪内存不足");
+        int width=bitmap.getWidth(),height=bitmap.getHeight(),tileSize=512,halo=16;
+        // Snapshot whole bands before writing. Carry both overlapping halos forward, including
+        // rows already overwritten by the preceding band, without a second full-size Bitmap.
+        UnmodifiedRowWindow source=new UnmodifiedRowWindow(width,height,tileSize,halo,
+                (pixels,offset,first,count)->bitmap.getPixels(pixels,offset,width,0,first,width,count));
         Mat rgba=new Mat(),bgr=new Mat(),filtered=new Mat();
         try {
-            int width=bitmap.getWidth(),height=bitmap.getHeight(),tileSize=512,halo=16;
-            for(int top=0;top<height;top+=tileSize) for(int left=0;left<width;left+=tileSize) {
+            while(true) {
                 check(cancelled);
-                progress.accept("NLM降噪 "+(100L*(top* (long)width+left)/(width*(long)height))+"%");
-                int x=Math.max(0,left-halo),y=Math.max(0,top-halo);
-                int right=Math.min(width,left+tileSize+halo),bottom=Math.min(height,top+tileSize+halo);
-                int w=right-x,h=bottom-y,copyWidth=Math.min(tileSize,width-left),copyHeight=Math.min(tileSize,height-top);
-                int[] pixels=new int[w*h]; original.getPixels(pixels,0,w,x,y,w,h);
-                Bitmap tile=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
-                try {
-                    tile.setPixels(pixels,0,w,0,0,w,h); Utils.bitmapToMat(tile,rgba);
-                    Imgproc.cvtColor(rgba,bgr,Imgproc.COLOR_RGBA2BGR);
-                    // Keep the original 8-bit RGB domain; a Lab round trip can band smooth gradients.
-                    Photo.fastNlMeansDenoising(bgr,filtered,5f,7,21);
-                    Imgproc.cvtColor(filtered,rgba,Imgproc.COLOR_BGR2RGBA); Utils.matToBitmap(rgba,tile);
-                    tile.getPixels(pixels,0,copyWidth,left-x,top-y,copyWidth,copyHeight);
-                    bitmap.setPixels(pixels,0,copyWidth,left,top,copyWidth,copyHeight);
-                } finally { tile.recycle(); }
+                if(!source.nextBand())break;
+                int top=source.bandTop();
+                for(int left=0;left<width;left+=tileSize) {
+                    check(cancelled);
+                    progress.accept("NLM降噪 "+(100L*(top* (long)width+left)/(width*(long)height))+"%");
+                    check(cancelled);
+                    int x=Math.max(0,left-halo),y=Math.max(0,top-halo);
+                    int right=Math.min(width,left+tileSize+halo),bottom=Math.min(height,top+tileSize+halo);
+                    int w=right-x,h=bottom-y,copyWidth=Math.min(tileSize,width-left),copyHeight=Math.min(tileSize,height-top);
+                    int[] pixels=new int[w*h]; source.copyPixels(pixels,0,w,x,y,w,h);
+                    Bitmap tile=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
+                    try {
+                        tile.setPixels(pixels,0,w,0,0,w,h); Utils.bitmapToMat(tile,rgba);
+                        Imgproc.cvtColor(rgba,bgr,Imgproc.COLOR_RGBA2BGR);
+                        // Keep the original 8-bit RGB domain; a Lab round trip can band smooth gradients.
+                        Photo.fastNlMeansDenoising(bgr,filtered,5f,7,21);
+                        Imgproc.cvtColor(filtered,rgba,Imgproc.COLOR_BGR2RGBA); Utils.matToBitmap(rgba,tile);
+                        tile.getPixels(pixels,0,copyWidth,left-x,top-y,copyWidth,copyHeight);
+                        check(cancelled);
+                        bitmap.setPixels(pixels,0,copyWidth,left,top,copyWidth,copyHeight);
+                    } finally { tile.recycle(); }
+                }
             }
-        } finally { original.recycle();rgba.release();bgr.release();filtered.release(); }
+        } finally { rgba.release();bgr.release();filtered.release(); }
         check(cancelled);
     }
 

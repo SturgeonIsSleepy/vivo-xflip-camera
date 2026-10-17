@@ -404,3 +404,13 @@
 
 - 最终交付核验：增强源码5ca935798003b54217a9ba28df93f33bfca77a69推送并读回一致。Release415534970 / tag v0.4.2-editor-lab精确指向该源码，ZIP649284619 / 18,434,875bytes / digest2bb3e963df9d18b0a88f1064f089c10215ef018f3bd4a7675380ee0e15e9a903，内APK再次核对与手机相同；脚本649285056 / digest8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2。基础Release另补同脚本649286884。两个ZIP和脚本均实际上传，不再仅提供CI候选。
 - CI38994690542完成success/head=5ca9357，APK/Lint artifact12086218890已上传；测试artifact12086184130已下载、摘要c73f200282f7740c4b70b41f73e4455ca608e27a1d479ba2a2ac98107a64dbab一致，6份JUnit XML共54项、失败错误跳过0。本次只补收据/入口，不改运行时代码或重复构建。最终手机基础包仍e7b22698并恢复其桥接；两应用切换桥接目标需指定包名，不能称其同时独立获得授权。
+
+## 2026-10-18｜NLM 去除整图原始副本
+
+- 起始提交：6a05954704f905191dd628e89bb1529628a5c2ff；GitHub连接身份SturgeonIsSleepy，仓库Public/main及push权限已确认。读取最新README/AGENTS/近期日志/技术基线/两项任务文档/工作日缓存，以及10-17基础和实验版报告、Issue1交接、处理器/编辑器与已有检查。仅从新鲜GitHub清单恢复89个精确blob/权限位，不依赖旧目录状态；复用已完成的逐行集成、同窗口编辑和RGB NLM。
+- Issue1 comment6238257735先报告具体文件和范围。冻结basic与lab的现有tag/Release/APK均不修改，不改UI/桥接/拍摄、版本/Manifest、工作流或依赖。PhotoAdjustmentProcessor仍用OpenCV h5/7/21及512块/16重叠，原完整不可变Bitmap副本换成UnmodifiedRowWindow滚动全宽行缓存；保留相邻带32行重叠，每个原始行只在写前读一次，横向tile共享原始快照。增加读带前/进度后/写回前取消检查，不承诺中断正在执行的native NLM。
+- 缓存payload可计算：3072×4096原50,331,648bytes（48MiB）变6,684,672bytes（6.375MiB），4096×3072变8,912,896bytes（8.5MiB）。这是单一原始像素缓存差额，不是Java/native/进程峰值实测，不声称提速；仍有完整工作Bitmap、tile/Mat和编码器。原始JPEG、另存事务及未支持gainmap边界保持。
+- 本地验证：基线944,181项通过；新版bash scripts/check_core.sh在JDK17/--release17/-Xlint:all/-Werror通过66,775,056项，新增65,830,875；覆盖两种13MP方向、边界/随机形状、逐tile和halo原始像素、源数组写后污染、每行一次、padding、溢出、取消/I/O/RuntimeException/Error原样传播和终止。临时将retained置0实际复现“Never read an already modified source row”，恢复后全量通过；故障版本未提交。java scripts/ParseJava.java通过56文件语法，git diff --check通过。本地PATH无Gradle/ADB，没有在本地构建Android或访问设备。
+- 新增BitmapRowWindowTest三项API34 NATIVE图形回归定义，实际Bitmap分块覆盖对照旧整图副本；不执行ARM64 OpenCV。双flavor单测/四APK/Lint待源码提交后读真实CI。详见docs/denoise-row-window.md，README纠正逐行核心“尚未接入”的旧状态。
+- 共享待办：[x] 行缓存实现、逐像素/失败和本地回归；[ ] 核验本轮Android CI及测试XML；[ ] 负责人以本轮候选重跑独立整图NLM、取消、13MP保存并测完整流水线多次耗时/Java-native-进程峰值，设备和测量方法齐备后解除；[ ] 同窗口旧预览任务/Back/重建、实时采样/worker恢复和basic开关审查沿用交接。真实不同曝光采集、成熟视频防抖、前摄/内屏/全方向/长期耐久未完成，不重做旧研究。
+- 当前没有授权X Flip设备，只暂停本轮设备验收。模型/推理强度无法核实，剩余额度无法读取。沿用已核查2026工作日缓存，2027下一核查不早于11-01，未重复搜索/修改日程；每日开发不因休息日跳过。原始私有照片及标识不上传，未复制Google闭源算法。
