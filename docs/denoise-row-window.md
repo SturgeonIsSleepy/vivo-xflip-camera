@@ -6,7 +6,7 @@
 
 ## 原始行保护
 
-原实现保留整图不可变 Bitmap，每块从它读取，避免已降噪像素污染下一块。新 `UnmodifiedRowWindow` 在写当前输出带之前读取全宽原始行，向下一带保留所有重叠行，其余只从尚未覆盖的图像区域读取。512/16 配置中，相邻带共享32行，不能只留16行或重新从已修改 Bitmap 读取上沿。一个输出带内的横向 tile 均读取同一个快照。
+原实现保留整图不可变 Bitmap，每块从它读取，避免已降噪像素污染下一块。新 `UnmodifiedRowWindow` 在写当前输出带之前读取全宽原始行，向下一带保留所有重叠行，其余只从尚未覆盖的图像区域读取。512/16 配置中，相邻带共享32行，为保证每个源行只读一次而全部保留；只保留被覆盖的16行再重读另16行是另一种策略，本实现不采用。不能重新从已修改 Bitmap 读取上沿。一个输出带内的横向 tile 均读取同一个快照。
 
 缓存容量为 `width × min(height, bandSize + 2 × halo)` 个 int。每个源行只读一次；输出带必须按顺序推进，调用方只能写当前带。缓存不暴露内部数组，复制检查目标 offset/stride/矩形边界并使用 long 防溢出。Reader 的 IOException、取消、RuntimeException 或 Error 原样传播，部分读取后不允许重用窗口。该对象只用于单线程工作任务。
 
@@ -25,7 +25,8 @@
 - 新版同命令：66,775,056 项通过，新增65,830,875个断言；JDK17、`--release 17 -Xlint:all -Werror`。固定13MP横/竖图、非512整数倍、单像素/窄长、48组固定种子形状及多种 halo，逐 tile/halo 像素与原始公式 oracle 对照；每块后实际改写源数组，验证不会回读污染，覆盖目标 padding、读次数、溢出/失效和失败终止。
 - 本地故障注入：将 retained 行数临时置0，真实运行被 `Never read an already modified source row` 拒绝；恢复后完整检查通过。故障版本未提交。
 - `java scripts/ParseJava.java`：56个文件语法通过，仅语法检查；`git diff --check` 通过。本地无 PATH 中 Gradle/ADB，没有本地 Android 构建或手机操作。
-- 新 `BitmapRowWindowTest` 定义3项 Robolectric API34 NATIVE 图形回归，用真实可变 Bitmap 逐块覆盖，与旧的不可变 Bitmap 副本逐 tile/halo 比较。它验证 native Bitmap 桥接，不执行 ARM64 OpenCV。双 flavor Android 单测/四 APK/Lint 待提交后的实际 CI，不能把测试定义说成已经通过。
+- 新 `BitmapRowWindowTest` 的3项 Robolectric API34 NATIVE 图形回归已经在两个 debug flavor 各自通过，用真实可变 Bitmap 逐块覆盖，与旧的不可变 Bitmap 副本逐 tile/halo 比较。它验证 native Bitmap 桥接，不执行 ARM64 OpenCV。
+- 源码 `6e276c5e4204c6948386ba9e314b26cfbccf4139` 的 [CI39056967060](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39056967060) completed/success，四 APK 与四组 Lint、核心66,775,056项、原始JPEG证据通过，BUILD SUCCESSFUL in 1m18s。测试 artifact12109821472实际下载6,321bytes，SHA256 `0bee75c646391a1f25d48cd9dda60b63839eb11d3b96d896bba46f42e4ea2422` 匹配，8份XML共60项（每flavor 3+10+9+8），失败/错误/跳过均0。APK/Lint artifact12109288874已上传，不将CI包称为手机实测发布。
 
 ## 设备验收与下一步
 
