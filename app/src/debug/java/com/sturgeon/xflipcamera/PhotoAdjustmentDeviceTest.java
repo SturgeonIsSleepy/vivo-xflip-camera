@@ -23,11 +23,16 @@ import org.opencv.photo.Photo;
 /** Synthetic-only production editor checks, including an independent untiled NLM comparison. */
 public final class PhotoAdjustmentDeviceTest extends Instrumentation {
     private String scenario;
-    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments);scenario=arguments.getString("scenario","manual");start(); }
+    private int tile,threads;
+    @Override public void onCreate(Bundle arguments) {
+        super.onCreate(arguments);scenario=arguments.getString("scenario","manual");
+        tile=Integer.parseInt(arguments.getString("nlm_tile","0"));threads=Integer.parseInt(arguments.getString("nlm_threads","0"));start();
+    }
     @Override public void onStart() {
         Bundle result=new Bundle();
         try {
             if(!List.of("manual","color","denoise","rotated","identity","cancel","full").contains(scenario))throw new IllegalArgumentException("Unknown synthetic case");
+            if ((tile==0)!=(threads==0) || tile!=0 && (!List.of(512,768,1024).contains(tile) || !List.of(2,4).contains(threads)))throw new IllegalArgumentException("Unsupported debug schedule");
             getTargetContext().startActivity(new Intent(getTargetContext(),SystemCaptureActivity.class).putExtra("manual_entry",true)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),ActivityOptions.makeBasic().setLaunchDisplayId(1).toBundle());
             File directory=new File(getTargetContext().getFilesDir(),"tone-fixtures");
@@ -55,9 +60,11 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
                     } finally {tiled.recycle();}
                 }
                 long saveStarted=System.nanoTime();
-                Uri saved=PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,
-                        message->{if(scenario.equals("cancel"))cancelled.set(true);});
+                java.util.function.Consumer<String> progress=message->{if(scenario.equals("cancel"))cancelled.set(true);};
+                Uri saved=tile==0?PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress)
+                        :PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress,tile,threads);
                 result.putLong("save_ms",(System.nanoTime()-saveStarted)/1_000_000);
+                if(settings.denoise())result.putInt("opencv_threads",org.opencv.core.Core.getNumThreads());
                 if(scenario.equals("cancel"))throw new IllegalStateException("Cancelled output published");
                 try(InputStream input=getTargetContext().getContentResolver().openInputStream(saved)) {
                     if(input==null)throw new IllegalStateException("Missing output");

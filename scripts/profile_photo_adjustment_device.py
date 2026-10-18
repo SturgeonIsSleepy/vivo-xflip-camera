@@ -4,8 +4,8 @@ from pathlib import Path
 
 p=argparse.ArgumentParser();p.add_argument('--adb',default='adb');p.add_argument('--serial',required=True)
 p.add_argument('--package',default='org.codeaurora.snapcam.lab');p.add_argument('--label',required=True)
-p.add_argument('--runs',type=int,default=3);p.add_argument('fixtures',type=Path);p.add_argument('output',type=Path);a=p.parse_args()
-assert a.runs>=2 and re.fullmatch(r'[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+',a.package)
+p.add_argument('--runs',type=int,default=3);p.add_argument('--nlm-tile',type=int,default=0);p.add_argument('--nlm-threads',type=int,default=0);p.add_argument('fixtures',type=Path);p.add_argument('output',type=Path);a=p.parse_args()
+assert a.runs>=1 and re.fullmatch(r'[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+',a.package)
 base=[a.adb,'-s',a.serial];a.output.mkdir(parents=True,exist_ok=True)
 def adb(*args):return subprocess.run(base+list(args),capture_output=True,check=True,timeout=12).stdout.decode(errors='replace')
 apk_path=adb('shell','pm','path',a.package).strip().splitlines()[0].removeprefix('package:')
@@ -33,7 +33,7 @@ for index in range(1,a.runs+1):
  profiled=index==a.runs;thread=threading.Thread(target=sample,daemon=True)
  if profiled:thread.start()
  try:
-  command=[sys.executable,str(Path(__file__).with_name('test_photo_adjustment_device.py')),'--adb',a.adb,'--serial',a.serial,'--package',a.package,'--scenario','full',str(folder)]
+  command=[sys.executable,str(Path(__file__).with_name('test_photo_adjustment_device.py')),'--adb',a.adb,'--serial',a.serial,'--package',a.package,'--scenario','full','--nlm-tile',str(a.nlm_tile),'--nlm-threads',str(a.nlm_threads),str(folder)]
   run=subprocess.run(command,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=220)
   (folder/'device-test.log').write_text(run.stdout+run.stderr,encoding='utf-8');assert run.returncode==0,run.stdout+run.stderr
  finally:
@@ -46,7 +46,8 @@ for index in range(1,a.runs+1):
   report['memory_sample_count']=len(samples)
   report['observed_peaks_kib']={key:max(row[key] for row in samples if key in row) for key in samples[-1] if key!='seconds'}
  results.append(report);print(json.dumps({'label':a.label,'run':index,**report}),flush=True)
-summary={'label':a.label,'apk_sha256':apk_hash,'runs':results,'unprofiled_median_save_ms':statistics.median(r['save_ms'] for r in results if not r['sampled']),
+unsampled=[r['save_ms'] for r in results if not r['sampled']]
+summary={'label':a.label,'apk_sha256':apk_hash,'runs':results,'unprofiled_median_save_ms':statistics.median(unsampled) if unsampled else None,
  'memory_method':'dumpsys meminfo every 0.5s plus command latency, final run only; observed peaks are lower bounds, not allocation tracing; includes fixture/test setup',
  'unprofiled_runs_are_separate':True,'synthetic_only':True}
 (a.output/'profile.json').write_text(json.dumps(summary,indent=2)+'\n',encoding='utf-8')

@@ -48,8 +48,13 @@ final class PhotoAdjustmentProcessor {
     }
 
     static String apply(Bitmap bitmap, Options options, BooleanSupplier cancelled, Consumer<String> progress) throws IOException {
+        return apply(bitmap,options,cancelled,progress,768,4);
+    }
+
+    private static String apply(Bitmap bitmap, Options options, BooleanSupplier cancelled, Consumer<String> progress,
+            int tileSize, int threads) throws IOException {
         check(cancelled);
-        if (options.denoise()) denoise(bitmap,cancelled,progress);
+        if (options.denoise()) denoise(bitmap,cancelled,progress,tileSize,threads);
         InputLevels levels=new InputLevels(options.black(),options.white());
         if (options.black()!=0 || options.white()!=255) {
             int width=bitmap.getWidth(); int[] row=new int[width];
@@ -64,18 +69,26 @@ final class PhotoAdjustmentProcessor {
 
     static Uri save(ContentResolver resolver, Uri original, Options options, BooleanSupplier cancelled,
             Consumer<String> progress) throws IOException {
+        return save(resolver,original,options,cancelled,progress,768,4);
+    }
+
+    /** Same production transaction, with scheduling overrides used only by debug device checks. */
+    static Uri save(ContentResolver resolver, Uri original, Options options, BooleanSupplier cancelled,
+            Consumer<String> progress, int tileSize, int threads) throws IOException {
         check(cancelled); Bitmap bitmap=decode(resolver,original,0);
         try {
-            String description=apply(bitmap,options,cancelled,progress);
+            String description=apply(bitmap,options,cancelled,progress,tileSize,threads);
             progress.accept("正在另存完整尺寸，原图保留");
             return JpegPhotoWriter.write(resolver,original,bitmap,"XFlipAdjusted_",description,cancelled);
         } finally { bitmap.recycle(); }
     }
 
-    private static void denoise(Bitmap bitmap, BooleanSupplier cancelled, Consumer<String> progress) throws IOException {
+    /** Internal entry for the debug-only, same-APK scheduling comparison. Filtering parameters stay fixed. */
+    static void denoise(Bitmap bitmap, BooleanSupplier cancelled, Consumer<String> progress,
+            int tileSize, int threads) throws IOException {
         if(!OpenCVLoader.initLocal()) throw new IOException("OpenCV初始化失败");
-        Core.setNumThreads(2);
-        int width=bitmap.getWidth(),height=bitmap.getHeight(),tileSize=512,halo=16;
+        Core.setNumThreads(threads);
+        int width=bitmap.getWidth(),height=bitmap.getHeight(),halo=16;
         // Snapshot whole bands before writing. Carry both overlapping halos forward, including
         // rows already overwritten by the preceding band, without a second full-size Bitmap.
         UnmodifiedRowWindow source=new UnmodifiedRowWindow(width,height,tileSize,halo,

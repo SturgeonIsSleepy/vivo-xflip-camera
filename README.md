@@ -4,11 +4,13 @@
 
 ## 项目进度
 
-手机只安装最新测试版，目前为0.4.3-lab（org.codeaurora.snapcam.lab）。按用户最新要求已卸载基础版及旧诊断版，照片保留；以后优先同包覆盖升级，并将桥接指向.lab，不默认并装或恢复基础版。基础版和历史实验APK仍保留在Release供明确需要时取用。
+手机只安装最新测试版，目前为0.4.4-lab（org.codeaurora.snapcam.lab）。按用户最新要求已卸载基础版及旧诊断版，照片保留；以后优先同包覆盖升级，并将桥接指向.lab，不默认并装或恢复基础版。基础版和历史实验APK仍保留在Release供明确需要时取用。
 
 0.4.2-basic 只保留基础拍照、实时左右纠正和原始JPEG保存。已移除拍摄页自有悬浮按钮，避免与系统控件重叠；旧增强/水印/录像/多帧偏好在此构建均不生效。实机完成两次保存、重拍、取消和三次强制停止后重开，见 [基础版实测及初始化限制](docs/basic-camera-2026-10-17.md)。构建任务为 `:app:assembleCoverCompatBasic`。前两天的核心加速、保存修复及曝光初筛已续接；增强版的直方图/算法使用独立构建。
 
 [下载基础版实测APK压缩包](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-basic)，解压后安装。同版APK与手机一致，tag固定d8e4bb8，CI38992698267成功。
+
+0.4.4-lab 在同一APK内对照NLM调度，生产块改为768、OpenCV线程改为4，降噪强度不变。13MP ABBA保存样本中位约37→21秒，但连续运行波动很大，不能承诺固定提速；本组观测PSS增加约9MiB。六份保存结果像素一致，实拍处理中取消与原图保留通过，NLM仍默认关闭。见 [调度对照及测量边界](docs/nlm-scheduling-2026-10-18.md)，[下载同版实测APK与初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.4-nlm-scheduling-lab)。保持同包升级，只保留这一个测试入口。
 
 0.4.3-lab 完成滚动行缓存的同机验收：六份13MP输出像素一致，本组观测进程PSS峰值约172→132MiB（下降约23%），Java/native占用发生转移。候选保存16–18秒，耗时仍需优化，不把昨日22秒当作提速基线。实际处理中Back取消及原图保留通过，基础版继续冻结。见 [设备对照与测量边界](docs/nlm-device-2026-10-18.md)。 [下载0.4.3实测实验包与脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.3-row-cache-lab)，解压安装；切换到实验版拍摄前按报告初始化桥接。
 

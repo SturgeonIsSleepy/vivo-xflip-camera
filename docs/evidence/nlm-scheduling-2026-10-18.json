@@ -1,0 +1,416 @@
+{
+  "version": "0.4.4-lab",
+  "version_code": 30,
+  "apk_bytes": 45535800,
+  "apk_sha256": "325cba8e0657ba2ea1a5fbe0bda6157f448bb31c60262d2af0b3729d2681fc02",
+  "installed_apk_hash_verified": true,
+  "pilot_apk_sha256": "bcb7abcab947a05370ebdcc977f4e5c40335e68787ac52feaae2419558ca9f34",
+  "pilot_installed_hash_separately_read": false,
+  "pilot": {
+    "cases": [
+      {
+        "round": 0,
+        "order": 0,
+        "tile": 512,
+        "threads": 2,
+        "denoise_ms": 18403,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 2,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 0,
+        "order": 1,
+        "tile": 512,
+        "threads": 4,
+        "denoise_ms": 20330,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 4,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 0,
+        "order": 2,
+        "tile": 768,
+        "threads": 4,
+        "denoise_ms": 12813,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 4,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 0,
+        "order": 3,
+        "tile": 1024,
+        "threads": 2,
+        "denoise_ms": 21380,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 2,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 0,
+        "order": 4,
+        "tile": 1024,
+        "threads": 4,
+        "denoise_ms": 15492,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 4,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 1,
+        "order": 0,
+        "tile": 1024,
+        "threads": 4,
+        "denoise_ms": 21061,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 4,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 1,
+        "order": 1,
+        "tile": 1024,
+        "threads": 2,
+        "denoise_ms": 29917,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 2,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 1,
+        "order": 2,
+        "tile": 768,
+        "threads": 4,
+        "denoise_ms": 26808,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 4,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 1,
+        "order": 3,
+        "tile": 512,
+        "threads": 4,
+        "denoise_ms": 32258,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 4,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      },
+      {
+        "round": 1,
+        "order": 4,
+        "tile": 512,
+        "threads": 2,
+        "denoise_ms": 32039,
+        "thermal_before": 0,
+        "thermal_after": 0,
+        "opencv_threads": 2,
+        "raw_pixel_sha256": "55e02e4a9dcd37f5c2d458f87ccb9974dde30fd052223402f32dd521842d3156"
+      }
+    ],
+    "summary": [
+      {
+        "tile": 512,
+        "threads": 2,
+        "runs_ms": [
+          18403,
+          32039
+        ],
+        "median_ms": 25221.0
+      },
+      {
+        "tile": 512,
+        "threads": 4,
+        "runs_ms": [
+          20330,
+          32258
+        ],
+        "median_ms": 26294.0
+      },
+      {
+        "tile": 768,
+        "threads": 4,
+        "runs_ms": [
+          12813,
+          26808
+        ],
+        "median_ms": 19810.5
+      },
+      {
+        "tile": 1024,
+        "threads": 2,
+        "runs_ms": [
+          21380,
+          29917
+        ],
+        "median_ms": 25648.5
+      },
+      {
+        "tile": 1024,
+        "threads": 4,
+        "runs_ms": [
+          15492,
+          21061
+        ],
+        "median_ms": 18276.5
+      }
+    ],
+    "all_raw_pixels_equal": true,
+    "synthetic_only": true,
+    "dimensions": [
+      3072,
+      4096
+    ],
+    "input_jpeg_sha256": "f516c4fea79151d833511d60f56b8d3c72e9effdf9f3853b0a4d8beef8d470e9",
+    "warmup": "one 960x720 baseline NLM",
+    "order": "forward then reverse",
+    "temperature_or_frequency_not_fixed": true,
+    "timing": "denoise only, excludes decode/hash/encode/publish"
+  },
+  "full_save": {
+    "same_apk": true,
+    "apk_sha256": "325cba8e0657ba2ea1a5fbe0bda6157f448bb31c60262d2af0b3729d2681fc02",
+    "order": "ABBA",
+    "synthetic_only": true,
+    "runs": [
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 20484,
+        "save_ms": 20429,
+        "requested_schedule": [
+          512,
+          2
+        ],
+        "opencv_threads": 2,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "baseline",
+        "order": 1
+      },
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 15461,
+        "save_ms": 15393,
+        "requested_schedule": [
+          0,
+          0
+        ],
+        "opencv_threads": 4,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "candidate",
+        "order": 2
+      },
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 26453,
+        "save_ms": 26366,
+        "requested_schedule": [
+          0,
+          0
+        ],
+        "opencv_threads": 4,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "candidate",
+        "order": 3
+      },
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 53470,
+        "save_ms": 53364,
+        "requested_schedule": [
+          512,
+          2
+        ],
+        "opencv_threads": 2,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "baseline",
+        "order": 4
+      }
+    ],
+    "median_save_ms": {
+      "baseline": 36896.5,
+      "candidate": 20879.5
+    },
+    "observed_time_reduction_percent": 43.410621603675146,
+    "memory": {
+      "baseline": {
+        "label": "baseline",
+        "apk_sha256": "325cba8e0657ba2ea1a5fbe0bda6157f448bb31c60262d2af0b3729d2681fc02",
+        "runs": [
+          {
+            "scenario": "full",
+            "original_preserved": true,
+            "instrumentation_passed": true,
+            "processing_ms": 44665,
+            "save_ms": 44500,
+            "requested_schedule": [
+              512,
+              2
+            ],
+            "opencv_threads": 2,
+            "dimensions": [
+              3072,
+              4096
+            ],
+            "description": "input_levels=0..255; nlm=true; tone=off",
+            "sampled": true,
+            "memory_sample_count": 59,
+            "observed_peaks_kib": {
+              "total_pss_kib": 139100,
+              "total_rss_kib": 249060,
+              "native_heap_alloc_kib": 96495,
+              "native_heap_pss_kib": 92494,
+              "java_heap_alloc_kib": 12196,
+              "java_heap_pss_kib": 14495
+            }
+          }
+        ],
+        "unprofiled_median_save_ms": null,
+        "memory_method": "dumpsys meminfo every 0.5s plus command latency, final run only; observed peaks are lower bounds, not allocation tracing; includes fixture/test setup",
+        "unprofiled_runs_are_separate": true,
+        "synthetic_only": true
+      },
+      "candidate": {
+        "label": "candidate",
+        "apk_sha256": "325cba8e0657ba2ea1a5fbe0bda6157f448bb31c60262d2af0b3729d2681fc02",
+        "runs": [
+          {
+            "scenario": "full",
+            "original_preserved": true,
+            "instrumentation_passed": true,
+            "processing_ms": 39947,
+            "save_ms": 39858,
+            "requested_schedule": [
+              0,
+              0
+            ],
+            "opencv_threads": 4,
+            "dimensions": [
+              3072,
+              4096
+            ],
+            "description": "input_levels=0..255; nlm=true; tone=off",
+            "sampled": true,
+            "memory_sample_count": 46,
+            "observed_peaks_kib": {
+              "total_pss_kib": 148378,
+              "total_rss_kib": 259476,
+              "native_heap_alloc_kib": 96577,
+              "native_heap_pss_kib": 92739,
+              "java_heap_alloc_kib": 17936,
+              "java_heap_pss_kib": 19091
+            }
+          }
+        ],
+        "unprofiled_median_save_ms": null,
+        "memory_method": "dumpsys meminfo every 0.5s plus command latency, final run only; observed peaks are lower bounds, not allocation tracing; includes fixture/test setup",
+        "unprofiled_runs_are_separate": true,
+        "synthetic_only": true
+      }
+    },
+    "pixel_comparisons": [
+      {
+        "case": "1-baseline",
+        "max_channel_error": 0
+      },
+      {
+        "case": "2-candidate",
+        "max_channel_error": 0
+      },
+      {
+        "case": "3-candidate",
+        "max_channel_error": 0
+      },
+      {
+        "case": "4-baseline",
+        "max_channel_error": 0
+      },
+      {
+        "case": "memory-baseline",
+        "max_channel_error": 0
+      },
+      {
+        "case": "memory-candidate",
+        "max_channel_error": 0
+      }
+    ],
+    "frequency_and_temperature_not_fixed": true,
+    "memory_runs_excluded_from_timing_comparison": true
+  },
+  "small_nlm": {
+    "scenario": "denoise",
+    "original_preserved": true,
+    "instrumentation_passed": true,
+    "processing_ms": 2836,
+    "save_ms": 914,
+    "requested_schedule": [
+      0,
+      0
+    ],
+    "opencv_threads": 4,
+    "dimensions": [
+      960,
+      720
+    ],
+    "description": "input_levels=0..255; nlm=true; tone=off",
+    "noise_mse_ratio": 0.3676295876999365,
+    "flat_noise_std_ratio": 0.4594234511352413,
+    "text_edge_contrast_ratio": 1.0001128762764588,
+    "tile_max_channel_error": 0
+  },
+  "cancel": {
+    "scenario": "cancel",
+    "original_preserved": true,
+    "instrumentation_passed": true,
+    "processing_ms": 33,
+    "requested_schedule": [
+      0,
+      0
+    ]
+  },
+  "ui": {
+    "same_window_editor": true,
+    "nlm_preview_available": true,
+    "real_photo_processing_cancelled": true,
+    "saved_reference_unchanged": true,
+    "original_bytes_unchanged": true,
+    "media_row_count_unchanged": true
+  },
+  "one_project_launcher_only": true,
+  "camera_permission_preserved": true,
+  "overlay_permission_preserved": true
+}
