@@ -1,12 +1,12 @@
 # NLM 滚动行缓存的同机验收
 
-续接62bbec1/6e276c5，实机负责人验收另一位agent的滚动行窗口。原基础版和旧实验版tag/APK不变；新增实验构建0.4.3-lab / 29。运行时仅版本字段变化，缓存实现沿用已交付代码，OpenCV native库与旧包摘要相同，h5/7/21、512块/16重叠不变。
+续接62bbec1/6e276c5，实机负责人验收另一位agent的滚动行窗口。原基础版和旧实验版tag/APK不变；新增实验构建0.4.3-lab / 29。相对62bbec1运行时代码仅版本字段变化，缓存实现沿用已交付代码，OpenCV native库与旧包摘要相同，h5/7/21、512块/16重叠不变。
 
 ## 方法
 
 同一台合盖ARM64手机、同一3072×4096合成JPEG、同一生产JPEG97流水线，先旧包3次、后新包3次。每组前两次不作内存采样，第三次另用dumpsys meminfo，以0.5秒等待加命令延迟采样。没有固定温度、CPU频率、冷/热缓存或随机化顺序，不能据此做严格因果提速结论。每次重新调用现有设备instrumentation，输入、编码基线及完整另存均检查。
 
-耗时为生产save方法的decode→处理→JPEG/EXIF→发布，不混入额外整图参考计算。内存采样覆盖该次测试与准备过程，是离散观测峰值/下界，可能漏过短尖峰，不能叫精确分配跟踪或全场景峰值。
+耗时为生产save方法的decode→处理→JPEG/EXIF→发布，不混入额外整图参考计算。内存只统计org.codeaurora.snapcam.lab，排除系统相机和Shell桥接进程；采样覆盖该次测试与准备过程，是离散观测峰值/下界，可能漏过短尖峰，不能叫精确分配跟踪或全场景峰值。
 
 | 同机样本 | 旧0.4.2-lab | 新0.4.3-lab |
 | --- | ---: | ---: |
@@ -30,3 +30,12 @@
 本地核心66,775,056断言、两套各30项图形回归、lab构建/Lint通过，1m50s完成。候选APK45,310,836bytes，SHA256 `3a7ee0ac902adc7773614fd0ae59705c2435008440e310cff800f3aa70d541e1` 与手机安装包一致。
 
 [原始软件/合成数据及内存样本](evidence/nlm-device-2026-10-18.json)。复现使用scripts/profile_photo_adjustment_device.py，指定--adb、--serial、--label，传入合成fixture目录和新输出目录；底层沿用scripts/test_photo_adjustment_device.py。界面、基础版/旧实验版发布、桥接和成像参数未扩展。后续重点为受控顺序/温度的CPU瓶颈测量，减少耗时，同时保留像素与内存边界；不重复实现行缓存。
+
+
+## 下载与远程核验
+
+[0.4.3低内存实验版实测APK及初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.3-row-cache-lab)已发布。Release416296035，ZIP652767589 / 18,434,519bytes，远程SHA256 `36bbb373e2a55cf0245a2cb20ee824b5e16a552986d29454fed1941e0c7c91fc`一致；内APK再次校验与手机安装包相同。脚本652773163，摘要`8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2`。tag精确指向源码a0db9cfb18d3c36caf7fe3b5782c8593934c4830。
+
+[CI39106630156](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39106630156)完成success/head一致；实际下载测试artifact12128563320，ZIP摘要53ea9f0d1b9eb6462e8ef35caee6141e9e810729698b871888252d5c5d09bc2d匹配，8份JUnit共60项，失败/错误/跳过均0。四APK及Lint artifact12128389053已上传。下载优先使用Release实测签名包，CI候选签名可能不同。
+
+解压ZIP安装实验版；重启或切换到实验包拍摄时，用附带脚本加 `-Package org.codeaurora.snapcam.lab` 初始化。基础版仍用默认Package，本轮结束已恢复该目标。已发布基础版和0.4.2旧实验版的tag/APK均未修改。

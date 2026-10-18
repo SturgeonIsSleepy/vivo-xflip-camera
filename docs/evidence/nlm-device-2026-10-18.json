@@ -711,5 +711,39 @@
   "apk": {
     "bytes": 45310836,
     "sha256": "3a7ee0ac902adc7773614fd0ae59705c2435008440e310cff800f3aa70d541e1"
+  },
+  "release": {
+    "asset_digest": "sha256:36bbb373e2a55cf0245a2cb20ee824b5e16a552986d29454fed1941e0c7c91fc",
+    "id": 416296035,
+    "asset_bytes": 18434519,
+    "url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.3-row-cache-lab",
+    "script_asset_id": 652773163,
+    "tag_sha": "a0db9cfb18d3c36caf7fe3b5782c8593934c4830",
+    "script_digest": "sha256:8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2",
+    "asset_id": 652767589
+  },
+  "ci": {
+    "run": 39106630156,
+    "xml_files": 8,
+    "source_sha": "a0db9cfb18d3c36caf7fe3b5782c8593934c4830",
+    "test_digest": "53ea9f0d1b9eb6462e8ef35caee6141e9e810729698b871888252d5c5d09bc2d",
+    "conclusion": "success",
+    "tests": 60,
+    "test_artifact": 12128563320,
+    "failures_errors_skips": 0,
+    "artifacts": [
+      {
+        "id": 12128563320,
+        "name": "watermark-test-results",
+        "size_in_bytes": 6323,
+        "digest": "sha256:53ea9f0d1b9eb6462e8ef35caee6141e9e810729698b871888252d5c5d09bc2d"
+      },
+      {
+        "id": 12128389053,
+        "name": "xflip-camera-debug",
+        "size_in_bytes": 73491506,
+        "digest": "sha256:8079bfa6f14979315fd58189a19459e5de75a69e975af78c0236bf8a04475c68"
+      }
+    ]
   }
 }

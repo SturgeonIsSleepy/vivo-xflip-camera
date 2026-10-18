@@ -8,7 +8,7 @@
 
 [下载基础版实测APK压缩包](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-basic)，解压后安装。同版APK与手机一致，tag固定d8e4bb8，CI38992698267成功。
 
-0.4.3-lab 完成滚动行缓存的同机验收：六份13MP输出像素一致，本组观测进程PSS峰值约172→132MiB（下降约23%），Java/native占用发生转移。候选保存16–18秒，耗时仍需优化，不把昨日22秒当作提速基线。实际处理中Back取消及原图保留通过，基础版继续冻结。见 [设备对照与测量边界](docs/nlm-device-2026-10-18.md)。
+0.4.3-lab 完成滚动行缓存的同机验收：六份13MP输出像素一致，本组观测进程PSS峰值约172→132MiB（下降约23%），Java/native占用发生转移。候选保存16–18秒，耗时仍需优化，不把昨日22秒当作提速基线。实际处理中Back取消及原图保留通过，基础版继续冻结。见 [设备对照与测量边界](docs/nlm-device-2026-10-18.md)。 [下载0.4.3实测实验包与脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.3-row-cache-lab)，解压安装；切换到实验版拍摄前按报告初始化桥接。
 
 历史0.4.2 `coverCompatLab` 实验版提供可选实时直方图、同窗口拍后黑白场滑块/原图对照/另存和可选OpenCV RGB NLM降噪，并接入前两天逐行核心。包名带`.lab`，不覆盖基础版；该版首次13MP降噪约22秒，默认关闭，不是实时降噪。见 [编辑与降噪验证及限制](docs/photo-editor-2026-10-17.md)。 [下载独立实验版实测APK与脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.2-editor-lab)，解压后安装；切换桥接目标需按报告指定包名重新初始化。
 

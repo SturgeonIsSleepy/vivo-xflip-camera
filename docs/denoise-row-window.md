@@ -2,7 +2,7 @@
 
 ## 范围
 
-2026-10-18 从 main `6a05954704f905191dd628e89bb1529628a5c2ff` 续接。此前实验版已集成逐行色调、直方图、同窗口编辑和 RGB NLM，本轮不重复实现。只替换 `PhotoAdjustmentProcessor.denoise` 的原始像素缓存，不改变 OpenCV h=5/template=7/search=21、512 分块/16 重叠、色阶/色调顺序、JPEG 写入和 UI。冻结的 basic/lab Release/tag/资产保持原样；本轮源码尚待设备复测，不替换已验收下载。
+2026-10-18 从 main `6a05954704f905191dd628e89bb1529628a5c2ff` 续接。此前实验版已集成逐行色调、直方图、同窗口编辑和 RGB NLM，本轮不重复实现。只替换 `PhotoAdjustmentProcessor.denoise` 的原始像素缓存，不改变 OpenCV h=5/template=7/search=21、512 分块/16 重叠、色阶/色调顺序、JPEG 写入和 UI。冻结的 basic/lab Release/tag/资产保持原样；行缓存原始交付时尚待设备复测，负责人10月18日的验收和独立新实验包见下文；不替换旧已验收下载。
 
 ## 原始行保护
 
