@@ -55,3 +55,10 @@ A中位36896.5ms，B中位20879.5ms，样本算术降幅43.4%。运行漂移非�
 [完整公开数据及内存样本](evidence/nlm-scheduling-2026-10-18.json)。复现先用既有fixture生成脚本生成合成输入，再执行scripts/benchmark_nlm_scheduling_device.py和scripts/benchmark_nlm_save_device.py，指定--adb、--serial、fixture目录、输出目录。后者完整保存测试使用同一生产事务的debug调度入口，没有复制算法。
 
 [下载实测APK压缩包及初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.4-nlm-scheduling-lab)。解压同包更新；需要桥接初始化时为脚本指定 `-Package org.codeaurora.snapcam.lab`。历史基础版及旧实验版tag不改，也不重新装回手机。下一轮优先受控CPU剖析、质量跨场景对照和编辑器快速取消/重建回归，不继续盲目增大块或线程。
+
+
+## 远程收据
+
+源码97a41b1e6d3b06b74ae19373c1b1dd86c9ea98e5已推送并读回，Release416319202的tag精确绑定此提交。ZIP652893734，18441245bytes，服务器digest `0ce6f1e508f7aec403a9f93e8baf7463d676b2b13e32a357f79750517f6b1e18` 与本地一致；内APK再次验证与手机实测包一致。脚本652895212，digest `8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2` 核对一致。
+
+[CI39110276754](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39110276754)已success，head与源码/tag一致。测试artifact12129483784实际下载校验digest `bf0e40122d52439e5ed5f67e5f8794d9c57f046bf7c6f046771909db8dd9a9cf`，8份XML共60项，失败/错误/跳过均0。四APK和Lint报告artifact12130191362已上传；未将CI构建签名称为手机签名，下载优先使用Release实测包。

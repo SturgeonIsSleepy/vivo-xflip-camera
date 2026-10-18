@@ -453,3 +453,5 @@
 - 本地66775056核心断言、双debug各30项图形回归、lab构建及Lint通过，最终57秒。初次试验HexFormat触发min33/API34 Lint，改兼容转换后才安装。锁屏安装拒绝后用户合盖解锁，覆盖安装成功；包装脚本结束重开应用常亮窗口，未改全局超时、DPI/性能或权限。相机已授权/悬浮窗allow保留。
 - 最终APK45535800bytes，SHA256 325cba8e0657ba2ea1a5fbe0bda6157f448bb31c60262d2af0b3729d2681fc02，与手机base.apk一致。只保留.lab项目LAUNCHER，旧基础/诊断仍未安装，桥接目标.lab。合盖实际新拍、直方图、同窗口NLM预览及处理中Back取消通过：媒体行数/最后引用/原图字节不变，编辑器可重开。真实照片、摘要、文件名和EXIF仅本地，未上传。
 - 待办交给GitHub两位agent：代码侧做受控CPU剖析及真实场景质量取舍，检查侧做编辑快速取消/重建和worker恢复。保留唯一最新.lab入口与已批准权限，不恢复基础版；成熟视频防抖、真正多曝光HDR和Google Camera内部算法未在本轮新增验收。
+
+- 远程收尾：源码97a41b1e6d3b06b74ae19373c1b1dd86c9ea98e5已推送读回；Release416319202 / v0.4.4-nlm-scheduling-lab的tag固定该源码，ZIP652893734 / 18441245bytes / digest0ce6f1e508f7aec403a9f93e8baf7463d676b2b13e32a357f79750517f6b1e18核对，内APK与手机一致，脚本652895212/digest8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2核对。CI39110276754 success/head一致，测试artifact12129483784已下载核对bf0e40122d52439e5ed5f67e5f8794d9c57f046bf7c6f046771909db8dd9a9cf，8XML/60项失败错误跳过0；四APK/Lint artifact12130191362已上传。本次仅补收据，不改运行时代码、不重复构建。
