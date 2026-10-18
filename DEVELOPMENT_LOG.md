@@ -435,3 +435,11 @@
 - 卸载前后在设备本地逐文件比较Pictures/XFlipCamera共享照片摘要，完全一致；原始照片、摘要和文件名均不公开。系统相机及必需cn.pashiguoke.subscreen助手保留，未清理无明确归属的第三方GCam或系统组件，也未删除仓库/Release成果。
 - 原桥接进程当时未运行，重新初始化保留的基础版，外屏正常进入phase1/gpu_preview，40帧、capture_misses=0；返回后退出取景。未要求展开或改变全机设置。
 - 后续默认只有一个日常相机。实验包只供临时验证，测试结束卸载；不再默认长期并装重复入口，日常升级优先同包覆盖。本次只有安装清理与README/日志更新，git diff --check为对应检查，不重复构建或算法测试。
+
+
+## 2026-10-18｜用户明确只保留最新测试版
+
+- 用户进一步明确“只安装最新测试版”，覆盖此前默认保留基础版的选择。重新安装已核验的0.4.3-lab/29，APK与手机摘要3a7ee0ac902adc7773614fd0ae59705c2435008440e310cff800f3aa70d541e1一致；随后停止本项目旧基础桥接并卸载org.codeaurora.snapcam。确认本项目LAUNCHER和包清单只剩org.codeaurora.snapcam.lab，旧com.sturgeon.xflipcamera仍未安装；系统相机/外屏助手保留。
+- 卸载前后在设备本地逐文件校验共享Pictures/XFlipCamera照片，完全一致，未公开真实照片/摘要/文件名。安装和移除顺序先确保新包成功，未修改源码算法或重新构建。
+- 自动审批曾拒绝ADB开启相机/悬浮窗权限，理由为安装授权未覆盖持久安全设置；未绕过，先完成独立安装/清理，再向用户明确询问两项权限及覆盖其他应用的能力。用户随后明确回答“允许开启这两项权限”，再执行并读回CAMERA granted=true、SYSTEM_ALERT_WINDOW allow。
+- 已按.lab包名初始化桥接，实际合盖进入gpu_preview/phase1、35帧、capture_misses=0，再返回退出取景。以后设备默认只保留最新测试版，优先对.lab同包更新，不再默认恢复基础版或增加并列入口；旧Release/tag留存不代表手机仍安装。README及GitHub交接同步这一最新偏好。
