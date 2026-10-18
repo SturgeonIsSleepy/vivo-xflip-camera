@@ -427,3 +427,11 @@
 - 手机结束恢复基础版桥接，原基础APK仍e7b226989a6948f4675eff65b7b5c090f73b2f0dedfc9515f3102c9cdb343332。未改变全机DPI/性能/日程。下一步代码agent做受控CPU瓶颈/耗时优化并保留内存和像素界限；检查agent继续同窗口快速滑动/重建、worker恢复、basic门禁。真正不同曝光输入、成熟视频防抖、前摄/展开/全方向/长期耐久仍待后续；不扩展本轮成功声明。
 
 - 远程收尾：源码a0db9cfb18d3c36caf7fe3b5782c8593934c4830已推送读回；Release416296035 / tag v0.4.3-row-cache-lab绑定该源码。ZIP652767589 / 18434519bytes / digest36bbb373e2a55cf0245a2cb20ee824b5e16a552986d29454fed1941e0c7c91fc，服务端digest及内APK均核对；初始化脚本652773163 / digest8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2已上传。CI39106630156 success/head一致，测试artifact12128563320已下载校验53ea9f0d1b9eb6462e8ef35caee6141e9e810729698b871888252d5c5d09bc2d，8XML共60项失败/错误/跳过0，四APK/Lint artifact12128389053已保存。本次只补文档收据，不改运行时或重复构建。
+
+
+## 2026-10-18｜按用户批准清理重复相机安装
+
+- 用户反馈多个外屏相机入口混乱并明确批准卸载。实际确认最早com.sturgeon.xflipcamera为0.1.0-dev/1，独立org.codeaurora.snapcam.lab为0.4.3-lab/29，日常org.codeaurora.snapcam为0.4.2-basic/28。仅卸载前两者，两次ADB均Success；复查包管理与LAUNCHER活动，本项目只剩基础版入口。
+- 卸载前后在设备本地逐文件比较Pictures/XFlipCamera共享照片摘要，完全一致；原始照片、摘要和文件名均不公开。系统相机及必需cn.pashiguoke.subscreen助手保留，未清理无明确归属的第三方GCam或系统组件，也未删除仓库/Release成果。
+- 原桥接进程当时未运行，重新初始化保留的基础版，外屏正常进入phase1/gpu_preview，40帧、capture_misses=0；返回后退出取景。未要求展开或改变全机设置。
+- 后续默认只有一个日常相机。实验包只供临时验证，测试结束卸载；不再默认长期并装重复入口，日常升级优先同包覆盖。本次只有安装清理与README/日志更新，git diff --check为对应检查，不重复构建或算法测试。
