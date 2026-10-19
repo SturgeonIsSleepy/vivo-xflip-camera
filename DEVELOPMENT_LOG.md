@@ -463,4 +463,9 @@
 - 确认静态路径：新参数schedulePreview先禁用另存，但比较原图调用showImage只核对processed非空和当前参数changed，未核对processed对应参数；新预览尚未完成或失败时，切换两次对照可重开另存，保存入口也未核对当前预览。本轮先加入仅包内的Processor/Executor可控测试入口，默认构造仍委托真实PhotoAdjustmentProcessor，不复制算法。
 - 新PhotoEditorTest两项基线特征测试明确断言旧版错误行为true，分别覆盖新预览待处理和新预览失败后对照重开另存。它们是用于确认缺陷的临时基线，尚不代表修复；待实际CI运行确认后，修复时将改为禁止旧预览保存的回归断言。测试用真实Android控件/Bitmap与可控工作队列、合成Processor，不宣称运行ARM64 NLM或MediaStore事务。
 - 本地基线bash scripts/check_core.sh在JDK17/--release17/-Xlint:all/-Werror通过66,775,056项；java scripts/ParseJava.java通过57文件语法，git diff --check通过。没有本地Gradle/ADB，Android基线特征测试待实际远程CI。模型/推理强度无法核实，剩余额度无法读取。
-- 待办：[ ] 读取基线特征测试的实际CI；[ ] 按不可变预览参数快照统一按钮和保存入口门禁，覆盖失败重试/旧回调/关闭；[ ] 在不阻塞主线程和不回读已回收源图的前提下减少过期排队任务的Bitmap分配；[ ] 真机快速滑动/原图对照/Back/重建、worker恢复及basic门禁沿用交接。缺设备仅暂停相应实测，原始私有照片与标识不上传，Google合法集成边界不变。
+- 待办：[x] 读取基线特征测试的实际CI；[x] 按不可变预览参数快照统一按钮和保存入口门禁，覆盖失败重试/旧回调/关闭；[x] 在不阻塞主线程和不回读已回收源图的前提下减少过期排队任务的Bitmap分配；[ ] 真机快速滑动/原图对照/Back/重建、worker恢复及basic门禁沿用交接。缺设备仅暂停相应实测，原始私有照片与标识不上传，Google合法集成边界不变。
+- 基线远程确认：源码afca6ed353448ed4da116561f6aa6cb23fe638ef推送并读回；CI39183455005 success/head一致，两个debug各32项，四APK/Lint及核心通过，BUILD SUCCESSFUL in 1m32s。实际下载测试artifact12156943665 / 7,419bytes / SHA256 94fc8a4eecee76c8f62645dd499b6f9a15fb748782fda22943800caeb0e503c1匹配，10XML共64项、失败/错误/跳过0。两份PhotoEditorTest各2项，明确观察到待处理/失败后对照重开另存为true，属于缺陷特征确认，不是正确行为验收。
+- 修复：PhotoEditor用不可变processedOptions记录已显示预览对应的全部五项参数；按钮和save入口共用canSave，拒绝新参数未完成/失败时借旧预览保存，同参数保存失败仍可重试。source引用固定为原始输入，默认Processor仍调用原生产流水线，未改PhotoAdjustmentProcessor或JPEG发布事务。
+- 额外开发：预览Bitmap复制移入工作线程，过期/关闭任务在复制前退出；sourceLock只保护原图复制与回收，不覆盖NLM计算。结果位图在主线程接收前由pendingBitmaps显式持有，关闭或Handler拒收时回收，避免移除回调后遗留未交付结果；初始化解码和预览均复用所有权交接，错误路径finally回收本地工作图。不称测得手机内存/速度收益，也不保证OOM恢复。
+- 将临时缺陷特征改成阻止旧预览保存的正式断言，并扩为10项真实控件/Bitmap、可控队列回归：待处理、预览失败、直接listener门禁、保存失败重试、旧完成回调、12个过期排队任务、close/已取出未开跑任务、close/待交付预览、close/待交付解码、Bundle/新owner恢复原始引用。真实处理器被合成替身隔离，不能据此声称NLM/MediaStore/完整Activity真机验证；既有共享JPEG事务回归继续运行。
+- 本地修复后bash scripts/check_core.sh通过66,775,056项，java scripts/ParseJava.java通过57文件语法、git diff --check通过；新增10项Android UI测试待修复源码实际CI。不改变768/4、h5/7/21、halo16、JPEG97、版本/依赖、Manifest、桥接/授权或既有Release，未安装CI包或恢复基础版。

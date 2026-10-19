@@ -5,11 +5,15 @@ import static org.junit.Assert.*;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import androidx.activity.ComponentActivity;
 import java.io.IOException;
@@ -68,20 +72,100 @@ public final class PhotoEditorTest {
         idle();
     }
 
-    @Test public void baselineCompareReenablesSaveBeforeNewPreview() {
+    @Test public void compareCannotEnableSaveBeforeCurrentPreviewCompletes() {
         black.setProgress(20);
         assertFalse(save.isEnabled());
         compare.performClick();compare.performClick();
-        // Characterization only: true is the confirmed undesired baseline, changed by the fix.
-        assertTrue("Baseline bug: old preview enables save of new settings",save.isEnabled());
+        assertFalse("Old preview must not enable save of new settings",save.isEnabled());
+        advanceDebounce();worker.runNext();idle();
+        assertTrue(save.isEnabled());assertEquals(20,Color.red(displayed().getPixel(0,0)));
     }
 
-    @Test public void baselineCompareReenablesSaveAfterNewPreviewFails() {
+    @Test public void failedPreviewCannotSaveThroughCompare() {
         processor.failPreview=true;black.setProgress(20);
         advanceDebounce();worker.runNext();idle();
         assertFalse(save.isEnabled());
         compare.performClick();compare.performClick();
-        assertTrue("Baseline bug: failed settings can still be saved from old preview",save.isEnabled());
+        assertFalse("Failed settings have no matching preview",save.isEnabled());
+        assertTrue(processor.working.get(processor.working.size()-1).isRecycled());
+        processor.failPreview=false;black.setProgress(21);advanceDebounce();worker.runNext();idle();
+        assertTrue(save.isEnabled());assertEquals(Color.BLUE,processor.original.getPixel(0,0));
+    }
+
+    @Test public void saveEntryRejectsUnpreviewedSettingsEvenIfListenerIsCalled() {
+        black.setProgress(20);save.callOnClick();
+        assertEquals(0,worker.queue.size());assertEquals(0,processor.saveCalls);
+        assertTrue(completed.isEmpty());
+    }
+
+    @Test public void failedSaveCanRetryTheStillMatchingPreview() {
+        processor.failSave=true;save.performClick();worker.runNext();idle();
+        assertTrue(save.isEnabled());assertFalse(processor.original.isRecycled());
+        processor.failSave=false;save.performClick();worker.runNext();idle();
+        assertEquals(2,processor.saveCalls);
+        assertEquals(List.of(Uri.parse("content://fixture/new-copy")),completed);
+        assertTrue(processor.original.isRecycled());
+    }
+
+    @Test public void staleCompletedPreviewCannotReplaceNewerParameters() {
+        black.setProgress(20);advanceDebounce();worker.runNext();
+        Bitmap stale=processor.working.get(processor.working.size()-1);
+        black.setProgress(30);idle();
+        assertTrue(stale.isRecycled());assertFalse(save.isEnabled());
+        assertEquals(10,Color.red(displayed().getPixel(0,0)));
+        advanceDebounce();worker.runNext();idle();
+        assertEquals(30,Color.red(displayed().getPixel(0,0)));assertTrue(save.isEnabled());
+    }
+
+    @Test public void queuedSupersededPreviewsSkipTheProcessor() {
+        int before=processor.applyCalls;
+        for(int value=20;value<32;value++){black.setProgress(value);advanceDebounce();}
+        assertEquals(before,processor.applyCalls);assertEquals(12,worker.queue.size());
+        while(!worker.queue.isEmpty()){worker.runNext();idle();}
+        assertEquals(before+1,processor.applyCalls);
+        assertEquals(31,Color.red(displayed().getPixel(0,0)));assertTrue(save.isEnabled());
+    }
+
+    @Test public void closeBeforeDequeuedPreviewStartsDoesNotReadRecycledOriginal() {
+        int before=processor.applyCalls;
+        black.setProgress(20);advanceDebounce();Runnable dequeued=worker.queue.removeFirst();
+        editor.close();assertTrue(processor.original.isRecycled());
+        dequeued.run();idle();
+        assertEquals(before,processor.applyCalls);assertTrue(completed.isEmpty());
+    }
+
+    @Test public void closeRecyclesPreviewWaitingForMainThreadDelivery() {
+        black.setProgress(20);advanceDebounce();worker.runNext();
+        Bitmap pending=processor.working.get(processor.working.size()-1);assertFalse(pending.isRecycled());
+        editor.close();assertTrue(pending.isRecycled());idle();assertTrue(completed.isEmpty());
+    }
+
+    @Test public void closeRecyclesDecodedOriginalBeforeItsMainCallback() {
+        editor.close();worker=new ManualExecutor();processor=new FixtureProcessor();
+        editor=new PhotoEditor(owner,SOURCE,null,completed::add,worker,processor);
+        worker.runNext();assertFalse(processor.original.isRecycled());
+        editor.close();assertTrue(processor.original.isRecycled());idle();assertTrue(completed.isEmpty());
+    }
+
+    @Test public void editorBundleRestoresSettingsInNewOwnerUsingOriginalSource() {
+        black.setProgress(20);slider("白场").setProgress(200);
+        ((CheckBox)find(owner.findViewById(android.R.id.content),v->v instanceof CheckBox b
+                && "OpenCV NLM降噪".contentEquals(b.getText()))).setChecked(true);
+        Bundle state=editor.saveState();editor.close();activity.pause().stop().destroy();
+        activity=Robolectric.buildActivity(ComponentActivity.class).setup();owner=activity.get();
+        owner.setTheme(android.R.style.Theme_Material_NoActionBar);
+        worker=new ManualExecutor();processor=new FixtureProcessor();
+        editor=new PhotoEditor(owner,SOURCE,state,completed::add,worker,processor);
+        assertEquals(20,slider("黑场").getProgress());assertEquals(200,slider("白场").getProgress());
+        worker.runNext();idle();advanceDebounce();worker.runNext();idle();
+        assertTrue(processor.lastOptions.denoise());assertEquals(20,processor.lastOptions.black());
+        assertEquals(200,processor.lastOptions.white());assertTrue(button("另存").isEnabled());
+        assertEquals(Color.BLUE,processor.original.getPixel(0,0));
+    }
+
+    private Bitmap displayed() {
+        ImageView view=(ImageView)find(owner.findViewById(android.R.id.content),v->v instanceof ImageView);
+        return ((BitmapDrawable)view.getDrawable()).getBitmap();
     }
 
     private Button button(String text) {
@@ -118,9 +202,10 @@ public final class PhotoEditorTest {
     }
 
     private static final class FixtureProcessor implements PhotoEditor.Processor {
-        boolean failPreview;
+        boolean failPreview,failSave;
         int applyCalls,saveCalls;
         Bitmap original;
+        PhotoAdjustmentProcessor.Options lastOptions;
         final List<Bitmap> working=new ArrayList<>();
         @Override public Bitmap decode(ContentResolver resolver,Uri source,int size) {
             assertEquals(SOURCE,source);assertEquals(960,size);
@@ -128,7 +213,7 @@ public final class PhotoEditorTest {
         }
         @Override public void apply(Bitmap bitmap,PhotoAdjustmentProcessor.Options options,
                 BooleanSupplier cancelled) throws IOException {
-            applyCalls++;working.add(bitmap);
+            applyCalls++;working.add(bitmap);lastOptions=options;
             if(cancelled.getAsBoolean())throw new InterruptedIOException("Cancelled fixture");
             if(failPreview)throw new IOException("Fixture preview failure");
             bitmap.eraseColor(Color.rgb(options.black(),options.white(),117));
@@ -137,6 +222,7 @@ public final class PhotoEditorTest {
                 BooleanSupplier cancelled,Consumer<String> progress) throws IOException {
             assertEquals(SOURCE,source);saveCalls++;
             if(cancelled.getAsBoolean())throw new InterruptedIOException("Cancelled fixture");
+            if(failSave)throw new IOException("Fixture save failure");
             return Uri.parse("content://fixture/new-copy");
         }
     }

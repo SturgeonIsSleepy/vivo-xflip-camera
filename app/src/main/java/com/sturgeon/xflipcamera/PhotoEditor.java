@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Edits a returned JPEG in an app-owned window; never draws controls over the OEM camera. */
 final class PhotoEditor {
@@ -54,8 +56,11 @@ final class PhotoEditor {
     private final ExecutorService executor;
     private final Processor processor;
     private final AtomicInteger generation=new AtomicInteger();
-    private Uri source;
+    private final Object sourceLock=new Object();
+    private final Set<Bitmap> pendingBitmaps=new HashSet<>();
+    private final Uri source;
     private Bitmap original,processed;
+    private PhotoAdjustmentProcessor.Options processedOptions;
     private ImageView image;
     private HistogramView histogram;
     private SeekBar black,white;
@@ -112,13 +117,16 @@ final class PhotoEditor {
         owner.getOnBackPressedDispatcher().addCallback(backCallback);
         setBusy(true);status.setText("正在读取原图");
         executor.execute(()->{
+            Bitmap allocated=null;
             try {
-                Bitmap bitmap=processor.decode(owner.getContentResolver(),source,960);
+                Bitmap bitmap=processor.decode(owner.getContentResolver(),source,960);allocated=bitmap;
                 long[] bins=new long[256];int[] row=new int[bitmap.getWidth()];
                 for(int y=0;y<bitmap.getHeight();y++) { bitmap.getPixels(row,0,row.length,0,y,row.length,1);InputLevels.addHistogram(bins,row); }
-                main.post(()->{if(isDestroyed()) {bitmap.recycle();return;}
+                postBitmap(bitmap,()->{
                     original=bitmap;histogram.setHistogram(bins);setBusy(false);schedulePreview();});
+                allocated=null;
             } catch(Exception failure) { main.post(()->{if(!isDestroyed()){setBusy(false);status.setText("读取失败："+failure.getMessage());}}); }
+            finally { if(allocated!=null)allocated.recycle(); }
         });
     }
 
@@ -160,7 +168,7 @@ final class PhotoEditor {
     }
 
     private void schedulePreview() {
-        if(updating || original==null || busy)return;
+        if(isDestroyed() || updating || original==null || busy)return;
         generation.incrementAndGet();main.removeCallbacks(render);showingOriginal=false;
         values.setText("输入黑场 "+black.getProgress()+"   白场 "+white.getProgress());
         histogram.setLevels(black.getProgress(),white.getProgress());save.setEnabled(false);
@@ -168,35 +176,68 @@ final class PhotoEditor {
     }
 
     private void renderPreview() {
+        if(isDestroyed())return;
         int request=generation.get();PhotoAdjustmentProcessor.Options settings=options();
-        Bitmap working=original.copy(Bitmap.Config.ARGB_8888,true);
         executor.execute(()->{
+            Bitmap allocated=null;
             try {
+                // No Bitmap is captured by a queued preview. Skip superseded work before copying.
+                synchronized(sourceLock) {
+                    if(isDestroyed() || generation.get()!=request)return;
+                    allocated=original.copy(Bitmap.Config.ARGB_8888,true);
+                }
+                if(allocated==null)throw new IOException("预览内存不足");
+                Bitmap working=allocated;
                 processor.apply(working,settings,()->isDestroyed() || generation.get()!=request);
-                main.post(()->{
-                    if(isDestroyed() || generation.get()!=request){working.recycle();return;}
-                    Bitmap previous=processed;processed=working;showImage();if(previous!=null)previous.recycle();
+                postBitmap(working,()->{
+                    if(generation.get()!=request){working.recycle();return;}
+                    Bitmap previous=processed;processed=working;processedOptions=settings;
+                    showImage();if(previous!=null)previous.recycle();
                     status.setText("预览采样；另存使用完整尺寸，原图保留");
                 });
-            } catch(Exception failure) { working.recycle();main.post(()->{
+                allocated=null;
+            } catch(Exception failure) { main.post(()->{
                 if(!isDestroyed() && generation.get()==request)status.setText("预览未完成："+failure.getMessage());}); }
+            finally { if(allocated!=null)allocated.recycle(); }
         });
     }
 
+    /** Own result Bitmaps while their main-thread callbacks are pending, including close(). */
+    private void postBitmap(Bitmap bitmap, Runnable publish) {
+        synchronized(sourceLock) {
+            if(isDestroyed()){bitmap.recycle();return;}
+            pendingBitmaps.add(bitmap);
+            if(!main.post(()->{
+                synchronized(sourceLock) { if(!pendingBitmaps.remove(bitmap))return; }
+                if(isDestroyed()){bitmap.recycle();return;}
+                publish.run();
+            })) {
+                pendingBitmaps.remove(bitmap);bitmap.recycle();
+            }
+        }
+    }
+
+    private boolean canSave() {
+        if(isDestroyed() || busy || showingOriginal || processed==null || processedOptions==null)return false;
+        PhotoAdjustmentProcessor.Options current=options();
+        return current.changed() && current.equals(processedOptions);
+    }
+
     private void showImage() {
+        if(isDestroyed())return;
         image.setImageBitmap(showingOriginal || processed==null?original:processed);
         compare.setText(showingOriginal?"看调整":"原图");
-        save.setEnabled(!busy && !showingOriginal && processed!=null && options().changed());
+        save.setEnabled(canSave());
     }
 
     private void setBusy(boolean value) {
         busy=value;
         for(View view:new View[]{black,white,denoise,detail,hdr,reset,compare})view.setEnabled(!value);
-        save.setEnabled(!value && processed!=null && !showingOriginal && options().changed());
+        save.setEnabled(canSave());
     }
 
     private void save() {
-        if(busy || processed==null)return;
+        if(!canSave())return;
         PhotoAdjustmentProcessor.Options settings=options();int request=generation.incrementAndGet();
         main.removeCallbacks(render);setBusy(true);status.setText("正在处理完整尺寸");
         executor.execute(()->{
@@ -222,6 +263,11 @@ final class PhotoEditor {
         if(closed)return;closed=true;
         if(backCallback!=null)backCallback.remove();
         generation.incrementAndGet();main.removeCallbacksAndMessages(null);executor.shutdownNow();
-        if(image!=null)image.setImageDrawable(null);if(original!=null)original.recycle();if(processed!=null)processed.recycle();
+        if(image!=null)image.setImageDrawable(null);
+        synchronized(sourceLock) {
+            if(original!=null)original.recycle();if(processed!=null)processed.recycle();
+            for(Bitmap bitmap:pendingBitmaps)bitmap.recycle();pendingBitmaps.clear();
+        }
+        processedOptions=null;
     }
 }
