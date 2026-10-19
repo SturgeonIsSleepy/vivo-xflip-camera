@@ -455,3 +455,12 @@
 - 待办交给GitHub两位agent：代码侧做受控CPU剖析及真实场景质量取舍，检查侧做编辑快速取消/重建和worker恢复。保留唯一最新.lab入口与已批准权限，不恢复基础版；成熟视频防抖、真正多曝光HDR和Google Camera内部算法未在本轮新增验收。
 
 - 远程收尾：源码97a41b1e6d3b06b74ae19373c1b1dd86c9ea98e5已推送读回；Release416319202 / v0.4.4-nlm-scheduling-lab的tag固定该源码，ZIP652893734 / 18441245bytes / digest0ce6f1e508f7aec403a9f93e8baf7463d676b2b13e32a357f79750517f6b1e18核对，内APK与手机一致，脚本652895212/digest8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2核对。CI39110276754 success/head一致，测试artifact12129483784已下载核对bf0e40122d52439e5ed5f67e5f8794d9c57f046bf7c6f046771909db8dd9a9cf，8XML/60项失败错误跳过0；四APK/Lint artifact12130191362已上传。本次仅补收据，不改运行时代码、不重复构建。
+
+## 2026-10-19｜编辑器保存门禁审查与基线复现
+
+- 起始提交：09bda3f7b283775822422e38db6e42f733f13868；按Asia/Shanghai实际日期10-19读取已核查2026工作日缓存，今日为工作日。2027下一检查不早于11-01，未重复查表或修改任一日程。身份SturgeonIsSleepy、Public/main、读写权限确认，读取README/AGENTS/本日志及技术与两项任务文档、0.4.4交接与最新成功CI39110276754，复用已完成行缓存/768分块4线程和唯一.lab安装选择。
+- Issue1 comment6257396164协调仅编辑器/专用测试。前一CPU阶段诊断comment6253304340仅是计划，未实现或提交，不计成果，处理器/仪器文件不占用；真实CPU热点仍未取得。本轮不改成像、版本/Manifest/依赖、桥接/权限、Release或安装包。
+- 确认静态路径：新参数schedulePreview先禁用另存，但比较原图调用showImage只核对processed非空和当前参数changed，未核对processed对应参数；新预览尚未完成或失败时，切换两次对照可重开另存，保存入口也未核对当前预览。本轮先加入仅包内的Processor/Executor可控测试入口，默认构造仍委托真实PhotoAdjustmentProcessor，不复制算法。
+- 新PhotoEditorTest两项基线特征测试明确断言旧版错误行为true，分别覆盖新预览待处理和新预览失败后对照重开另存。它们是用于确认缺陷的临时基线，尚不代表修复；待实际CI运行确认后，修复时将改为禁止旧预览保存的回归断言。测试用真实Android控件/Bitmap与可控工作队列、合成Processor，不宣称运行ARM64 NLM或MediaStore事务。
+- 本地基线bash scripts/check_core.sh在JDK17/--release17/-Xlint:all/-Werror通过66,775,056项；java scripts/ParseJava.java通过57文件语法，git diff --check通过。没有本地Gradle/ADB，Android基线特征测试待实际远程CI。模型/推理强度无法核实，剩余额度无法读取。
+- 待办：[ ] 读取基线特征测试的实际CI；[ ] 按不可变预览参数快照统一按钮和保存入口门禁，覆盖失败重试/旧回调/关闭；[ ] 在不阻塞主线程和不回读已回收源图的前提下减少过期排队任务的Bitmap分配；[ ] 真机快速滑动/原图对照/Back/重建、worker恢复及basic门禁沿用交接。缺设备仅暂停相应实测，原始私有照片与标识不上传，Google合法集成边界不变。

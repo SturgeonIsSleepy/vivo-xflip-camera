@@ -2,6 +2,7 @@ package com.sturgeon.xflipcamera;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,18 +19,40 @@ import com.sturgeon.xflipcamera.core.InputLevels;
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import java.util.function.Consumer;
+import java.util.function.BooleanSupplier;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** Edits a returned JPEG in an app-owned window; never draws controls over the OEM camera. */
 final class PhotoEditor {
+    interface Processor {
+        Bitmap decode(ContentResolver resolver, Uri source, int previewSize) throws IOException;
+        void apply(Bitmap bitmap, PhotoAdjustmentProcessor.Options options, BooleanSupplier cancelled) throws IOException;
+        Uri save(ContentResolver resolver, Uri source, PhotoAdjustmentProcessor.Options options,
+                BooleanSupplier cancelled, Consumer<String> progress) throws IOException;
+    }
+    private static final Processor PRODUCTION = new Processor() {
+        @Override public Bitmap decode(ContentResolver resolver, Uri source, int previewSize) throws IOException {
+            return PhotoAdjustmentProcessor.decode(resolver,source,previewSize);
+        }
+        @Override public void apply(Bitmap bitmap, PhotoAdjustmentProcessor.Options options,
+                BooleanSupplier cancelled) throws IOException {
+            PhotoAdjustmentProcessor.apply(bitmap,options,cancelled,message->{});
+        }
+        @Override public Uri save(ContentResolver resolver, Uri source, PhotoAdjustmentProcessor.Options options,
+                BooleanSupplier cancelled, Consumer<String> progress) throws IOException {
+            return PhotoAdjustmentProcessor.save(resolver,source,options,cancelled,progress);
+        }
+    };
     private final ComponentActivity owner;
     private final Consumer<Uri> finished;
     private volatile boolean closed;
     private OnBackPressedCallback backCallback;
     private final Handler main=new Handler(Looper.getMainLooper());
-    private final ExecutorService executor=Executors.newSingleThreadExecutor();
+    private final ExecutorService executor;
+    private final Processor processor;
     private final AtomicInteger generation=new AtomicInteger();
     private Uri source;
     private Bitmap original,processed;
@@ -43,7 +66,14 @@ final class PhotoEditor {
     private final Runnable render=this::renderPreview;
 
     PhotoEditor(ComponentActivity owner, Uri source, Bundle state, Consumer<Uri> finished) {
+        this(owner,source,state,finished,Executors.newSingleThreadExecutor(),PRODUCTION);
+    }
+
+    /** Package-only deterministic worker/processor seam; normal construction uses the real pipeline. */
+    PhotoEditor(ComponentActivity owner, Uri source, Bundle state, Consumer<Uri> finished,
+            ExecutorService executor, Processor processor) {
         this.owner=owner;this.source=source;this.finished=finished;
+        this.executor=executor;this.processor=processor;
         LinearLayout root=new LinearLayout(owner);root.setBackgroundColor(Color.BLACK);
         image=new ImageView(owner);image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         root.addView(image,new LinearLayout.LayoutParams(0,-1,1));
@@ -83,7 +113,7 @@ final class PhotoEditor {
         setBusy(true);status.setText("正在读取原图");
         executor.execute(()->{
             try {
-                Bitmap bitmap=PhotoAdjustmentProcessor.decode(owner.getContentResolver(),source,960);
+                Bitmap bitmap=processor.decode(owner.getContentResolver(),source,960);
                 long[] bins=new long[256];int[] row=new int[bitmap.getWidth()];
                 for(int y=0;y<bitmap.getHeight();y++) { bitmap.getPixels(row,0,row.length,0,y,row.length,1);InputLevels.addHistogram(bins,row); }
                 main.post(()->{if(isDestroyed()) {bitmap.recycle();return;}
@@ -142,7 +172,7 @@ final class PhotoEditor {
         Bitmap working=original.copy(Bitmap.Config.ARGB_8888,true);
         executor.execute(()->{
             try {
-                PhotoAdjustmentProcessor.apply(working,settings,()->isDestroyed() || generation.get()!=request,message->{});
+                processor.apply(working,settings,()->isDestroyed() || generation.get()!=request);
                 main.post(()->{
                     if(isDestroyed() || generation.get()!=request){working.recycle();return;}
                     Bitmap previous=processed;processed=working;showImage();if(previous!=null)previous.recycle();
@@ -171,7 +201,7 @@ final class PhotoEditor {
         main.removeCallbacks(render);setBusy(true);status.setText("正在处理完整尺寸");
         executor.execute(()->{
             try {
-                Uri output=PhotoAdjustmentProcessor.save(owner.getContentResolver(),source,settings,
+                Uri output=processor.save(owner.getContentResolver(),source,settings,
                         ()->isDestroyed() || generation.get()!=request,message->main.post(()->{if(!isDestroyed())status.setText(message);}));
                 main.post(()->{if(!isDestroyed()){close();finished.accept(output);}});
             } catch(Exception failure) {main.post(()->{if(!isDestroyed()){setBusy(false);status.setText("未保存，原图保留："+failure.getMessage());}});}
