@@ -3,7 +3,8 @@ import argparse,base64,hashlib,json,re,subprocess
 from pathlib import Path
 import numpy as np
 from PIL import Image
-p=argparse.ArgumentParser();p.add_argument('--serial',required=True);p.add_argument('--adb',default='adb');p.add_argument('--package',default='org.codeaurora.snapcam.lab');p.add_argument('--scenario',choices=['manual','color','denoise','rotated','identity','cancel','full'],required=True);p.add_argument('--nlm-tile',type=int,default=0);p.add_argument('--nlm-threads',type=int,default=0);p.add_argument('directory',type=Path);a=p.parse_args()
+from photo_adjustment_profile import parse_profile
+p=argparse.ArgumentParser();p.add_argument('--serial',required=True);p.add_argument('--adb',default='adb');p.add_argument('--package',default='org.codeaurora.snapcam.lab');p.add_argument('--scenario',choices=['manual','color','denoise','rotated','identity','cancel','full'],required=True);p.add_argument('--nlm-tile',type=int,default=0);p.add_argument('--nlm-threads',type=int,default=0);p.add_argument('--cpu-profile',action='store_true',help='Opt-in diagnostic run; exclude from unprofiled speed comparisons');p.add_argument('directory',type=Path);a=p.parse_args()
 pkg=a.package;assert re.fullmatch(r'[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+',pkg);prefix=[a.adb,'-s',a.serial]
 def adb(*cmd,timeout=180):return subprocess.run(prefix+list(cmd),check=True,capture_output=True,timeout=timeout).stdout.decode(errors='replace')
 fixture={'manual':'levels','identity':'levels','denoise':'nlm','cancel':'nlm','full':'nlm-full'}.get(a.scenario,a.scenario)
@@ -12,7 +13,7 @@ data=(a.directory/f'{fixture}.jpg').read_bytes();path=f'{remote}/{fixture}.jpg'
 r=subprocess.run(prefix+['shell','-T','run-as',pkg,'sh','-c',"'base64 -d > "+path+"'"],input=base64.b64encode(data)+b'\n',capture_output=True,timeout=60)
 assert r.returncode==0 and adb('shell','run-as',pkg,'sha256sum',path).split()[0]==hashlib.sha256(data).hexdigest()
 assert (a.nlm_tile,a.nlm_threads)==(0,0) or a.nlm_tile in (512,768,1024) and a.nlm_threads in (2,4)
-cmd=(f'am instrument -w -e scenario {a.scenario} -e nlm_tile {a.nlm_tile} -e nlm_threads {a.nlm_threads} {pkg}/com.sturgeon.xflipcamera.PhotoAdjustmentDeviceTest & sleep 1; '
+cmd=(f'am instrument -w -e scenario {a.scenario} -e nlm_tile {a.nlm_tile} -e nlm_threads {a.nlm_threads} -e cpu_profile {str(a.cpu_profile).lower()} {pkg}/com.sturgeon.xflipcamera.PhotoAdjustmentDeviceTest & sleep 1; '
  f'am start -W --display 1 -n {pkg}/com.sturgeon.xflipcamera.SystemCaptureActivity --ez manual_entry true; wait')
 result=adb('shell',cmd);print(result)
 assert 'INSTRUMENTATION_CODE: -1' in result and 'original_preserved=true' in result
@@ -21,6 +22,11 @@ report={'scenario':a.scenario,'original_preserved':True,'instrumentation_passed'
 match=re.search(r'save_ms=(\d+)',result)
 if match:report['save_ms']=int(match.group(1))
 report['requested_schedule']=[a.nlm_tile,a.nlm_threads]
+if a.cpu_profile:
+ report['cpu_profile']=parse_profile(result,'cancelled' if a.scenario=='cancel' else 'saved')
+ match=re.search(r'profile_base_apk_sha256=([0-9a-f]{64})\b',result)
+ if not match:raise ValueError('Missing profiled base APK identity')
+ report['profile_base_apk_sha256']=match.group(1)
 match=re.search(r'opencv_threads=(\d+)',result)
 if match:report['opencv_threads']=int(match.group(1))
 if a.scenario!='cancel':

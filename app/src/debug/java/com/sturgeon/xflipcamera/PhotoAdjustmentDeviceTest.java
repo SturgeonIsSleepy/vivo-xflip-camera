@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import com.sturgeon.xflipcamera.core.ProcessingTimings;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,9 +25,11 @@ import org.opencv.photo.Photo;
 public final class PhotoAdjustmentDeviceTest extends Instrumentation {
     private String scenario;
     private int tile,threads;
+    private boolean cpuProfile;
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);scenario=arguments.getString("scenario","manual");
-        tile=Integer.parseInt(arguments.getString("nlm_tile","0"));threads=Integer.parseInt(arguments.getString("nlm_threads","0"));start();
+        tile=Integer.parseInt(arguments.getString("nlm_tile","0"));threads=Integer.parseInt(arguments.getString("nlm_threads","0"));
+        cpuProfile=Boolean.parseBoolean(arguments.getString("cpu_profile","false"));start();
     }
     @Override public void onStart() {
         Bundle result=new Bundle();
@@ -49,6 +52,7 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
                 case "rotated"->new PhotoAdjustmentProcessor.Options(90,149,false,false,false);
                 default->new PhotoAdjustmentProcessor.Options(0,255,nlm,false,false);
             };
+            if(cpuProfile)result.putString("profile_base_apk_sha256",hex(hash(new File(getTargetContext().getApplicationInfo().sourceDir))));
             AtomicBoolean cancelled=new AtomicBoolean();long started=System.nanoTime();
             try {
                 if(scenario.equals("denoise")) {
@@ -61,9 +65,18 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
                 }
                 long saveStarted=System.nanoTime();
                 java.util.function.Consumer<String> progress=message->{if(scenario.equals("cancel"))cancelled.set(true);};
-                Uri saved=tile==0?PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress)
-                        :PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress,tile,threads);
-                result.putLong("save_ms",(System.nanoTime()-saveStarted)/1_000_000);
+                ProcessingTimings timings=cpuProfile?PhotoAdjustmentProfile.start():null;
+                Uri saved;String outcome="failed";
+                try {
+                    if(timings!=null) saved=tile==0
+                            ?PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress,timings)
+                            :PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress,tile,threads,timings);
+                    else saved=tile==0?PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress)
+                            :PhotoAdjustmentProcessor.save(getTargetContext().getContentResolver(),source,settings,cancelled::get,progress,tile,threads);
+                    outcome="saved";
+                    result.putLong("save_ms",(System.nanoTime()-saveStarted)/1_000_000);
+                } catch(java.io.InterruptedIOException failure) {outcome="cancelled";throw failure;}
+                finally {if(timings!=null)result.putString("cpu_profile_json",PhotoAdjustmentProfile.json(timings.finish(),outcome));}
                 if(settings.denoise())result.putInt("opencv_threads",org.opencv.core.Core.getNumThreads());
                 if(scenario.equals("cancel"))throw new IllegalStateException("Cancelled output published");
                 try(InputStream input=getTargetContext().getContentResolver().openInputStream(saved)) {
@@ -98,5 +111,10 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
         MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream input=Files.newInputStream(file.toPath())) {
             byte[] bytes=new byte[32768];int count;while((count=input.read(bytes))!=-1)digest.update(bytes,0,count);
         }return digest.digest();
+    }
+    private static String hex(byte[] bytes) {
+        StringBuilder value=new StringBuilder(bytes.length*2);
+        for(byte b:bytes)value.append(Character.forDigit((b>>>4)&15,16)).append(Character.forDigit(b&15,16));
+        return value.toString();
     }
 }

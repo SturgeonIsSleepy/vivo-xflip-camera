@@ -38,6 +38,8 @@ jobs:
             "platforms;android-36" "build-tools;35.0.0"
       - name: Test direction core and build Android app
         run: gradle --no-daemon :camera-core:check :app:testStandardDebugUnitTest :app:testCoverCompatDebugUnitTest :app:assembleStandardDebug :app:assembleCoverCompatDebug :app:assembleCoverCompatBasic :app:assembleCoverCompatLab :app:lintStandardDebug :app:lintCoverCompatDebug :app:lintCoverCompatBasic :app:lintCoverCompatLab
+      - name: Test CPU profiling report contract (no device)
+        run: python3 -m unittest discover -s scripts -p 'test_*_host.py' -v
       - name: Upload native-graphics test results
         if: always()
         uses: actions/upload-artifact@v4

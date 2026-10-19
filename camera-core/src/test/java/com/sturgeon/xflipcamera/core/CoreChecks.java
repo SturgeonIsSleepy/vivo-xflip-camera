@@ -26,9 +26,10 @@ public final class CoreChecks {
         assertions += ExposureBracketChecks.run();
         assertions += BoundedDigestChecks.run();
         assertions += UnmodifiedRowWindowChecks.run();
+        assertions += ProcessingTimingsChecks.run();
         invalidInputsFailExplicitly();
         System.out.println("PASS " + assertions + " assertions: EXIF 1..8, raster bounds, "
-                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion, cover controls, tone rows, exposure metadata, bounded streams, unmodified row windows");
+                + "inverse transforms, mirror preferences, capture tokens, RGB evidence, JPEG budgets, media writes, inspection state, video motion, cover controls, tone rows, exposure metadata, bounded streams, unmodified row windows, processing timings");
     }
 
     private static void asymmetricRasterFixtures() {

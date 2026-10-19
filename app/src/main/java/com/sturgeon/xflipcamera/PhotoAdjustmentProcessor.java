@@ -7,6 +7,8 @@ import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
 import com.sturgeon.xflipcamera.core.InputLevels;
+import com.sturgeon.xflipcamera.core.ProcessingTimings;
+import com.sturgeon.xflipcamera.core.ProcessingTimings.Stage;
 import com.sturgeon.xflipcamera.core.UnmodifiedRowWindow;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -48,13 +50,14 @@ final class PhotoAdjustmentProcessor {
     }
 
     static String apply(Bitmap bitmap, Options options, BooleanSupplier cancelled, Consumer<String> progress) throws IOException {
-        return apply(bitmap,options,cancelled,progress,768,4);
+        return apply(bitmap,options,cancelled,progress,768,4,null);
     }
 
-    private static String apply(Bitmap bitmap, Options options, BooleanSupplier cancelled, Consumer<String> progress,
-            int tileSize, int threads) throws IOException {
+    static String apply(Bitmap bitmap, Options options, BooleanSupplier cancelled, Consumer<String> progress,
+            int tileSize, int threads, ProcessingTimings timings) throws IOException {
         check(cancelled);
-        if (options.denoise()) denoise(bitmap,cancelled,progress,tileSize,threads);
+        if (options.denoise()) denoise(bitmap,cancelled,progress,tileSize,threads,timings);
+        mark(timings,Stage.INPUT_LEVELS);
         InputLevels levels=new InputLevels(options.black(),options.white());
         if (options.black()!=0 || options.white()!=255) {
             int width=bitmap.getWidth(); int[] row=new int[width];
@@ -63,29 +66,49 @@ final class PhotoAdjustmentProcessor {
                 levels.apply(row); bitmap.setPixels(row,0,width,0,y,width,1);
             }
         }
+        mark(timings,Stage.TONE_DETAIL);
         String tone=PhotoEnhancer.apply(bitmap,new PhotoEnhancer.Options(false,options.detail(),options.hdr()),cancelled,progress);
         return "input_levels="+options.black()+".."+options.white()+"; nlm="+options.denoise()+"; "+tone;
     }
 
     static Uri save(ContentResolver resolver, Uri original, Options options, BooleanSupplier cancelled,
             Consumer<String> progress) throws IOException {
-        return save(resolver,original,options,cancelled,progress,768,4);
+        return save(resolver,original,options,cancelled,progress,(ProcessingTimings)null);
+    }
+
+    static Uri save(ContentResolver resolver, Uri original, Options options, BooleanSupplier cancelled,
+            Consumer<String> progress, ProcessingTimings timings) throws IOException {
+        return save(resolver,original,options,cancelled,progress,768,4,timings);
     }
 
     /** Same production transaction, with scheduling overrides used only by debug device checks. */
     static Uri save(ContentResolver resolver, Uri original, Options options, BooleanSupplier cancelled,
             Consumer<String> progress, int tileSize, int threads) throws IOException {
+        return save(resolver,original,options,cancelled,progress,tileSize,threads,null);
+    }
+
+    /** Debug callers may measure this same transaction. Normal editor calls allocate no recorder. */
+    static Uri save(ContentResolver resolver, Uri original, Options options, BooleanSupplier cancelled,
+            Consumer<String> progress, int tileSize, int threads, ProcessingTimings timings) throws IOException {
+        mark(timings,Stage.DECODE);
         check(cancelled); Bitmap bitmap=decode(resolver,original,0);
         try {
-            String description=apply(bitmap,options,cancelled,progress,tileSize,threads);
+            String description=apply(bitmap,options,cancelled,progress,tileSize,threads,timings);
+            mark(timings,Stage.JPEG_TRANSACTION);
             progress.accept("正在另存完整尺寸，原图保留");
             return JpegPhotoWriter.write(resolver,original,bitmap,"XFlipAdjusted_",description,cancelled);
-        } finally { bitmap.recycle(); }
+        } finally { mark(timings,Stage.BITMAP_RELEASE); bitmap.recycle(); }
     }
 
     /** Internal entry for the debug-only, same-APK scheduling comparison. Filtering parameters stay fixed. */
     static void denoise(Bitmap bitmap, BooleanSupplier cancelled, Consumer<String> progress,
             int tileSize, int threads) throws IOException {
+        denoise(bitmap,cancelled,progress,tileSize,threads,null);
+    }
+
+    private static void denoise(Bitmap bitmap, BooleanSupplier cancelled, Consumer<String> progress,
+            int tileSize, int threads, ProcessingTimings timings) throws IOException {
+        mark(timings,Stage.NLM_SETUP);
         if(!OpenCVLoader.initLocal()) throw new IOException("OpenCV初始化失败");
         Core.setNumThreads(threads);
         int width=bitmap.getWidth(),height=bitmap.getHeight(),halo=16;
@@ -96,10 +119,12 @@ final class PhotoAdjustmentProcessor {
         Mat rgba=new Mat(),bgr=new Mat(),filtered=new Mat();
         try {
             while(true) {
+                mark(timings,Stage.NLM_ROW_WINDOW);
                 check(cancelled);
                 if(!source.nextBand())break;
                 int top=source.bandTop();
                 for(int left=0;left<width;left+=tileSize) {
+                    mark(timings,Stage.NLM_TILE_INPUT);
                     check(cancelled);
                     progress.accept("NLM降噪 "+(100L*(top* (long)width+left)/(width*(long)height))+"%");
                     check(cancelled);
@@ -112,7 +137,9 @@ final class PhotoAdjustmentProcessor {
                         tile.setPixels(pixels,0,w,0,0,w,h); Utils.bitmapToMat(tile,rgba);
                         Imgproc.cvtColor(rgba,bgr,Imgproc.COLOR_RGBA2BGR);
                         // Keep the original 8-bit RGB domain; a Lab round trip can band smooth gradients.
+                        mark(timings,Stage.NLM_FILTER);
                         Photo.fastNlMeansDenoising(bgr,filtered,5f,7,21);
+                        mark(timings,Stage.NLM_TILE_OUTPUT);
                         Imgproc.cvtColor(filtered,rgba,Imgproc.COLOR_BGR2RGBA); Utils.matToBitmap(rgba,tile);
                         tile.getPixels(pixels,0,copyWidth,left-x,top-y,copyWidth,copyHeight);
                         check(cancelled);
@@ -120,8 +147,12 @@ final class PhotoAdjustmentProcessor {
                     } finally { tile.recycle(); }
                 }
             }
-        } finally { rgba.release();bgr.release();filtered.release(); }
+        } finally { mark(timings,Stage.NLM_RELEASE); rgba.release();bgr.release();filtered.release(); }
         check(cancelled);
+    }
+
+    private static void mark(ProcessingTimings timings, Stage stage) {
+        if (timings != null) timings.mark(stage);
     }
 
     private static void check(BooleanSupplier cancelled) throws InterruptedIOException {

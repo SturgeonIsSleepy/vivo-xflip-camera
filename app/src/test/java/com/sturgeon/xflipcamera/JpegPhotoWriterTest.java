@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import androidx.exifinterface.media.ExifInterface;
+import com.sturgeon.xflipcamera.core.ProcessingTimings;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -190,6 +191,50 @@ public class JpegPhotoWriterTest {
             assertTrue(provider.files.get(saved).isFile()); assertTrue(provider.pending.isEmpty());
         } finally { bitmap.recycle(); }
         assertEquals(0, provider.deletes); preserved(original);
+    }
+
+    @Test public void profiledFullSaveMatchesUnprofiledJpegAndExifWithoutChangingSource() throws Exception {
+        for (int orientation : new int[]{1,6}) {
+            fixture(orientation);byte[] original = Files.readAllBytes(source.toPath());
+            PhotoAdjustmentProcessor.Options options = new PhotoAdjustmentProcessor.Options(40,215,false,false,false);
+            Uri plain = PhotoAdjustmentProcessor.save(resolver,SOURCE,options,()->false,message->{});
+            ProcessingTimings timing = saveTiming();
+            Uri profiled = PhotoAdjustmentProcessor.save(resolver,SOURCE,options,()->false,message->{},timing);
+            assertNotEquals(plain,profiled);
+            assertArrayEquals(Files.readAllBytes(provider.files.get(plain).toPath()),Files.readAllBytes(provider.files.get(profiled).toPath()));
+            assertEquals(List.of(ProcessingTimings.Stage.DECODE,ProcessingTimings.Stage.INPUT_LEVELS,
+                            ProcessingTimings.Stage.TONE_DETAIL,ProcessingTimings.Stage.JPEG_TRANSACTION,ProcessingTimings.Stage.BITMAP_RELEASE),
+                    timing.finish().stages().stream().map(ProcessingTimings.Measurement::stage).toList());
+            assertTrue(provider.visible.contains(plain));assertTrue(provider.visible.contains(profiled));
+            assertTrue(provider.pending.isEmpty());preserved(original);
+        }
+        assertEquals(0,provider.deletes);
+    }
+
+    @Test public void profiledPublicationErrorRetainsOriginalErrorAndRollsBackOnlyOwnedCopy() throws Exception {
+        byte[] original = Files.readAllBytes(source.toPath());
+        AssertionError injected = new AssertionError("Synthetic profiled publish failure");provider.publishError = injected;
+        ProcessingTimings timing = saveTiming();
+        assertSame(injected,assertThrows(AssertionError.class,() -> PhotoAdjustmentProcessor.save(resolver,SOURCE,
+                new PhotoAdjustmentProcessor.Options(40,215,false,false,false),()->false,message->{},timing)));
+        assertEquals(ProcessingTimings.Stage.BITMAP_RELEASE,timing.finish().stages().get(4).stage());
+        rolledBack(original);
+    }
+
+    @Test public void profiledCancellationAtWriteStillDeletesOnlyNewPendingRow() throws Exception {
+        byte[] original = Files.readAllBytes(source.toPath());AtomicBoolean cancelled = new AtomicBoolean();
+        ProcessingTimings timing = saveTiming();
+        assertThrows(InterruptedIOException.class,() -> PhotoAdjustmentProcessor.save(resolver,SOURCE,
+                new PhotoAdjustmentProcessor.Options(40,215,false,false,false),cancelled::get,message->cancelled.set(true),timing));
+        assertEquals(ProcessingTimings.Stage.BITMAP_RELEASE,timing.finish().stages().get(4).stage());
+        rolledBack(original);
+    }
+
+    private static ProcessingTimings saveTiming() {
+        long[] samples = {0};
+        return new ProcessingTimings(ProcessingTimings.Stage.DECODE,() -> {
+            long n = samples[0]++;return new ProcessingTimings.Sample(n,n,n);
+        });
     }
 
     private Uri write(Bitmap bitmap, BooleanSupplier cancelled) throws IOException {
