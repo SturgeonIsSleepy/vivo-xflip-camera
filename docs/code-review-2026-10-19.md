@@ -36,6 +36,7 @@ PhotoEditorTest以真实Android控件/Bitmap、可控工作队列和合成Proces
 
 - 本地JDK17核心66,775,056项、57文件语法、差异空白检查通过。无本地Gradle/ADB，没有连接或安装手机。
 - 新版10项UI回归覆盖上表、旧回调、12个过期请求、三种关闭/未交付时序及Bundle在新owner恢复原始输入。合成Processor不执行OpenCV NLM或真实MediaStore，既有生产JPEG/EXIF事务回归继续执行。
-- 修复源码的双flavor单测、四APK/Lint待实际CI。基线10XML/64项，修复后数量按真实产物核对。
+- 修复源码 `947c74f5114375fbc60c52fcaa6a4214793fe614` 的 [CI39184000404](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39184000404) success/head一致。两个debug各40项，PhotoEditorTest各10项；四APK与四组Lint、原始JPEG证据、66,775,056核心断言均通过，BUILD SUCCESSFUL in 1m41s。
+- 测试artifact12157178132实际下载7,999bytes，SHA256 `7e092c1c99e4679bd71bae80bd72a61439c88cd5adb5036f37a0f193f61c928b` 匹配；10份XML共80项，失败/错误/跳过0。APK/Lint artifact12157287898已上传。基线明确特征测试与修复后的正确行为回归已分别执行，不把测试定义当通过。CI候选未装手机，不替换实测Release。
 
 下一步优先真机快速滑动、对照、失败重试、Back和实际Activity重建，继续worker/Surface恢复与basic门禁。新ComponentActivity恢复Bundle的主机检查不代替vivo切屏/进程死亡验收。设备由负责人控制，实拍及标识不公开。CPU阶段诊断仍只有计划，未实现或测得热点；成像、Google合法集成与原待办沿用。
