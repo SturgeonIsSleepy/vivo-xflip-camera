@@ -56,7 +56,15 @@ python scripts/test_photo_adjustment_device.py --serial SERIAL --scenario cancel
 
 - 本地JDK17 `bash scripts/check_core.sh`：66,775,080项，其中新增24项计时记账断言。假时钟验证重复阶段、无双计、单位、并行CPU、未知/回退、finish、固定容量、跨线程拒绝和不可变收据；不是手机CPU读数。
 - `python -m unittest discover -s scripts -p 'test_*_host.py' -v`：10项通过，纯JSON，无ADB。`--help`入口、三份Python的py_compile、60份Java语法及 `git diff --check` 均通过；语法不等于Android类型解析。
-- 新增Android定义：真实native Bitmap下诊断开/关的手动色阶/像素/取消顺序、debug JSON单位/null；共享保存回归新增完整JPEG/EXIF相同、发布Error原实例回滚、写入取消。NLM/真正MediaStore和设备CPU仍待真机。Android执行结果待本轮CI，不能以定义替代运行。
+- 新增7项Android回归在两个debug flavor各实际执行通过：真实native Bitmap下诊断开/关的手动色阶/像素/取消顺序、debug JSON单位/null；共享保存回归的完整JPEG/EXIF相同、发布Error原实例回滚、写入取消。沿用Robolectric/可控Provider与同文件Exif FD适配；NLM/真正MediaStore和设备CPU仍待真机。
 - 下一步先取得同一APK的合成图profile、未profile像素一致和取消证据，再按最高实际占比提出一个最小改动；跨场景质量与前后摄/方向/切屏矩阵继续复用既有待办。
 
 官方依据（2026-10-20核对）：[elapsedRealtimeNanos](https://developer.android.com/reference/android/os/SystemClock#elapsedRealtimeNanos())、[进程CPU](https://developer.android.com/reference/android/os/Process#getElapsedCpuTime())、[调用线程CPU](https://developer.android.com/reference/android/os/Debug#threadCpuTimeNanos())。未复制专有Google Camera代码或算法，不将本工具称为Google成像集成。
+
+## 已读取的远程收据
+
+源码提交 [cf7c686e72b31a89d17f8bb72c507fb59e5bff16](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/cf7c686e72b31a89d17f8bb72c507fb59e5bff16) 以expected main SHA/force=false推送并读回，15个变更blob/权限位一致，188个其他原文件和权限位保留。[CI39300287758](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39300287758) completed/success且head一致，日志实际确认66,775,080核心断言、两张历史JPEG/20,758,528完整像素及摘要、两个debug各47项、四assemble和四Lint；BUILD SUCCESSFUL in 1m46s。新增Python契约步骤实际执行10项通过。
+
+测试artifact12211347189已下载：9,509bytes，SHA256 `9f571e5583df2ca5f31e9d72dc8e03f610b95734075a799fde8b9a229c9328bd` 与服务器digest一致。实际12份JUnit XML共94项，失败/错误/跳过均0；每个flavor包含PhotoAdjustmentTimingTest4项、JpegPhotoWriterTest12项，以及既有编辑器10、水印8、曝光10、行窗口3项。测试ZIP保留至2026-10-26T18:12:33Z。
+
+四APK/Lint artifact12210572376已上传，73,538,641bytes，服务器digest `ffd9beff5f00de02a5bb6426566332581ee99b7949e0f5be38b62d051439cd06`，保留至2026-10-26T18:12:35Z。未下载/安装该APK包，未声称其签名或逐字节摘要与手机实测包相同；现有Release不变。本次收尾仅更新文档，不改变已测运行时代码。
