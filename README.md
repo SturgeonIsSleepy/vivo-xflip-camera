@@ -4,6 +4,8 @@
 
 ## 项目进度
 
+新增[可选计时回调异常隔离](docs/photo-adjustment-cpu-profile.md#2026-10-21-计时回调异常隔离)：采样RuntimeException不再从计时标记覆盖原始处理错误，失败诊断显式拒绝。故障已在原核心复现，修复及主机检查通过，完整Android回归待本轮CI；算法参数和手机安装版本不变。
+
 补齐[基准逐次APK证据与BAAB对照](docs/photo-adjustment-cpu-profile.md#2026-10-20-审查逐次-apk-证据及-baab)：缺失/不同包不能再生成“同包”结论，四次计时与独立内存报告全部核验；新增BAAB起始配置互换，ABBA仍为默认。20项主机契约、双debug共100项回归、四APK/Lint已通过，下载XML已核验；不改生产算法或手机安装版本。
 
 新增[可选CPU分阶段诊断](docs/photo-adjustment-cpu-profile.md)，显式flag复用同一拍后save/NLM路径，分列墙钟、进程CPU及调用线程CPU，普通入口不开启；保留调度、滤波和保存参数。最新候选四APK/Lint、双flavor共100项及20项主机契约测试通过，下载XML已核验。本轮没有手机CPU样本或提速结论，候选未安装。

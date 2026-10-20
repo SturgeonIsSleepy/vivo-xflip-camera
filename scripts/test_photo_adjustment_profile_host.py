@@ -85,6 +85,12 @@ class ProfileContractTest(unittest.TestCase):
         parse_profile(output(profile), 'saved')
         self.assertEqual(before, profile)
 
+    def test_clock_failure_receipt_is_not_accepted_as_performance_data(self):
+        for value in ('clock_read_failed',None,False):
+            profile = fixture();profile['diagnostic_error'] = value
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):parse_profile(output(profile),'saved')
+
 
 if __name__ == '__main__':
     unittest.main()

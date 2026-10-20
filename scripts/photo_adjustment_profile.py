@@ -15,6 +15,8 @@ def parse_profile(output, expected_outcome):
     profile = json.loads(lines[0])
     if not isinstance(profile, dict) or type(profile.get('schema')) is not int or profile['schema'] != 1:
         raise ValueError('Unsupported CPU profile schema')
+    if 'diagnostic_error' in profile:
+        raise ValueError('Failed diagnostic clock cannot supply a valid CPU profile')
     required = {'outcome': expected_outcome, 'wall_clock': 'elapsedRealtimeNanos',
                 'process_cpu_scope': 'entire_app_process',
                 'thread_cpu_scope': 'calling_worker_only', 'diagnostic_overhead_included': True}

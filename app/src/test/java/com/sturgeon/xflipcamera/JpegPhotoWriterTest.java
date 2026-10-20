@@ -230,6 +230,48 @@ public class JpegPhotoWriterTest {
         rolledBack(original);
     }
 
+    @Test public void diagnosticClockRuntimeFailuresKeepSuccessfulJpegIdentical() throws Exception {
+        byte[] original = Files.readAllBytes(source.toPath());
+        PhotoAdjustmentProcessor.Options options = new PhotoAdjustmentProcessor.Options(40,215,false,false,false);
+        Uri plain = PhotoAdjustmentProcessor.save(resolver,SOURCE,options,()->false,message->{});
+        byte[] expected = Files.readAllBytes(provider.files.get(plain).toPath());
+        // Constructor, levels, tone, transaction, Bitmap-finally and final receipt boundaries.
+        for (int failedRead = 0; failedRead <= 5; failedRead++) {
+            ProcessingTimings timing = failingTiming(failedRead);
+            Uri saved = PhotoAdjustmentProcessor.save(resolver,SOURCE,options,()->false,message->{},timing);
+            assertArrayEquals(expected,Files.readAllBytes(provider.files.get(saved).toPath()));
+            assertTrue(timing.finish().clockFailed());assertEquals(-1,timing.finish().wallNanos());
+            assertTrue(provider.pending.isEmpty());assertTrue(provider.visible.contains(saved));preserved(original);
+        }
+        assertEquals(0,provider.deletes);
+    }
+
+    @Test public void clockFailureDuringFinallyCannotMaskPublicationErrorOrSkipOwnedRollback() throws Exception {
+        byte[] original = Files.readAllBytes(source.toPath());
+        AssertionError primary = new AssertionError("Synthetic original publication failure");provider.publishError = primary;
+        ProcessingTimings timing = failingTiming(4);
+        assertSame(primary,assertThrows(AssertionError.class,() -> PhotoAdjustmentProcessor.save(resolver,SOURCE,
+                new PhotoAdjustmentProcessor.Options(40,215,false,false,false),()->false,message->{},timing)));
+        assertTrue(timing.finish().clockFailed());rolledBack(original);
+    }
+
+    @Test public void clockFailureDuringFinallyCannotMaskCancellationOrRetainPendingCopy() throws Exception {
+        byte[] original = Files.readAllBytes(source.toPath());AtomicBoolean cancelled = new AtomicBoolean();
+        ProcessingTimings timing = failingTiming(4);
+        assertThrows(InterruptedIOException.class,() -> PhotoAdjustmentProcessor.save(resolver,SOURCE,
+                new PhotoAdjustmentProcessor.Options(40,215,false,false,false),cancelled::get,message->cancelled.set(true),timing));
+        assertTrue(timing.finish().clockFailed());rolledBack(original);
+    }
+
+    private static ProcessingTimings failingTiming(int failedRead) {
+        int[] reads = {0};
+        return new ProcessingTimings(ProcessingTimings.Stage.DECODE,() -> {
+            int index = reads[0]++;
+            if (index == failedRead) throw new IllegalStateException("Injected diagnostic clock failure");
+            return new ProcessingTimings.Sample(index,index,index);
+        });
+    }
+
     private static ProcessingTimings saveTiming() {
         long[] samples = {0};
         return new ProcessingTimings(ProcessingTimings.Stage.DECODE,() -> {

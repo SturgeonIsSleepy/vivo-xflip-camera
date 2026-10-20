@@ -16,10 +16,14 @@ public final class ProcessingTimings {
     public record Measurement(Stage stage, long intervals, long wallNanos,
             long processCpuMillis, long threadCpuNanos) { }
     public record Snapshot(List<Measurement> stages, long wallNanos,
-            long processCpuMillis, long threadCpuNanos) {
+            long processCpuMillis, long threadCpuNanos, boolean clockFailed) {
         public Snapshot { stages = List.copyOf(stages); }
+        public Snapshot(List<Measurement> stages, long wallNanos, long processCpuMillis, long threadCpuNanos) {
+            this(stages,wallNanos,processCpuMillis,threadCpuNanos,false);
+        }
     }
 
+    private static final Sample UNKNOWN = new Sample(-1,-1,-1);
     private final Clock clock;
     private final Thread owner = Thread.currentThread();
     private final long[][] durations = new long[Stage.values().length][3];
@@ -27,11 +31,12 @@ public final class ProcessingTimings {
     private Stage current;
     private Sample previous;
     private Snapshot finished;
+    private boolean clockFailed;
 
     public ProcessingTimings(Stage first, Clock clock) {
         current = Objects.requireNonNull(first);
         this.clock = Objects.requireNonNull(clock);
-        previous = Objects.requireNonNull(clock.read());
+        previous = sample();
     }
 
     public void mark(Stage next) {
@@ -59,12 +64,12 @@ public final class ProcessingTimings {
             process = add(process, values[1]);
             thread = add(thread, values[2]);
         }
-        finished = new Snapshot(stages, wall, process, thread);
+        finished = new Snapshot(stages, wall, process, thread, clockFailed);
         return finished;
     }
 
     private void collect() {
-        Sample next = Objects.requireNonNull(clock.read());
+        Sample next = sample();
         int index = current.ordinal();
         long[] values = durations[index];
         values[0] = add(values[0], delta(previous.wallNanos(), next.wallNanos()));
@@ -72,6 +77,16 @@ public final class ProcessingTimings {
         values[2] = add(values[2], delta(previous.threadCpuNanos(), next.threadCpuNanos()));
         intervals[index]++;
         previous = next;
+    }
+
+    /** A diagnostic RuntimeException must not replace processing failure or skip image cleanup. */
+    private Sample sample() {
+        if (clockFailed) return UNKNOWN;
+        try { return Objects.requireNonNull(clock.read()); }
+        catch (RuntimeException unavailable) {
+            clockFailed = true;
+            return UNKNOWN;
+        }
     }
 
     private void requireOwner() {

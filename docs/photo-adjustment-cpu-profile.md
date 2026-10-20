@@ -95,3 +95,13 @@ python scripts/benchmark_nlm_save_device.py --serial SERIAL --order BAAB /path/t
 测试artifact12233119768已下载：9,691bytes，SHA256 `f0de6ec5e95e6d4f3efdddddd5ddf06727e8c22bcd6bc6651c2d4be4ad0212c4` 与服务器digest一致。实际12份JUnit XML共100项，失败/错误/跳过0；每flavor的PhotoAdjustmentTimingTest共7项，其中新增已知SHA、变化/缺失、缓冲尾字节3项均实际执行。合成文件用来测试只读摘要，不是手机APK或安装验证。
 
 四APK/Lint artifact12234090040已上传，73,538,760bytes，服务器digest `93fb7a3c0d57b88cdef538505a20b8d4ad6a6a77669e39c9d7c4b83e68e01d2f`。两份artifact均保留至2026-10-27T01:14:51Z。未下载/安装APK包、不等同手机签名或安装摘要、不发布新Release；收尾仅更新文档，运行时代码保持实际CI版本。
+
+## 2026-10-21 计时回调异常隔离
+
+从 `3e2765ffa852f92cfeba67d81eeca42618c3ff8f` 继续。发现采样回调的RuntimeException可以从finally内的计时标记抛出，覆盖原始处理错误，标记之后的Bitmap/Mat释放也可能被跳过。先在原核心注入计时失败和原始处理Error，`bash scripts/check_core.sh` 实际退出1，失败于 `Clock failure cannot replace the original processing failure`。这是故障注入确认的控制流缺陷，未声称vivo时钟已经出现此故障。
+
+现在仅捕获 `Clock.read()` 及其空返回检查内的RuntimeException：标记 `clockFailed`，停止再次读取该时钟，缺失区间和总计为未知，不从计时标记抛出此类异常。已有成功区间可保留但整份profile失效，不能当热点或速度证据。构造、阶段转换和finish都遵循此规则；finish仍幂等。跨线程/结束后误用等API门禁保留，Error（含OOM等）不吞掉，不声称致命错误后可恢复；JSON分配/序列化或资源释放本身的故障不在此次隔离保证内。
+
+正常schema1收据不变；失败收据添加固定 `diagnostic_error=clock_read_failed`，不导出异常消息或堆栈。debug入口将其写成结果错误字段而不因此中断后续合成输出复制/删除、APK及原图检查，最终运行失败；Python解析器也拒绝此字段，不把已完成的图像操作当成有效性能测量。普通编辑入口依旧不创建计时器，图像算法与768/4、h5/7/21、halo16、JPEG97都未改变。
+
+本地核心66,775,101项通过，新增21项计时故障断言；21项主机契约通过，新增拒绝失败诊断收据场景。60文件Java语法、2份Python的py_compile与git diff --check通过。本地没有Gradle/ADB，Android回归等待实际CI：完整save的六个采样边界注入RuntimeException后JPEG字节不变、发布Error原实例及取消/回滚保留、Bundle/JSON固定失败码与不暴露异常详情。主机的清理标志证明控制流可继续，实际Bitmap/Mat峰值和系统MediaStore仍待真机，不能把替身当设备验收。

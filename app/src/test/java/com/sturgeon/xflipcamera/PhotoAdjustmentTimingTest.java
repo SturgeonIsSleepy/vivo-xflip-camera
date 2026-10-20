@@ -100,6 +100,22 @@ public final class PhotoAdjustmentTimingTest {
         assertEquals("DECODE",json.getJSONArray("stages").getJSONObject(0).getString("stage"));
         assertTrue(json.getJSONArray("stages").getJSONObject(0).isNull("calling_thread_cpu_ns"));
     }
+    @Test public void failedClockIsExportedAsDiagnosticErrorWithoutThrowingFromReceiptAppend() throws Exception {
+        ProcessingTimings timing = new ProcessingTimings(ProcessingTimings.Stage.DECODE,() -> {
+            throw new UnsupportedOperationException("Synthetic detail that must not appear in public JSON");
+        });
+        android.os.Bundle result = new android.os.Bundle();
+        PhotoAdjustmentProfile.append(result,timing.finish(),"saved");
+        assertTrue(result.containsKey("error"));
+        String text = result.getString("cpu_profile_json");
+        org.json.JSONObject json = new org.json.JSONObject(text);
+        assertEquals("saved",json.getString("outcome"));
+        assertEquals("clock_read_failed",json.getString("diagnostic_error"));
+        assertTrue(json.getJSONObject("total").isNull("wall_ns"));
+        assertFalse(text.contains("Synthetic detail"));
+        assertEquals("Diagnostic clock read failed",result.getString("error"));
+    }
+
     private static ProcessingTimings timing() {
         long[] sample = {0};
         return new ProcessingTimings(ProcessingTimings.Stage.INPUT_LEVELS,() -> {

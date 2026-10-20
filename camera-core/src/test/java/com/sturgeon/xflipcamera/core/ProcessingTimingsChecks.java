@@ -10,6 +10,8 @@ final class ProcessingTimingsChecks {
     private ProcessingTimingsChecks() { }
     static int run() {
         assertions = 0;
+        clockFailureCannotSkipCleanupOrReplaceProcessingFailure();
+        clockFailureIsStickyAndExplicit();
         Script clock = new Script(new long[][]{{100,10,20},{110,15,24},{130,35,30},{160,60,40},{200,90,50}});
         ProcessingTimings timing = new ProcessingTimings(DECODE,clock);
         timing.mark(DECODE);
@@ -78,6 +80,48 @@ final class ProcessingTimingsChecks {
         @Override public ProcessingTimings.Sample read() {
             long[] s = samples[index++]; return new ProcessingTimings.Sample(s[0],s[1],s[2]);
         }
+    }
+    private static void clockFailureCannotSkipCleanupOrReplaceProcessingFailure() {
+        RuntimeException clockFailure = new IllegalStateException("Injected clock failure");
+        int[] reads = {0};
+        ProcessingTimings timing = new ProcessingTimings(JPEG_TRANSACTION,() -> {
+            if (reads[0]++ == 0) return new ProcessingTimings.Sample(0,0,0);
+            throw clockFailure;
+        });
+        AssertionError processingFailure = new AssertionError("Original processing failure");
+        boolean[] recycled = {false}; Throwable actual = null;
+        try {
+            try { throw processingFailure; }
+            finally { timing.mark(BITMAP_RELEASE); recycled[0] = true; }
+        } catch (Throwable failure) { actual = failure; }
+        check(actual == processingFailure,"Clock failure cannot replace the original processing failure");
+        check(recycled[0],"Clock failure cannot skip cleanup following a marker");
+    }
+    private static void clockFailureIsStickyAndExplicit() {
+        for (int failedRead : new int[]{0,1,2,3}) {
+            int[] reads = {0};
+            ProcessingTimings timing = new ProcessingTimings(DECODE,() -> {
+                int index = reads[0]++;
+                if (index == failedRead) throw new UnsupportedOperationException("Injected unavailable clock");
+                return new ProcessingTimings.Sample(index*10L,index,index*2L);
+            });
+            timing.mark(INPUT_LEVELS);timing.mark(BITMAP_RELEASE);
+            ProcessingTimings.Snapshot result = timing.finish();
+            check(result.clockFailed(),"Construction, stage and finish failures explicitly invalidate receipt");
+            check(reads[0] == failedRead+1,"Failed clock is not retried");
+            check(result.wallNanos() == -1 && result.processCpuMillis() == -1 && result.threadCpuNanos() == -1,
+                    "Incomplete clock totals are unknown rather than fake zero");
+            check(timing.finish() == result && reads[0] == failedRead+1,"Failed receipt is also idempotent");
+        }
+        ProcessingTimings nullClock = new ProcessingTimings(DECODE,() -> null);
+        check(nullClock.finish().clockFailed(),"Null clock sample is a diagnostic failure");
+        ProcessingTimings unsupported = new ProcessingTimings(DECODE,() -> new ProcessingTimings.Sample(0,0,-1));
+        check(!unsupported.finish().clockFailed(),"Unsupported individual counter is not a throwing clock");
+        AssertionError fatal = new AssertionError("Injected fatal clock error");
+        Throwable actual = null;
+        try { new ProcessingTimings(DECODE,() -> { throw fatal; }); }
+        catch (Throwable failure) { actual = failure; }
+        check(actual == fatal,"Fatal Error is not swallowed or claimed recoverable");
     }
     private static void fails(Class<? extends Throwable> kind, Runnable action) {
         try { action.run(); } catch (Throwable failure) { check(kind.isInstance(failure),"Expected " + kind.getName()); return; }

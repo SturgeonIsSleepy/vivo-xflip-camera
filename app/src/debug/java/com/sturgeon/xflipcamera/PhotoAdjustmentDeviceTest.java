@@ -81,7 +81,7 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
                     outcome="saved";
                     result.putLong("save_ms",(System.nanoTime()-saveStarted)/1_000_000);
                 } catch(java.io.InterruptedIOException failure) {outcome="cancelled";throw failure;}
-                finally {if(timings!=null)result.putString("cpu_profile_json",PhotoAdjustmentProfile.json(timings.finish(),outcome));}
+                finally {if(timings!=null)PhotoAdjustmentProfile.append(result,timings.finish(),outcome);}
                 if(settings.denoise())result.putInt("opencv_threads",org.opencv.core.Core.getNumThreads());
                 if(scenario.equals("cancel"))throw new IllegalStateException("Cancelled output published");
                 try(InputStream input=getTargetContext().getContentResolver().openInputStream(saved)) {
