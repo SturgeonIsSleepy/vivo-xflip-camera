@@ -52,7 +52,12 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
                 case "rotated"->new PhotoAdjustmentProcessor.Options(90,149,false,false,false);
                 default->new PhotoAdjustmentProcessor.Options(0,255,nlm,false,false);
             };
-            if(cpuProfile)result.putString("profile_base_apk_sha256",hex(hash(new File(getTargetContext().getApplicationInfo().sourceDir))));
+            android.content.pm.ApplicationInfo application=getTargetContext().getApplicationInfo();
+            if(application.splitSourceDirs!=null && application.splitSourceDirs.length!=0)
+                throw new IllegalArgumentException("Synthetic benchmark requires standalone APK");
+            File baseApk=new File(application.sourceDir);String apkBefore=apkDigest(baseApk);
+            result.putString("base_apk_sha256",apkBefore);result.putString("apk_identity_scope","standalone_base_apk");
+            if(cpuProfile)result.putString("profile_base_apk_sha256",apkBefore);
             AtomicBoolean cancelled=new AtomicBoolean();long started=System.nanoTime();
             try {
                 if(scenario.equals("denoise")) {
@@ -87,6 +92,7 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
                 if(!scenario.equals("cancel"))throw expected;result.putBoolean("cancelled",true);
             }
             result.putLong("processing_ms",(System.nanoTime()-started)/1_000_000);
+            verifyApk(baseApk,apkBefore);
             if(!Arrays.equals(before,hash(file)))throw new IllegalStateException("Original modified");result.putBoolean("original_preserved",true);
         } catch(Exception failure) {result.putString("error",failure.toString());}
         finish(result.containsKey("error")?0:-1,result);
@@ -106,6 +112,10 @@ public final class PhotoAdjustmentDeviceTest extends Instrumentation {
             }
             return maximum;
         } finally {reference.recycle();rgba.release();bgr.release();filtered.release();}
+    }
+    static String apkDigest(File file)throws Exception { return hex(hash(file)); }
+    static void verifyApk(File file,String before)throws Exception {
+        if(!before.equals(apkDigest(file)))throw new IllegalStateException("APK changed during synthetic check");
     }
     private static byte[] hash(File file)throws Exception {
         MessageDigest digest=MessageDigest.getInstance("SHA-256");try(InputStream input=Files.newInputStream(file.toPath())) {

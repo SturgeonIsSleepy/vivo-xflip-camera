@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from photo_adjustment_profile import parse_profile
+from nlm_benchmark_contract import parse_apk_identity
 p=argparse.ArgumentParser();p.add_argument('--serial',required=True);p.add_argument('--adb',default='adb');p.add_argument('--package',default='org.codeaurora.snapcam.lab');p.add_argument('--scenario',choices=['manual','color','denoise','rotated','identity','cancel','full'],required=True);p.add_argument('--nlm-tile',type=int,default=0);p.add_argument('--nlm-threads',type=int,default=0);p.add_argument('--cpu-profile',action='store_true',help='Opt-in diagnostic run; exclude from unprofiled speed comparisons');p.add_argument('directory',type=Path);a=p.parse_args()
 pkg=a.package;assert re.fullmatch(r'[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+',pkg);prefix=[a.adb,'-s',a.serial]
 def adb(*cmd,timeout=180):return subprocess.run(prefix+list(cmd),check=True,capture_output=True,timeout=timeout).stdout.decode(errors='replace')
@@ -22,10 +23,12 @@ report={'scenario':a.scenario,'original_preserved':True,'instrumentation_passed'
 match=re.search(r'save_ms=(\d+)',result)
 if match:report['save_ms']=int(match.group(1))
 report['requested_schedule']=[a.nlm_tile,a.nlm_threads]
+report.update(parse_apk_identity(result))
 if a.cpu_profile:
  report['cpu_profile']=parse_profile(result,'cancelled' if a.scenario=='cancel' else 'saved')
  match=re.search(r'profile_base_apk_sha256=([0-9a-f]{64})\b',result)
  if not match:raise ValueError('Missing profiled base APK identity')
+ if match.group(1)!=report['base_apk_sha256']:raise ValueError('Profile APK identity mismatch')
  report['profile_base_apk_sha256']=match.group(1)
 match=re.search(r'opencv_threads=(\d+)',result)
 if match:report['opencv_threads']=int(match.group(1))

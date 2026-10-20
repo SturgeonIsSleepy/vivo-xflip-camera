@@ -4,9 +4,14 @@ import static org.junit.Assert.*;
 import android.graphics.Bitmap;
 import com.sturgeon.xflipcamera.core.ProcessingTimings;
 import java.io.InterruptedIOException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -17,6 +22,29 @@ import org.robolectric.annotation.GraphicsMode;
 @Config(sdk = 34)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public final class PhotoAdjustmentTimingTest {
+    @Rule public TemporaryFolder temporary = new TemporaryFolder();
+
+    @Test public void apkIdentityUsesExactKnownShaAndStableReadOnlyFile() throws Exception {
+        File file = temporary.newFile("synthetic-base.apk");byte[] bytes = {97,98,99};
+        Files.write(file.toPath(),bytes);
+        String expected = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+        assertEquals(expected,PhotoAdjustmentDeviceTest.apkDigest(file));
+        PhotoAdjustmentDeviceTest.verifyApk(file,expected);
+        assertArrayEquals(bytes,Files.readAllBytes(file.toPath()));
+    }
+    @Test public void changedOrMissingApkCannotPassIdentityCheck() throws Exception {
+        File file = temporary.newFile("synthetic-changing.apk");Files.write(file.toPath(),new byte[]{1,2,3});
+        String before = PhotoAdjustmentDeviceTest.apkDigest(file);Files.write(file.toPath(),new byte[]{1,2,4});
+        assertThrows(IllegalStateException.class,() -> PhotoAdjustmentDeviceTest.verifyApk(file,before));
+        Files.delete(file.toPath());
+        assertThrows(IOException.class,() -> PhotoAdjustmentDeviceTest.verifyApk(file,before));
+    }
+    @Test public void apkIdentityReadsTrailingBytesBeyondHashBuffer() throws Exception {
+        File file = temporary.newFile("synthetic-large.apk");byte[] bytes = new byte[65537];
+        java.util.Arrays.fill(bytes,(byte)7);Files.write(file.toPath(),bytes);
+        String before = PhotoAdjustmentDeviceTest.apkDigest(file);bytes[bytes.length-1]=8;Files.write(file.toPath(),bytes);
+        assertNotEquals(before,PhotoAdjustmentDeviceTest.apkDigest(file));
+    }
     @Test public void profilingPreservesIdentityAndManualLevelPixelsAndDescriptions() throws Exception {
         for (int[] limits : new int[][]{{0,255},{40,215},{120,121}}) {
             Bitmap plain = fixture(), profiled = plain.copy(Bitmap.Config.ARGB_8888,true);

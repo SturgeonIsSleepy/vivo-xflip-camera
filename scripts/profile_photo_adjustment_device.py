@@ -1,6 +1,7 @@
 """Repeat the synthetic 13MP production check; profile the final run separately via meminfo."""
 import argparse,json,re,shutil,statistics,subprocess,sys,threading,time
 from pathlib import Path
+from nlm_benchmark_contract import IDENTITY_SCOPE, require_same_base_apk
 
 p=argparse.ArgumentParser();p.add_argument('--adb',default='adb');p.add_argument('--serial',required=True)
 p.add_argument('--package',default='org.codeaurora.snapcam.lab');p.add_argument('--label',required=True)
@@ -40,6 +41,7 @@ for index in range(1,a.runs+1):
   stop.set()
   if profiled:thread.join(timeout=15)
  report=json.loads((folder/'full-edit-report.json').read_text(encoding='utf-8'));report['sampled']=profiled
+ require_same_base_apk([report],expected=apk_hash)
  if profiled:
   assert samples and not thread.is_alive(),'Memory sampler failed'
   (folder/'memory-samples.json').write_text(json.dumps(samples,indent=2),encoding='utf-8')
@@ -50,4 +52,5 @@ unsampled=[r['save_ms'] for r in results if not r['sampled']]
 summary={'label':a.label,'apk_sha256':apk_hash,'runs':results,'unprofiled_median_save_ms':statistics.median(unsampled) if unsampled else None,
  'memory_method':'dumpsys meminfo every 0.5s plus command latency, final run only; observed peaks are lower bounds, not allocation tracing; includes fixture/test setup',
  'unprofiled_runs_are_separate':True,'synthetic_only':True}
+summary['apk_identity_scope']=IDENTITY_SCOPE
 (a.output/'profile.json').write_text(json.dumps(summary,indent=2)+'\n',encoding='utf-8')

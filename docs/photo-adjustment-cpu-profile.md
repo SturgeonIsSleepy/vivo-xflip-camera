@@ -68,3 +68,22 @@ python scripts/test_photo_adjustment_device.py --serial SERIAL --scenario cancel
 测试artifact12211347189已下载：9,509bytes，SHA256 `9f571e5583df2ca5f31e9d72dc8e03f610b95734075a799fde8b9a229c9328bd` 与服务器digest一致。实际12份JUnit XML共94项，失败/错误/跳过均0；每个flavor包含PhotoAdjustmentTimingTest4项、JpegPhotoWriterTest12项，以及既有编辑器10、水印8、曝光10、行窗口3项。测试ZIP保留至2026-10-26T18:12:33Z。
 
 四APK/Lint artifact12210572376已上传，73,538,641bytes，服务器digest `ffd9beff5f00de02a5bb6426566332581ee99b7949e0f5be38b62d051439cd06`，保留至2026-10-26T18:12:35Z。未下载/安装该APK包，未声称其签名或逐字节摘要与手机实测包相同；现有Release不变。本次收尾仅更新文档，不改变已测运行时代码。
+
+## 2026-10-20 审查：逐次 APK 证据及 BAAB
+
+起始main为 `b4ddbe8c1ec1b16c013b148481471cb368e1f578`，上面的CI成功结果直接复用。本次发现基准工具只比较两个内存报告的外层APK摘要，没有检查四次计时的包身份，却写出 `same_apk=true`。在原脚本上用可控子进程报告分别注入不同摘要、缺失摘要，两项拒绝测试均实际失败于 `ValueError not raised`，退出1。测试替身隔离ADB及像素比较，证明控制逻辑缺口，不是手机出现过混包或推翻负责人10-18另有安装核验的实测。
+
+修复后每次debug/lab synthetic检查在计时前、完整检查结束后只读base.apk摘要，变化/无法读取则失败；拆分APK直接拒绝，不能以base摘要冒充全部split。所有运行均导出 `base_apk_sha256`、`apk_identity_scope=standalone_base_apk`，CPU诊断的旧 `profile_base_apk_sha256` 保留并核对一致。摘要不计入 `save_ms` / `processing_ms` / 阶段计时，但可能预热文件缓存；它不是零开销，也不是签名证明。此改变只影响测试入口，没有在普通编辑器添加摘要或CPU读取。
+
+设备脚本拒绝旧包缺回执、重复或非法摘要/scope。内存包装器核对每个内部运行与启动时shell摘要；总基准核对四次计时、两次内存运行及两份外层摘要全部一致后才生成成功汇总。带CPU profile或标记为内存采样的运行不能进入四次速度中位。历史报告原样保留，不能手工补写缺失字段当成重测；新脚本需同一已核验的新候选独立APK。
+
+额外完成 `--order BAAB`，默认仍为ABBA。A固定512/2，B调用生产默认768/4。BAAB按B-A-A-B选择目录、参数和首次输出参考，仍有四份速度样本与两份独立内存样本，不启用CPU profile。复用生成脚本和固定合成输入，每一组使用新输出目录：
+
+```sh
+python scripts/benchmark_nlm_save_device.py --serial SERIAL --order ABBA /path/to/fixtures /path/to/abba-results
+python scripts/benchmark_nlm_save_device.py --serial SERIAL --order BAAB /path/to/fixtures /path/to/baab-results
+```
+
+本地新增10项纯主机基准契约，加既有10项CPU JSON契约共20项通过；测试运行真实基准脚本的控制流，子进程、APK/JPEG和像素比较均为明确替身，不声称真实像素、采样线程或速度已验证。覆盖合法ABBA/BAAB、标签/调度/参考路径、缺失与混包、内存内外层差异、诊断/内存样本排除、摘要格式和instrumentation解析。核心66,775,080项、60文件Java语法、5份Python的py_compile、CLI帮助与git diff --check通过。本地无Gradle/ADB，新增3项Android摘要读取/变化/缓冲尾字节测试及四构建/Lint待本次实际CI。
+
+优先级保持：设备负责人先完成唯一.lab候选的编辑器快速交互/Back/重建，再对新回执跑同包合成图CPU/profile与未profile像素/取消验证；只有取得阶段样本及漂移记录后才选择最小热点优化。生产算法、预览/成片镜像、桥接、权限、版本和Release均不变，本轮未连接或安装手机。
