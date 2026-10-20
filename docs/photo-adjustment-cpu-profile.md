@@ -104,4 +104,12 @@ python scripts/benchmark_nlm_save_device.py --serial SERIAL --order BAAB /path/t
 
 正常schema1收据不变；失败收据添加固定 `diagnostic_error=clock_read_failed`，不导出异常消息或堆栈。debug入口将其写成结果错误字段而不因此中断后续合成输出复制/删除、APK及原图检查，最终运行失败；Python解析器也拒绝此字段，不把已完成的图像操作当成有效性能测量。普通编辑入口依旧不创建计时器，图像算法与768/4、h5/7/21、halo16、JPEG97都未改变。
 
-本地核心66,775,101项通过，新增21项计时故障断言；21项主机契约通过，新增拒绝失败诊断收据场景。60文件Java语法、2份Python的py_compile与git diff --check通过。本地没有Gradle/ADB，Android回归等待实际CI：完整save的六个采样边界注入RuntimeException后JPEG字节不变、发布Error原实例及取消/回滚保留、Bundle/JSON固定失败码与不暴露异常详情。主机的清理标志证明控制流可继续，实际Bitmap/Mat峰值和系统MediaStore仍待真机，不能把替身当设备验收。
+本地核心66,775,101项通过，新增21项计时故障断言；21项主机契约通过，新增拒绝失败诊断收据场景。60文件Java语法、2份Python的py_compile与git diff --check通过。本地没有Gradle/ADB；以下CI已实际执行新增Android回归：完整save的六个采样边界注入RuntimeException后JPEG字节不变、发布Error原实例及取消/回滚保留、Bundle/JSON固定失败码与不暴露异常详情。主机的清理标志证明控制流可继续，实际Bitmap/Mat峰值和系统MediaStore仍待真机，不能把替身当设备验收。
+
+### 异常隔离的远程收据
+
+源码 [8cb3604bffadc4c4d2496607fe26b400f71378bb](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/8cb3604bffadc4c4d2496607fe26b400f71378bb) 已按expected SHA/force=false推送并读回，11个变更blob/权限位匹配，194个其他原文件及权限位保留，远程仍为205文件。[CI39472794926](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39472794926) completed/success，head精确一致；66,775,101核心断言、两张历史JPEG/20,758,528完整像素及摘要、双debug各54项、四APK及四Lint通过，BUILD SUCCESSFUL in 1m15s。主机契约步骤实际执行21项通过。
+
+测试artifact12287352922实际下载，9,960bytes，SHA256 `97ca0da03d8ea12994e42ca4360ba6d7aa5e411677ffa047a14e76254593a45a` 与服务器digest相同。12份JUnit XML共108项，失败/错误/跳过均0；每flavor的JpegPhotoWriterTest15项、PhotoAdjustmentTimingTest8项，其中上述4个新方法均实际执行，另外保留曝光10、行窗口3、编辑器10和水印8项。保存回归使用真实native Bitmap/JPEG/EXIF及可控Provider、同文件FD适配，未运行设备ARM64 NLM或系统MediaStore验收。
+
+四APK/Lint artifact12288415679已上传，73,541,021bytes，服务器digest `b294f9aeb43ba740af68e11406bf19442a302d5401d38a17c2a1c803bdb0cb65`；未下载或安装，不等同手机签名/安装摘要。测试ZIP保留至2026-10-27T18:14:44Z，APK/Lint至18:14:45Z。收尾仅补文档，已测运行时代码保持不变；现有Release和手机0.4.4-lab不动，下一步沿用同签名唯一.lab设备上的交互、CPU/profile与未profile像素/取消验收，没有新提速结论。
