@@ -4,9 +4,9 @@
 
 ## 项目进度
 
-补齐[基准逐次APK证据与BAAB对照](docs/photo-adjustment-cpu-profile.md#2026-10-20-审查逐次-apk-证据及-baab)：缺失/不同包不能再生成“同包”结论，四次计时与独立内存报告全部核验；新增BAAB起始配置互换，ABBA仍为默认。主机控制流契约通过，Android结果待本轮CI；不改生产算法或安装版本。
+补齐[基准逐次APK证据与BAAB对照](docs/photo-adjustment-cpu-profile.md#2026-10-20-审查逐次-apk-证据及-baab)：缺失/不同包不能再生成“同包”结论，四次计时与独立内存报告全部核验；新增BAAB起始配置互换，ABBA仍为默认。20项主机契约、双debug共100项回归、四APK/Lint已通过，下载XML已核验；不改生产算法或手机安装版本。
 
-新增[可选CPU分阶段诊断](docs/photo-adjustment-cpu-profile.md)，显式flag复用同一拍后save/NLM路径，分列墙钟、进程CPU及调用线程CPU，普通入口不开启；保留调度、滤波和保存参数。四APK/Lint、双flavor共94项及10项主机契约测试通过，下载XML已核验。本轮没有手机CPU样本或提速结论，候选未安装。
+新增[可选CPU分阶段诊断](docs/photo-adjustment-cpu-profile.md)，显式flag复用同一拍后save/NLM路径，分列墙钟、进程CPU及调用线程CPU，普通入口不开启；保留调度、滤波和保存参数。最新候选四APK/Lint、双flavor共100项及20项主机契约测试通过，下载XML已核验。本轮没有手机CPU样本或提速结论，候选未安装。
 
 本轮新增[编辑器预览/保存审查与修复](docs/code-review-2026-10-19.md)：新参数预览未完成或失败时，原图对照不能再用旧预览开启另存；过期预览在工作线程分配位图前退出，关闭时清理尚未交付的位图。基线缺陷已由实际CI确认；修复后10项UI回归在两个flavor各通过，全量80项及四APK/Lint成功，产物已核验。候选尚未安装手机，不改变下列实测Release。
 
@@ -86,5 +86,5 @@
 
 本地已验证 EXIF 1..8 的非对称图案、像素映射和反向变换，预览/成片镜像偏好独立性，以及旧拍照回调不能解锁新拍照的生命周期保护。可运行 bash scripts/check_core.sh 复查。
 
-[最新诊断候选四APK、Lint、66,775,080核心断言及双flavor回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39300287758)已核验成功；下载测试ZIP摘要匹配，12份JUnit XML共94项，各flavor47项，失败/错误/跳过均0，主机JSON契约10项亦通过。候选未安装；当前手机仍是上述0.4.4实测Release。CameraX外屏仍黑，系统回传与Shell预览纠正、同窗口编辑已有合盖成果，不能据此视为前摄/内屏/全方向/长期耐久验收。初始化独立性、点击对焦、worker/切屏、CPU热点、Google成像及逐镜头扩展仍沿用待办。
+[最新诊断候选四APK、Lint、66,775,080核心断言及双flavor回归](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39352156975)已核验成功；下载测试ZIP摘要匹配，12份JUnit XML共100项，各flavor50项，失败/错误/跳过均0，主机契约20项亦通过。候选未安装；当前手机仍是上述0.4.4实测Release。CameraX外屏仍黑，系统回传与Shell预览纠正、同窗口编辑已有合盖成果，不能据此视为前摄/内屏/全方向/长期耐久验收。初始化独立性、点击对焦、worker/切屏、CPU热点、Google成像及逐镜头扩展仍沿用待办。
 

@@ -84,6 +84,14 @@ python scripts/benchmark_nlm_save_device.py --serial SERIAL --order ABBA /path/t
 python scripts/benchmark_nlm_save_device.py --serial SERIAL --order BAAB /path/to/fixtures /path/to/baab-results
 ```
 
-本地新增10项纯主机基准契约，加既有10项CPU JSON契约共20项通过；测试运行真实基准脚本的控制流，子进程、APK/JPEG和像素比较均为明确替身，不声称真实像素、采样线程或速度已验证。覆盖合法ABBA/BAAB、标签/调度/参考路径、缺失与混包、内存内外层差异、诊断/内存样本排除、摘要格式和instrumentation解析。核心66,775,080项、60文件Java语法、5份Python的py_compile、CLI帮助与git diff --check通过。本地无Gradle/ADB，新增3项Android摘要读取/变化/缓冲尾字节测试及四构建/Lint待本次实际CI。
+本地新增10项纯主机基准契约，加既有10项CPU JSON契约共20项通过；测试运行真实基准脚本的控制流，子进程、APK/JPEG和像素比较均为明确替身，不声称真实像素、采样线程或速度已验证。覆盖合法ABBA/BAAB、标签/调度/参考路径、缺失与混包、内存内外层差异、诊断/内存样本排除、摘要格式和instrumentation解析。核心66,775,080项、60文件Java语法、5份Python的py_compile、CLI帮助与git diff --check通过。本地无Gradle/ADB；新增3项Android摘要读取/变化/缓冲尾字节及四构建/Lint已由以下CI实际执行。
 
 优先级保持：设备负责人先完成唯一.lab候选的编辑器快速交互/Back/重建，再对新回执跑同包合成图CPU/profile与未profile像素/取消验证；只有取得阶段样本及漂移记录后才选择最小热点优化。生产算法、预览/成片镜像、桥接、权限、版本和Release均不变，本轮未连接或安装手机。
+
+### 审查修复的远程收据
+
+源码 [c915e42e1475728e4a887a53d949256c6aedd953](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/commit/c915e42e1475728e4a887a53d949256c6aedd953) 已expected SHA/force=false推送并读回，10个变更blob/权限位匹配，195个其他原文件与权限位保留。[CI39352156975](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39352156975) completed/success，head一致，66,775,080核心断言、两张历史JPEG/20,758,528完整像素及摘要、两个debug各50项、四APK及四Lint通过，BUILD SUCCESSFUL in 1m45s。主机契约步骤实际执行20项通过。
+
+测试artifact12233119768已下载：9,691bytes，SHA256 `f0de6ec5e95e6d4f3efdddddd5ddf06727e8c22bcd6bc6651c2d4be4ad0212c4` 与服务器digest一致。实际12份JUnit XML共100项，失败/错误/跳过0；每flavor的PhotoAdjustmentTimingTest共7项，其中新增已知SHA、变化/缺失、缓冲尾字节3项均实际执行。合成文件用来测试只读摘要，不是手机APK或安装验证。
+
+四APK/Lint artifact12234090040已上传，73,538,760bytes，服务器digest `93fb7a3c0d57b88cdef538505a20b8d4ad6a6a77669e39c9d7c4b83e68e01d2f`。两份artifact均保留至2026-10-27T01:14:51Z。未下载/安装APK包、不等同手机签名或安装摘要、不发布新Release；收尾仅更新文档，运行时代码保持实际CI版本。
