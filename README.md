@@ -4,6 +4,8 @@
 
 ## 项目进度
 
+晨间审查新增系统相机回传预览的显式Bitmap所有权：新预览替换旧预览时回收旧对象，过期结果、处理异常与Activity销毁也会释放未交付或已显示对象。四项native Bitmap回归已定义；不改拍摄、保存、算法参数或手机安装版本，完整Android回归待CI。
+
 新增[可选计时回调异常隔离](docs/photo-adjustment-cpu-profile.md#2026-10-21-计时回调异常隔离)：采样RuntimeException不再从计时标记覆盖原始处理错误，失败诊断显式拒绝。故障已在原核心复现，修复后双debug共108项回归、21项主机契约、四APK/Lint通过，下载XML已核验；算法参数和手机安装版本不变。
 
 补齐[基准逐次APK证据与BAAB对照](docs/photo-adjustment-cpu-profile.md#2026-10-20-审查逐次-apk-证据及-baab)：缺失/不同包不能再生成“同包”结论，四次计时与独立内存报告全部核验；新增BAAB起始配置互换，ABBA仍为默认。20项主机契约、双debug共100项回归、四APK/Lint已通过，下载XML已核验；不改生产算法或手机安装版本。

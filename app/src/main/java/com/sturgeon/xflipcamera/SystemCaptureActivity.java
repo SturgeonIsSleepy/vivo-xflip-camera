@@ -53,6 +53,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     private static final int CAMERA_REQUEST = 4102;
     private Uri originalPhoto;
     private FrameLayout root;
+    private final PreviewBitmapOwner previewBitmaps = new PreviewBitmapOwner();
     private PhotoEditor editor;
     private Uri editorSource;
     private static SystemCaptureActivity active;
@@ -372,8 +373,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
         updateControls();
         reader.execute(() -> {
             boolean originalPublished = false;
+            android.graphics.Bitmap bitmap = null;
             try {
-                android.graphics.Bitmap bitmap = null;
                 if (video) {
                     try (MediaMetadataRetriever metadata = new MediaMetadataRetriever()) {
                         metadata.setDataSource(this, saved);
@@ -455,12 +456,16 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     }
                 }
                 android.graphics.Bitmap preview = bitmap;
+                bitmap = null; // Ownership transfers to the main-thread callback.
                 Uri savedOutput = displayed;
                 boolean watermarked = marked;
                 boolean watermarkFailed = markFailed;
                 String burstStatus = fusionMessage;
                 runOnUiThread(() -> {
-                    if (isDestroyed() || !java.util.Objects.equals(sourceCache, photo) || !destination.equals(output)) return;
+                    if (isDestroyed() || !java.util.Objects.equals(sourceCache, photo) || !destination.equals(output)) {
+                        previewBitmaps.discard(preview);
+                        return;
+                    }
                     output = savedOutput;
                     if (newPhoto) originalPhoto = video ? null : destination;
                     lastSaved = output;
@@ -471,7 +476,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     pending = false;
                     reading = false;
                     updateControls();
-                    image.setImageBitmap(preview);
+                    previewBitmaps.show(image,preview);
                     image.setVisibility(android.view.View.VISIBLE);
                     if (collectBurst && burstInputs.size() < 3) {
                         burstFrames.clear(); burstFrames.addAll(burstInputs);
@@ -512,6 +517,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
                         status.setText("媒体读取失败：" + failure.getClass().getSimpleName());
                     }
                 });
+            } finally {
+                if (bitmap != null && !bitmap.isRecycled()) bitmap.recycle();
             }
         });
     }
@@ -585,6 +592,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
         processingCancelled.set(true);
         main.removeCallbacks(workerTimeout);
         player.stopPlayback();
+        previewBitmaps.close(image);
         if (stabilization != null) stabilization.cancel();
         if (isFinishing()) stopService(new Intent(this, PreviewMirrorService.class));
         reader.shutdown();

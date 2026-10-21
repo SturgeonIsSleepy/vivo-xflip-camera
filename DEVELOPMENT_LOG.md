@@ -505,3 +505,12 @@
 - 日期按Asia/Shanghai为2026-10-21；复用2026缓存，2027未到11-01检查点，不重搜、不改任何日程；本任务不受晨间休息日规则限制。模型/推理强度无法核实，剩余额度无法读取，未收到限额信号，不编造余额或型号。
 - 远程实际确认：源码8cb3604bffadc4c4d2496607fe26b400f71378bb以expected main SHA/force=false推送并读回，11个变更blob/权限位匹配，194个其他原文件及权限位保留，205文件不增不减。CI https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39472794926 completed/success且head精确匹配，日志确认66,775,101核心断言、两张历史JPEG/20,758,528完整像素与哈希、双debug各54项、四APK/Lint，BUILD SUCCESSFUL in 1m15s；主机契约21项通过。
 - 实际下载测试artifact12287352922 / 9,960bytes，SHA256 97ca0da03d8ea12994e42ca4360ba6d7aa5e411677ffa047a14e76254593a45a与服务器digest匹配；12XML共108项，失败/错误/跳过0。每flavor的JpegPhotoWriterTest15项、PhotoAdjustmentTimingTest8项，4个新方法各实际执行两次；原曝光10/行窗口3/编辑器10/水印8项各flavor保持。APK/Lint artifact12288415679 / 73,541,021bytes / 服务器digest b294f9aeb43ba740af68e11406bf19442a302d5401d38a17c2a1c803bdb0cb65已上传，未下载/安装，不等同手机签名或安装摘要。测试ZIP至2026-10-27T18:14:44Z，APK/Lint至18:14:45Z。收尾仅补文档，不改变已测代码或重复构建；现有Release/手机版本不动，真实设备CPU/像素/取消及交互验收仍待上述条件。
+
+## 2026-10-21｜晨间审查系统回传预览Bitmap生命周期
+
+- 起始提交：7c0d587c1112a6831e76bbd41f0984adbac79e7c。Asia/Shanghai当天为周三且不在2026已核查假期范围；GitHub身份SturgeonIsSleepy、Public/main及admin/push/pull确认。读取README/AGENTS、近期日志、技术基线、两项任务与工作日缓存，比较上次晨检后的两个提交并复核凌晨计时隔离代码、CI39472794926及测试收据；CI无失败，计时RuntimeException不会改生产入口、成像参数或普通保存结果，未重复修复。
+- 审查发现：SystemCaptureActivity的回传预览直接交给ImageView，过期/销毁回调提前返回时不回收新Bitmap，读取/发布/后处理异常时已解码Bitmap也无finally回收；后续成功预览替换旧Drawable时旧Bitmap未显式释放。静态所有权路径可从唯一setImageBitmap调用及异常/早退分支复现，属于Activity生命周期内的可累积native图形内存问题；未声称已在X Flip测得OOM或峰值。
+- 修复：新增主线程PreviewBitmapOwner，只有当前ImageView预览保持所有权；替换时清除旧引用并回收旧Bitmap，过期worker结果立即丢弃，Activity销毁清空Drawable并幂等回收。showPhoto的工作Bitmap用finally覆盖解码后任意Exception路径，成功时显式转交主线程；页面/source已失效时主线程回收而不展示。保留原媒体发布、原图/增强/水印选择、播放、保存和错误提示顺序，不改CameraX/系统相机入口、镜像、EXIF、NLM 768/4与h5/7/21、JPEG97、版本/权限/桥接或Release。
+- 新增PreviewBitmapOwnerTest四项native Bitmap定义：替换仅回收旧图、过期结果不影响当前图、close清空Drawable且幂等回收、已回收对象不能取得显示所有权。当前本地bash scripts/check_core.sh通过66,775,101项，21项Python主机契约、62文件Java语法及git diff --check通过；本地无Gradle/ADB，新增Android测试及双debug/四APK/Lint等待真实CI，语法检查不等于Android类型解析或Activity真机验证。
+- 待办：[ ] 核验本轮双debug/四APK/Lint及下载测试XML；[ ] 已授权同签名唯一.lab候选完成快速滑动/原图对照/Back/实际重建及同包CPU/未profile像素/取消验收。前者由CI解除，后者需X Flip在线和同签名候选；本次所有权测试只验证native Bitmap/控件状态，不冒称MediaStore、系统相机Activity或设备内存峰值验收。
+- 2027工作日公告仍未到11-01检查点，不重搜或改日程；凌晨任务继续适用于所有自然日。模型实际为平台显示的gpt-5.6-sol-wm，推理强度无法核实；剩余额度无法读取，未收到限额信号。
