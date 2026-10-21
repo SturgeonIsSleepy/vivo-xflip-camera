@@ -26,6 +26,8 @@ import android.widget.CheckBox;
 import androidx.activity.ComponentActivity;
 import androidx.core.content.FileProvider;
 
+import com.sturgeon.xflipcamera.core.MediaPreviewRestore;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -258,7 +260,16 @@ public final class SystemCaptureActivity extends ComponentActivity {
             originalPhoto = original == null ? null : Uri.parse(original);
             edited = savedInstanceState.getBoolean("edited");
             mirrorPreview.setChecked(BuildConfig.BASIC_CAPTURE || savedInstanceState.getBoolean("mirror_preview"));
-            if (photo != null && (!pending || reading)) showPhoto();
+            Uri restoredPreview = MediaPreviewRestore.source(pending, reading, photo, output);
+            if (restoredPreview != null) showPhoto();
+            else if (reading) {
+                reading = false;
+                if (pending) {
+                    pending = false;
+                    discardPendingPhoto();
+                }
+                status.setText("媒体预览状态已失效，可重新拍摄");
+            }
         }
         updateControls();
         String latest = getSharedPreferences("system_capture", MODE_PRIVATE).getString("last_saved", null);
