@@ -516,3 +516,15 @@
 - 2027工作日公告仍未到11-01检查点，不重搜或改日程；凌晨任务继续适用于所有自然日。模型实际为平台显示的gpt-5.6-sol-wm，推理强度无法核实；剩余额度无法读取，未收到限额信号。
 - 远程实际确认：源码f3e0d7debc78b293073306632208ae505d55b1e6以expected main SHA/force=false推送并读回；5个本轮条目blob/权限位匹配，202个原文件及权限位保持，新增两文件后远程共207文件。CI https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39524954685 completed/success且head精确匹配，日志确认66,775,101核心断言、两张历史JPEG/20,758,528完整像素及哈希、双debug各58项、四APK/Lint，主Gradle BUILD SUCCESSFUL in 1m46s；21项主机契约另行实际通过。
 - 实际下载测试artifact12313665069 / 11,257bytes，SHA256 11103ca005f1901046068dd3babbc26e8912127c2f80bab0d48cb57231a4152b与服务器digest匹配；14XML共116项，失败/错误/跳过0，PreviewBitmapOwnerTest四方法在两个flavor各执行。APK/Lint artifact12312870419 / 73,541,643bytes / 服务器digest 38f5189f05b696ee556982e689b9e15080738be5ef6e00b481fa289928011a2d已上传，未下载/安装，不等同手机签名或安装摘要；两产物保留至2026-10-28T01:04:44Z。收尾只补文档，不改变已测源码或重复构建，真实Activity重建与内存效果继续等待设备。
+
+## 2026-10-22｜修复已发布预览的Activity重建锁定
+
+- 起始提交：5e5148fcab613ec918312145e13aef0a9f5cad55。确认GitHub连接身份SturgeonIsSleepy、仓库Public/main及admin/push/pull权限；从该远程提交核对README、AGENTS、近期日志/待办、技术基线、两项任务、工作日缓存、最新CI与Issue1交接。复用前一轮Bitmap所有权修复，不重复处理同一路径。Issue1评论6323027426先声明本轮文件范围。
+- 可复现缺陷：`SystemCaptureActivity`恢复时统一要求`photo != null`才调用`showPhoto()`。当`pending=false`、`reading=true`、私有缓存`photo=null`且已发布或编辑结果`output!=null`时，正确读取源应为`output`，旧条件却不提交读取，同时保留`reading=true`，使拍照、录像、编辑和镜像控件持续禁用。该状态可由已保存输出或编辑输出读取期间的Activity重建形成；这是确定性状态路径，不声称已经在X Flip现场复现。
+- 修复：新增纯Java `MediaPreviewRestore`，OEM拍摄仍在前台且未回传时不读取；待发布结果处理只选私有捕获文件；已发布/编辑媒体只选MediaStore输出，不再依赖旧缓存。恢复的`reading`状态若没有对应来源，会解除读取；仍处于待发布状态时删除无法继续的缓存和MediaStore占位，避免残留半成品。SystemCaptureActivity接入同一决策。预览Bitmap所有权、媒体字节、发布成功路径及拍摄顺序保持不变。
+- 新增6项状态真值表断言，覆盖OEM未返回、待发布读取、禁止回退到半发布输出、`photo=null`的output-only恢复、拒绝陈旧缓存和缺失输出。本地`bash scripts/check_core.sh`在JDK17/`--release 17`/`-Xlint:all`/`-Werror`下通过66,775,107项；64个Java文件语法、21项Python主机契约、5份Python `py_compile`及`git diff --check`通过。本地没有Gradle/Android SDK/ADB，未在本地做Android类型解析、APK构建或手机测试。
+- 源码提交4382196b96ec80c847b82b29b2578c2efaa649fa以expected main SHA/force=false推送并读回，4个变更blob/权限位一致。CI https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39649840276 completed/success且head精确匹配；日志确认66,775,107核心断言、历史两张JPEG的20,758,528完整像素及哈希、双debug各58项、四APK/Lint，BUILD SUCCESSFUL in 1m43s；21项主机契约另行通过。
+- 下载测试artifact12369755295 / 11,261bytes，SHA256 59af46a643cca217b67bc2ce3ba3425b5f7f0485dad202bc890b3db54631ca9b与服务器digest匹配；14份JUnit XML共116项，失败/错误/跳过均0。APK/Lint artifact12368279551 / 73,543,231bytes / digest 9d7272d0bbdcc6509a01f2b8eafcf4e42d1e3267adccf75630d7464565603c31已上传但未下载、安装或与手机签名等同；两项保留至2026-10-28T18:09:21Z/18:09:22Z。
+- 变更边界：不改拍摄、媒体内容/成功发布、镜像/EXIF、NLM 768/4及h5/7/21、JPEG97、版本/依赖/Manifest/权限/桥接/Release；手机仍为既有0.4.4-lab/30。本轮无设备，不把纯状态回归称作真实Activity重建或内存验收，也没有Google专有算法变更。
+- 待办按优先级复用并细化：P0在授权X Flip上以同签名唯一.lab候选验证output-only读取期间真实Activity重建，验收预览恢复、控件可用且无重复输出；同时完成快速滑动/原图对照/Back。P1同一APK完成CPU profile/unprofile像素、原图及取消，并记录ABBA/BAAB热漂移后只选一个最高占比热点。P2继续worker/Surface、跨场景质量及前后摄/方向矩阵。解除P0/P1阻塞需设备在线与同签名候选；缺设备只暂停这些实测。
+- Asia/Shanghai日期为2026-10-22，本凌晨任务适用于所有自然日；2027工作日表尚未到11-01复查点，不搜索或修改任何日程。平台实际模型为gpt-5.6-sol-wm，未提供可核实的推理强度；剩余额度无法读取，未收到限额信号。
