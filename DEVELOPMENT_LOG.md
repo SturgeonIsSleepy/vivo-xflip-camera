@@ -538,3 +538,12 @@
 - 计划与阻塞：P0 仍是在已授权 X Flip 上用同签名 `.lab` 候选验证正常 output-only 与损坏待发布状态的真实 Activity 重建，验收控件恢复、占位清理且无重复输出；同时完成快速滑动/原图对照/Back。P1 复用 CPU profile/unprofile、取消、ABBA/BAAB 热漂移计划；P2 继续 worker/Surface、跨场景质量和前后摄/方向矩阵。真机项需设备在线及同签名候选，缺设备只暂停这些验收。
 - 2027 工作日公告仍未到 `2026-11-01` 复查点，未搜索或修改日程；每天 02:00 的任务范围不受晨间工作日规则影响。模型/推理强度无法核实；剩余额度无法读取，未收到限额信号。
 - 远程收据：源码提交 `d56ed86cc05df949e670cbcc5d95001a71bdd605` 以 `expected_sha=f5a91ac...`、`force=false` 推送并读回，三个变更 blob 与权限位匹配。CI [39703594904](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39703594904) 为 `completed/success` 且 head 精确匹配；日志确认 66,775,108 项核心断言、四种 APK/Lint、21 项主机契约及主 Gradle `BUILD SUCCESSFUL in 1m 43s`。下载测试 artifact `12393198442` 为 11,266 bytes，SHA-256 `ea07ec5e9331d3489979f1d898048af6691ebc378e6b267fd4af72ef4627ad48` 与服务器 digest 一致；14 份 XML 共 116 项，两个 debug 各 58 项，失败/错误/跳过均为 0。APK/Lint artifact `12394440263` 为 73,543,237 bytes，digest `38ba3ca3f9f9146b2c004bd9f0850b478912aa79e2040dcc08797a7a56a14e71`，仅确认已上传，未下载、安装或执行 X Flip 真机验收。
+
+## 2026-10-23｜隔离系统相机回传失败后的清理异常
+
+- 起始提交：`ef50433820c821642464ab354fae0711e861057d`。确认 GitHub 身份 `SturgeonIsSleepy`、Public/main 与 admin/push/pull 权限，从该远程树读取项目规则、近期日志、技术基线和两项任务；最新 CI 无失败。Asia/Shanghai 当天为本凌晨任务的正常执行日；2027 工作日公告未到 `2026-11-01` 复查点，不搜索或修改日程。
+- 确认缺陷：`SystemCaptureActivity.showPhoto()` 在读取、复制或发布失败后直接连续删除 MediaStore 目标和私有回传文件。首个删除只要抛出 `RuntimeException` 或 `Error`，第二个清理及后续主线程状态解锁都不会执行，并由清理异常覆盖原始失败，可能使 `reading/pending` 与拍摄控件保持锁定。此结论来自确定性控制流和故障注入，不声称已在 X Flip 真机触发。
+- 修复：把 `PendingMediaWrite` 已有的“保留主故障、清理故障作为 suppressed 诊断、自抑制防护”提取为公开的单次清理接口，原媒体写入回滚复用同一实现。系统相机失败路径分别调用两次，因此前一删除失败不会阻止后一删除或主线程解锁调度；不吞掉原始读取/复制/发布失败。成功发布、媒体字节、镜像/EXIF、成像参数、版本、依赖、Manifest、权限、桥接和 Release 均未改变。
+- 新增 3 项核心断言，覆盖首个清理抛 `Error` 后继续下一清理、多个清理失败按调用顺序保留、提供者复用同一异常实例时不自抑制。`bash scripts/check_core.sh` 在 JDK 17、`--release 17`、`-Xlint:all`、`-Werror` 下通过 66,775,111 项；`java scripts/ParseJava.java` 通过 64 个 Java 文件语法；21 项 Python 主机契约、全部 Python `py_compile` 和差异空白检查通过。本地无 Gradle/Android SDK/ADB，未在本地执行 Android 类型解析、APK 构建或设备测试。
+- 待办：[x] 清理故障隔离及纯 Java 故障注入；[ ] 本轮双 debug、四 APK/Lint 与测试 artifact 核验；[ ] 已授权 X Flip 上使用同签名唯一 `.lab` 候选验证读取/发布失败时控件解锁、占位与缓存清理，并完成 output-only 重建、快速滑动、原图对照和 Back；[ ] 同一 APK 继续 CPU profile/unprofile 像素、取消和 ABBA/BAAB 漂移验收。真机项需设备在线与同签名候选；worker/Surface、跨场景质量及前后摄/方向矩阵沿用既有待办。
+- Google Camera 合法集成边界未改变，不含 Google 专有代码、算法或二进制。模型/推理强度无法核实；剩余额度无法读取，未收到限额信号。

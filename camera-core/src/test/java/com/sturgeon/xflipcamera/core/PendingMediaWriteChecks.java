@@ -16,6 +16,7 @@ public final class PendingMediaWriteChecks {
         cleanupFailurePreservesThePrimaryFailure();
         errorsRollBackAndRethrowTheSameInstance();
         cleanupErrorsCannotReplaceThePrimaryFailure();
+        independentCleanupFailuresDoNotStopLaterCleanup();
         return assertions;
     }
 
@@ -143,6 +144,31 @@ public final class PendingMediaWriteChecks {
         reused.writeFailure = same; reused.deleteFailure = same;
         check(failure(reused) == same && same.getSuppressed().length == 0, "Error cannot self-suppress");
         preserved(reused);
+    }
+
+    private static void independentCleanupFailuresDoNotStopLaterCleanup() {
+        IOException primary = new IOException("media read");
+        AssertionError firstCleanup = new AssertionError("destination delete");
+        IOException thirdCleanup = new IOException("saved delete");
+        int[] calls = {0};
+        PendingMediaWrite.cleanupPreserving(primary, () -> {
+            calls[0]++;
+            throw firstCleanup;
+        });
+        PendingMediaWrite.cleanupPreserving(primary, () -> calls[0]++);
+        PendingMediaWrite.cleanupPreserving(primary, () -> {
+            calls[0]++;
+            throw thirdCleanup;
+        });
+        check(calls[0] == 3, "A failed cleanup cannot stop later independent cleanup");
+        check(primary.getSuppressed().length == 2
+                        && primary.getSuppressed()[0] == firstCleanup
+                        && primary.getSuppressed()[1] == thirdCleanup,
+                "Independent cleanup failures retain their order on the primary failure");
+
+        Error reused = new AssertionError("provider reused primary");
+        PendingMediaWrite.cleanupPreserving(reused, () -> { throw reused; });
+        check(reused.getSuppressed().length == 0, "Independent cleanup cannot self-suppress");
     }
 
     private static void rolledBack(Store store) {

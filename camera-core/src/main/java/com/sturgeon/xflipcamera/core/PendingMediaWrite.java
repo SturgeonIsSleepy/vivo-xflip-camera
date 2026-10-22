@@ -7,6 +7,11 @@ import java.util.Objects;
 public final class PendingMediaWrite {
     private PendingMediaWrite() { }
 
+    @FunctionalInterface
+    public interface Cleanup {
+        void run() throws IOException;
+    }
+
     public interface Storage<T> {
         /** Returns a newly created pending item, never a previously saved/source item. */
         T insertPending() throws IOException;
@@ -28,16 +33,23 @@ public final class PendingMediaWrite {
             if (rows != 1) throw new IOException("Media publish expected one row, updated " + rows);
             return output;
         } catch (IOException | RuntimeException | Error failure) {
-            try {
-                storage.deletePending(output);
-            } catch (IOException | RuntimeException | Error cleanup) {
-                // A broken provider may reuse the same exception instance; do not self-suppress.
-                if (cleanup != failure) {
-                    try { failure.addSuppressed(cleanup); }
-                    catch (OutOfMemoryError unavailable) { /* Diagnostics cannot replace the original failure. */ }
-                }
-            }
+            cleanupPreserving(failure, () -> storage.deletePending(output));
             throw failure;
+        }
+    }
+
+    /** Runs one best-effort cleanup without replacing the failure that made cleanup necessary. */
+    public static void cleanupPreserving(Throwable failure, Cleanup cleanup) {
+        Objects.requireNonNull(failure, "failure");
+        Objects.requireNonNull(cleanup, "cleanup");
+        try {
+            cleanup.run();
+        } catch (IOException | RuntimeException | Error cleanupFailure) {
+            // A broken provider may reuse the same exception instance; do not self-suppress.
+            if (cleanupFailure != failure) {
+                try { failure.addSuppressed(cleanupFailure); }
+                catch (OutOfMemoryError unavailable) { /* Diagnostics cannot replace the original failure. */ }
+            }
         }
     }
 }

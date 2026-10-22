@@ -27,6 +27,7 @@ import androidx.activity.ComponentActivity;
 import androidx.core.content.FileProvider;
 
 import com.sturgeon.xflipcamera.core.MediaPreviewRestore;
+import com.sturgeon.xflipcamera.core.PendingMediaWrite;
 
 import java.io.File;
 import java.io.InputStream;
@@ -513,8 +514,10 @@ public final class SystemCaptureActivity extends ComponentActivity {
                 });
             } catch (Exception failure) {
                 if (newPhoto && !originalPublished) {
-                    getContentResolver().delete(destination, null, null);
-                    getContentResolver().delete(saved, null, null);
+                    PendingMediaWrite.cleanupPreserving(failure,
+                            () -> getContentResolver().delete(destination, null, null));
+                    PendingMediaWrite.cleanupPreserving(failure,
+                            () -> getContentResolver().delete(saved, null, null));
                 }
                 runOnUiThread(() -> {
                     if (!isDestroyed() && java.util.Objects.equals(sourceCache, photo) && destination.equals(output)) {
