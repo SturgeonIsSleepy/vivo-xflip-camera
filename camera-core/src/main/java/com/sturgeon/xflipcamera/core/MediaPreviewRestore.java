@@ -6,11 +6,12 @@ public final class MediaPreviewRestore {
 
     /**
      * While the OEM capture is still open, no preview may be read. Once its result is being
-     * processed, the private capture file is the source. Published or edited media uses the
+     * processed, the private capture file is the source, but its MediaStore destination must
+     * also exist because the worker publishes into it. Published or edited media uses the
      * MediaStore output and must not depend on the private capture file still being present.
      */
     public static <T> T source(boolean pending, boolean reading, T captureFile, T publishedOutput) {
-        if (pending) return reading ? captureFile : null;
+        if (pending) return reading && publishedOutput != null ? captureFile : null;
         return publishedOutput;
     }
 }

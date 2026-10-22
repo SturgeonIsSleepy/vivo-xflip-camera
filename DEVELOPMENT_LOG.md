@@ -528,3 +528,12 @@
 - 变更边界：不改拍摄、媒体内容/成功发布、镜像/EXIF、NLM 768/4及h5/7/21、JPEG97、版本/依赖/Manifest/权限/桥接/Release；手机仍为既有0.4.4-lab/30。本轮无设备，不把纯状态回归称作真实Activity重建或内存验收，也没有Google专有算法变更。
 - 待办按优先级复用并细化：P0在授权X Flip上以同签名唯一.lab候选验证output-only读取期间真实Activity重建，验收预览恢复、控件可用且无重复输出；同时完成快速滑动/原图对照/Back。P1同一APK完成CPU profile/unprofile像素、原图及取消，并记录ABBA/BAAB热漂移后只选一个最高占比热点。P2继续worker/Surface、跨场景质量及前后摄/方向矩阵。解除P0/P1阻塞需设备在线与同签名候选；缺设备只暂停这些实测。
 - Asia/Shanghai日期为2026-10-22，本凌晨任务适用于所有自然日；2027工作日表尚未到11-01复查点，不搜索或修改任何日程。平台实际模型为gpt-5.6-sol-wm，未提供可核实的推理强度；剩余额度无法读取，未收到限额信号。
+
+## 2026-10-22｜晨间审查补齐待发布恢复目标门禁
+
+- 起始提交：`f5a91acadc10c4a7117ddef2d37770f1baa7bbe0`。按 Asia/Shanghai 与已核查缓存确认当天为工作日；GitHub 身份 `SturgeonIsSleepy`、Public/main 与写权限正常。比较上次晨检 `5e5148fc` 至起始提交的两项凌晨提交，复核新 `MediaPreviewRestore`、`SystemCaptureActivity` 接入及成功 CI `39649840276`，没有重复处理已修复的 output-only 恢复。
+- 确认缺陷：待发布恢复原先只要求 `reading=true` 且私有捕获 URI 非空，未要求后续复制和发布必需的 MediaStore 目标 URI。状态为 `pending=true, reading=true, photo!=null, output=null` 时，选择器会启动后台处理；复制/清理随后使用空目标，可能使读取与拍摄控件再次锁定。此为确定性状态路径审查，不声称已在 X Flip 真机复现。
+- 修复：待发布恢复现在同时要求私有捕获与 MediaStore 目标存在；缺任一项即走已有失效状态处理，解除读取状态并清理可识别的占位。已发布/编辑输出、正常待发布流程、媒体字节、镜像/EXIF、NLM 参数、版本、权限和桥接均不变。新增一项纯 Java 真值表回归，覆盖“有捕获文件但无发布目标”的拒绝路径。
+- 本地验证：`bash scripts/check_core.sh` 在 JDK 17、`--release 17`、`-Xlint:all`、`-Werror` 下通过 66,775,108 项；`java scripts/ParseJava.java` 通过 64 个 Java 文件语法检查；21 项 Python 主机契约、全部 Python `py_compile` 与 `git diff --check` 通过。语法检查不代表 Android 类型解析；本地无 Gradle/Android SDK/ADB，未构建 APK 或执行设备测试。
+- 计划与阻塞：P0 仍是在已授权 X Flip 上用同签名 `.lab` 候选验证正常 output-only 与损坏待发布状态的真实 Activity 重建，验收控件恢复、占位清理且无重复输出；同时完成快速滑动/原图对照/Back。P1 复用 CPU profile/unprofile、取消、ABBA/BAAB 热漂移计划；P2 继续 worker/Surface、跨场景质量和前后摄/方向矩阵。真机项需设备在线及同签名候选，缺设备只暂停这些验收。
+- 2027 工作日公告仍未到 `2026-11-01` 复查点，未搜索或修改日程；每天 02:00 的任务范围不受晨间工作日规则影响。模型/推理强度无法核实；剩余额度无法读取，未收到限额信号。源码 CI 与远程提交结果待本条后续收据补齐。

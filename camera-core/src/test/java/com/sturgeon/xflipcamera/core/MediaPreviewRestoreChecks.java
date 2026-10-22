@@ -18,6 +18,9 @@ final class MediaPreviewRestoreChecks {
         check(MediaPreviewRestore.source(true, true, null, output) == null,
                 "A pending result cannot fall back to a half-published output");
         checks++;
+        check(MediaPreviewRestore.source(true, true, capture, null) == null,
+                "A pending result without its MediaStore destination cannot be processed");
+        checks++;
         check(MediaPreviewRestore.source(false, true, null, output) == output,
                 "An output-only read survives Activity recreation without a capture file");
         checks++;
