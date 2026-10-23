@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 
 /** The OEM app owns camera access; this activity owns the returned photo. */
 public final class SystemCaptureActivity extends ComponentActivity {
+    private static final String TAG = "XFlipSystemCapture";
     private final ExecutorService reader = Executors.newSingleThreadExecutor();
     private Uri photo;
     private Uri output;
@@ -85,7 +86,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
         if (request != CAMERA_REQUEST) return;
-        Log.i("XFlipSystemCapture", "result_code=" + result);
+        Log.i(TAG, "result_code=" + result);
         PreviewMirrorService.stopForResult(this, () -> {
             if (isDestroyed()) return;
             if (requestedMode != null) {
@@ -329,8 +330,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
         values.put(MediaStore.Images.Media.MIME_TYPE, video ? "video/mp4" : "image/jpeg");
         values.put(MediaStore.Images.Media.RELATIVE_PATH, video ? "Movies/XFlipCamera" : "Pictures/XFlipCamera");
         values.put(MediaStore.Images.Media.IS_PENDING, 1);
-        if (photo != null) getContentResolver().delete(photo, null, null);
-        photo = null;
+        discardCaptureCache();
         output = null;
         try {
             File directory = new File(getCacheDir(), "system-camera");
@@ -362,7 +362,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
         } catch (RuntimeException failure) {
             stopService(new Intent(this, PreviewMirrorService.class));
             pending = false;
-            discardPendingPhoto();
+            discardPendingPhoto(failure);
+            Log.w(TAG, "capture_start_failed", failure);
             updateControls();
             status.setText("系统相机启动失败：" + failure.getClass().getSimpleName());
         }
@@ -464,7 +465,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                         marked = true;
                     } catch (Exception failure) {
                         markFailed = true;
-                        Log.w("XFlipSystemCapture", "watermark_failed_original_preserved", failure);
+                        Log.w(TAG, "watermark_failed_original_preserved", failure);
                     }
                 }
                 android.graphics.Bitmap preview = bitmap;
@@ -519,6 +520,7 @@ public final class SystemCaptureActivity extends ComponentActivity {
                     PendingMediaWrite.cleanupPreserving(failure,
                             () -> getContentResolver().delete(saved, null, null));
                 }
+                Log.w(TAG, "media_read_failed", failure);
                 runOnUiThread(() -> {
                     if (!isDestroyed() && java.util.Objects.equals(sourceCache, photo) && destination.equals(output)) {
                         if (newPhoto) {
@@ -575,11 +577,42 @@ public final class SystemCaptureActivity extends ComponentActivity {
         mirrorPreview.setEnabled(!pending && !editing && !reading);
     }
 
-    private void discardPendingPhoto() {
-        if (photo != null) getContentResolver().delete(photo, null, null);
-        if (output != null) getContentResolver().delete(output, null, null);
+    void discardPendingPhoto() {
+        IllegalStateException cleanup = new IllegalStateException("Pending media cleanup failed");
+        discardPendingPhoto(cleanup);
+        reportCleanup("discard_pending_failed", cleanup);
+    }
+
+    private void discardPendingPhoto(Throwable failure) {
+        Uri discardedPhoto = photo;
+        Uri discardedOutput = output;
         photo = null;
         output = null;
+        cleanupOwnedMedia(failure, discardedPhoto, discardedOutput);
+    }
+
+    private void discardCaptureCache() {
+        Uri discardedPhoto = photo;
+        photo = null;
+        IllegalStateException cleanup = new IllegalStateException("Capture cache cleanup failed");
+        cleanupOwnedMedia(cleanup, discardedPhoto);
+        reportCleanup("discard_capture_cache_failed", cleanup);
+    }
+
+    private void cleanupOwnedMedia(Throwable failure, Uri... owned) {
+        for (Uri item : owned) if (item != null) {
+            PendingMediaWrite.cleanupPreserving(failure,
+                    () -> getContentResolver().delete(item, null, null));
+        }
+    }
+
+    private static void reportCleanup(String event, Throwable failure) {
+        Throwable[] cleanupFailures = failure.getSuppressed();
+        if (cleanupFailures.length == 0) return;
+        Log.w(TAG, event, failure);
+        for (Throwable cleanup : cleanupFailures) {
+            if (cleanup instanceof Error) throw (Error) cleanup;
+        }
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
@@ -610,9 +643,8 @@ public final class SystemCaptureActivity extends ComponentActivity {
         if (stabilization != null) stabilization.cancel();
         if (isFinishing()) stopService(new Intent(this, PreviewMirrorService.class));
         reader.shutdown();
-        if (isFinishing() && !pending && photo != null) {
-            getContentResolver().delete(photo, null, null);
-        }
-        super.onDestroy();
+        try {
+            if (isFinishing() && !pending) discardCaptureCache();
+        } finally { super.onDestroy(); }
     }
 }
