@@ -560,3 +560,13 @@
 - 待办：[x] 取消、模式切换、无效恢复、启动失败、新拍摄和退出的清理隔离；[x] 读回本轮双 debug、四 APK/Lint 及新增 Robolectric 两项的测试 artifact；[ ] 已授权 X Flip 上使用同签名唯一 `.lab` 候选验证取消、启动失败、读取/发布失败时控件解锁及占位/缓存清理，并完成 output-only 重建、快速滑动、原图对照和 Back；[ ] 同一 APK 继续 CPU profile/unprofile 像素、取消及 ABBA/BAAB 漂移验收。真机项的解除条件仍是设备在线与同签名候选；worker/Surface、跨场景质量、前后摄/方向矩阵沿用既有规划。
 - Google Camera 合法集成边界未改变，不含 Google 专有代码、算法或二进制。模型/推理强度无法核实；剩余额度无法读取，未收到限额信号。
 - 远程收据：源码提交 `ec47a8f255585989eb234be69e7152eac0b986d8` 以 `expected_sha=aaf93c2...`、`force=false` 推送并读回，三个变更 blob、模式和提交树一致。CI [39882196565](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/39882196565) 为 `completed/success` 且 head 精确匹配；实际日志确认 66,775,111 项核心断言、历史两张 JPEG 的 20,758,528 个完整像素及哈希、两个 debug 单元测试、四种 APK/Lint、21 项主机契约和主 Gradle `BUILD SUCCESSFUL in 1m 53s`。下载测试 artifact `12471111857` 为 12,492 bytes，SHA-256 `fadf80e0a660dbdc366f7c4fc42f24c24fa292b6fb84347c6aa85cacf454f4e0` 与服务器 digest 一致且 ZIP 完整；16 份 XML 共 120 项，两个 flavor 各 60 项，失败/错误/跳过均为 0，`SystemCaptureCleanupTest` 两个方法在每个 flavor 各执行一次。APK/Lint artifact `12470219470` 为 73,546,747 bytes，digest `50788a03d1b80fceb355ffa44e9a97a699fe781b439c9ec92c7107d91d41ca17`，仅确认已上传，未下载、安装或执行 X Flip 真机验收；两项产物保留至 2026-10-30。
+
+## 2026-10-24｜隔离视频发布与退出竞态的清理异常
+
+- 起始提交：`27326660ef9ab46ad9b6e36487ef931107eab978`。确认 GitHub 身份 `SturgeonIsSleepy`、仓库 Public/main 与 push 权限，从该远程提交重新克隆并读取项目规则、近期日志、技术基线、两项任务、构建说明及相关源码。当天为周六，本凌晨任务按自然日正常执行；2027 工作日公告未到 `2026-11-01` 复查点，不搜索公告或修改任何日程。
+- 确认缺陷：`VideoStabilizer` 把已成功发布的 MediaStore 视频交回主线程前，Activity 退出会令取消先取得完成状态；原逻辑随后直接删除该结果。若内容提供者在删除时抛出 `SecurityException` 等 `RuntimeException`，异常会从主线程回调直接逸出。此为可控取消顺序和故障提供者能够复现的确定性路径，不声称已经在 vivo X Flip 真机触发。
+- 修复：把已发布结果交付集中到单一原子状态门。正常路径只回调一次且不删除；取消先发生时仍尝试删除结果，并复用 `PendingMediaWrite.cleanupPreserving` 隔离普通提供者运行时异常、保留 suppressed 诊断；`Error` 记录后仍重新抛出。视频原片、成功输出字节、运动估计、编码、音频、版本、依赖、Manifest、权限和桥接均未改变。
+- 新增 `VideoStabilizerDeliveryTest` 三项 Robolectric 故障回归：正常结果只完成一次，重复/过期交付转为清理；取消后的删除拒绝不能逸出到主调用者或错误回调；提供者 `Error` 仍保持致命语义。测试只覆盖发布后交付和清理，不运行 Media3 编解码、真实 MediaStore 或相机。
+- 本地验证：`bash scripts/check_core.sh` 在 JDK 17、`--release 17`、`-Xlint:all`、`-Werror` 下通过 66,775,111 项；`java scripts/ParseJava.java` 通过 66 个 Java 文件语法；21 项 Python 主机契约、全部 Python `py_compile` 及 `git diff --check` 通过。本地没有 Gradle/Android SDK/ADB，尚未执行 Android 类型解析、Robolectric、APK 构建或真机测试；远程 CI 结果需在源码提交后读回补记。
+- 待办：[x] 视频发布后取消竞态及提供者故障隔离；[ ] 核验本轮远程双 debug、四 APK/Lint 与新增 Robolectric 三项并下载测试 artifact；[ ] 已授权 X Flip 使用同签名唯一 `.lab` 候选，在防抖完成临界点退出，确认无崩溃、无孤立结果且原片保留。既有 P0 快速滑动/原图对照/Back/Activity 重建和 P1 同包 CPU profile/unprofile、取消、ABBA/BAAB 计划不变，均需设备在线及同签名候选；下一项可独立工作继续审查 worker/Surface 的超时 STOP 与会话所有权。Google Camera 合法集成边界未改变，不含 Google 专有代码、算法或二进制。
+- 模型/推理强度无法核实；剩余额度无法读取，未收到限额信号。

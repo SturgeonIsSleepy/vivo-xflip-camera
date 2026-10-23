@@ -200,13 +200,27 @@ public final class VideoStabilizer {
                 @Override public void deletePending(Uri output) { context.getContentResolver().delete(output, null, null); }
             });
             cleanup();
-            main.post(() -> {
-                if (active.getAndSet(false)) {
-                    Log.i("XFlipVideoStabilizer", "published=true, samples=" + plan.sampleCount());
-                    listener.completed(saved);
-                } else context.getContentResolver().delete(saved, null, null);
-            });
+            main.post(() -> dispatchPublished(saved, plan.sampleCount(), listener));
         } catch (Exception error) { fail(listener, error); }
+    }
+
+    /** Delivers one published result, or safely discards it when cancellation won the race. */
+    void dispatchPublished(Uri saved, int sampleCount, Listener listener) {
+        if (active.getAndSet(false)) {
+            Log.i("XFlipVideoStabilizer", "published=true, samples=" + sampleCount);
+            listener.completed(saved);
+            return;
+        }
+        IllegalStateException cleanup = new IllegalStateException(
+                "Cancelled stabilized video cleanup failed");
+        PendingMediaWrite.cleanupPreserving(cleanup,
+                () -> context.getContentResolver().delete(saved, null, null));
+        Throwable[] failures = cleanup.getSuppressed();
+        if (failures.length == 0) return;
+        Log.w("XFlipVideoStabilizer", "cancelled_result_cleanup_failed", cleanup);
+        for (Throwable failure : failures) {
+            if (failure instanceof Error) throw (Error) failure;
+        }
     }
 
     private void fail(Listener listener, Exception error) {
