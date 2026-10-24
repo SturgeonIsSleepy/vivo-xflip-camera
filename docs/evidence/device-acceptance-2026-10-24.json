@@ -1,0 +1,445 @@
+{
+  "date": "2026-10-24",
+  "version": "0.4.5-lab",
+  "version_code": 31,
+  "apk_bytes": 45617648,
+  "apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+  "installed_identity_verified_each_run": true,
+  "only_lab_project_package_installed": true,
+  "camera_granted": true,
+  "overlay_allowed_after_approved_restore": true,
+  "production_preferences_preserved_during_synthetic_tests": true,
+  "editor": {
+    "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+    "apk_identity_scope": "standalone_base_apk",
+    "display_id": 1,
+    "editor_recreate_and_settings": true,
+    "editor_reopens_after_cancel": true,
+    "in_progress_back_cancel": true,
+    "no_new_media": true,
+    "output_only_recreate": true,
+    "rapid_levels_and_compare": true,
+    "synthetic_only": true,
+    "synthetic_original_preserved": true
+  },
+  "cpu": {
+    "synthetic_only": true,
+    "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+    "order": "profile/plain/plain/profile",
+    "warmup": {
+      "scenario": "denoise",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 2698,
+      "save_ms": 1046,
+      "requested_schedule": [
+        0,
+        0
+      ],
+      "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+      "apk_identity_scope": "standalone_base_apk",
+      "opencv_threads": 4,
+      "dimensions": [
+        960,
+        720
+      ],
+      "description": "input_levels=0..255; nlm=true; tone=off",
+      "noise_mse_ratio": 0.3676295876999365,
+      "flat_noise_std_ratio": 0.4594234511352413,
+      "text_edge_contrast_ratio": 1.0001128762764588,
+      "tile_max_channel_error": 0,
+      "label": "warmup",
+      "thermal_before": 0,
+      "thermal_after": 0
+    },
+    "runs": [
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 20728,
+        "save_ms": 20635,
+        "requested_schedule": [
+          0,
+          0
+        ],
+        "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+        "apk_identity_scope": "standalone_base_apk",
+        "cpu_profile": {
+          "schema": 1,
+          "outcome": "saved",
+          "wall_clock": "elapsedRealtimeNanos",
+          "process_cpu_scope": "entire_app_process",
+          "thread_cpu_scope": "calling_worker_only",
+          "diagnostic_overhead_included": true,
+          "stages": [
+            {
+              "wall_ns": 335233177,
+              "process_cpu_ms": 670,
+              "calling_thread_cpu_ns": 333291668,
+              "stage": "DECODE",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 12456719,
+              "process_cpu_ms": 25,
+              "calling_thread_cpu_ns": 12330522,
+              "stage": "NLM_SETUP",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 15989948,
+              "process_cpu_ms": 24,
+              "calling_thread_cpu_ns": 15777758,
+              "stage": "NLM_ROW_WINDOW",
+              "intervals": 7
+            },
+            {
+              "wall_ns": 128592292,
+              "process_cpu_ms": 182,
+              "calling_thread_cpu_ns": 125903905,
+              "stage": "NLM_TILE_INPUT",
+              "intervals": 24
+            },
+            {
+              "wall_ns": 19255617179,
+              "process_cpu_ms": 54407,
+              "calling_thread_cpu_ns": 12516535398,
+              "stage": "NLM_FILTER",
+              "intervals": 24
+            },
+            {
+              "wall_ns": 192475417,
+              "process_cpu_ms": 305,
+              "calling_thread_cpu_ns": 188783854,
+              "stage": "NLM_TILE_OUTPUT",
+              "intervals": 24
+            },
+            {
+              "wall_ns": 159844,
+              "process_cpu_ms": 0,
+              "calling_thread_cpu_ns": 160990,
+              "stage": "NLM_RELEASE",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 579583,
+              "process_cpu_ms": 1,
+              "calling_thread_cpu_ns": 578385,
+              "stage": "INPUT_LEVELS",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 1991198,
+              "process_cpu_ms": 2,
+              "calling_thread_cpu_ns": 2002448,
+              "stage": "TONE_DETAIL",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 690322239,
+              "process_cpu_ms": 621,
+              "calling_thread_cpu_ns": 618592396,
+              "stage": "JPEG_TRANSACTION",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 1073125,
+              "process_cpu_ms": 1,
+              "calling_thread_cpu_ns": 1054532,
+              "stage": "BITMAP_RELEASE",
+              "intervals": 1
+            }
+          ],
+          "total": {
+            "wall_ns": 20634490721,
+            "process_cpu_ms": 56238,
+            "calling_thread_cpu_ns": 13815011856
+          }
+        },
+        "profile_base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+        "opencv_threads": 4,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "1-profile",
+        "thermal_before": 0,
+        "thermal_after": 0
+      },
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 27522,
+        "save_ms": 27419,
+        "requested_schedule": [
+          0,
+          0
+        ],
+        "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+        "apk_identity_scope": "standalone_base_apk",
+        "opencv_threads": 4,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "2-plain",
+        "thermal_before": 0,
+        "thermal_after": 0
+      },
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 27340,
+        "save_ms": 27239,
+        "requested_schedule": [
+          0,
+          0
+        ],
+        "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+        "apk_identity_scope": "standalone_base_apk",
+        "opencv_threads": 4,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "3-plain",
+        "thermal_before": 0,
+        "thermal_after": 0
+      },
+      {
+        "scenario": "full",
+        "original_preserved": true,
+        "instrumentation_passed": true,
+        "processing_ms": 27340,
+        "save_ms": 27242,
+        "requested_schedule": [
+          0,
+          0
+        ],
+        "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+        "apk_identity_scope": "standalone_base_apk",
+        "cpu_profile": {
+          "schema": 1,
+          "outcome": "saved",
+          "wall_clock": "elapsedRealtimeNanos",
+          "process_cpu_scope": "entire_app_process",
+          "thread_cpu_scope": "calling_worker_only",
+          "diagnostic_overhead_included": true,
+          "stages": [
+            {
+              "wall_ns": 378936563,
+              "process_cpu_ms": 513,
+              "calling_thread_cpu_ns": 376832235,
+              "stage": "DECODE",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 13407031,
+              "process_cpu_ms": 14,
+              "calling_thread_cpu_ns": 13245262,
+              "stage": "NLM_SETUP",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 17355364,
+              "process_cpu_ms": 18,
+              "calling_thread_cpu_ns": 17143283,
+              "stage": "NLM_ROW_WINDOW",
+              "intervals": 7
+            },
+            {
+              "wall_ns": 166873958,
+              "process_cpu_ms": 229,
+              "calling_thread_cpu_ns": 162869991,
+              "stage": "NLM_TILE_INPUT",
+              "intervals": 24
+            },
+            {
+              "wall_ns": 25746470149,
+              "process_cpu_ms": 78378,
+              "calling_thread_cpu_ns": 19869150509,
+              "stage": "NLM_FILTER",
+              "intervals": 24
+            },
+            {
+              "wall_ns": 225531613,
+              "process_cpu_ms": 337,
+              "calling_thread_cpu_ns": 220429892,
+              "stage": "NLM_TILE_OUTPUT",
+              "intervals": 24
+            },
+            {
+              "wall_ns": 184375,
+              "process_cpu_ms": 0,
+              "calling_thread_cpu_ns": 186979,
+              "stage": "NLM_RELEASE",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 640104,
+              "process_cpu_ms": 1,
+              "calling_thread_cpu_ns": 581354,
+              "stage": "INPUT_LEVELS",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 2011146,
+              "process_cpu_ms": 2,
+              "calling_thread_cpu_ns": 2020052,
+              "stage": "TONE_DETAIL",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 689599739,
+              "process_cpu_ms": 620,
+              "calling_thread_cpu_ns": 618453701,
+              "stage": "JPEG_TRANSACTION",
+              "intervals": 1
+            },
+            {
+              "wall_ns": 1095208,
+              "process_cpu_ms": 1,
+              "calling_thread_cpu_ns": 1073750,
+              "stage": "BITMAP_RELEASE",
+              "intervals": 1
+            }
+          ],
+          "total": {
+            "wall_ns": 27242105250,
+            "process_cpu_ms": 80113,
+            "calling_thread_cpu_ns": 21281987008
+          }
+        },
+        "profile_base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+        "opencv_threads": 4,
+        "dimensions": [
+          3072,
+          4096
+        ],
+        "description": "input_levels=0..255; nlm=true; tone=off",
+        "label": "4-profile",
+        "thermal_before": 0,
+        "thermal_after": 0
+      }
+    ],
+    "cancel": {
+      "scenario": "cancel",
+      "original_preserved": true,
+      "instrumentation_passed": true,
+      "processing_ms": 35,
+      "requested_schedule": [
+        0,
+        0
+      ],
+      "base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+      "apk_identity_scope": "standalone_base_apk",
+      "cpu_profile": {
+        "schema": 1,
+        "outcome": "cancelled",
+        "wall_clock": "elapsedRealtimeNanos",
+        "process_cpu_scope": "entire_app_process",
+        "thread_cpu_scope": "calling_worker_only",
+        "diagnostic_overhead_included": true,
+        "stages": [
+          {
+            "wall_ns": 18213593,
+            "process_cpu_ms": 30,
+            "calling_thread_cpu_ns": 17155783,
+            "stage": "DECODE",
+            "intervals": 1
+          },
+          {
+            "wall_ns": 12195834,
+            "process_cpu_ms": 18,
+            "calling_thread_cpu_ns": 10954062,
+            "stage": "NLM_SETUP",
+            "intervals": 1
+          },
+          {
+            "wall_ns": 1740937,
+            "process_cpu_ms": 5,
+            "calling_thread_cpu_ns": 1661304,
+            "stage": "NLM_ROW_WINDOW",
+            "intervals": 1
+          },
+          {
+            "wall_ns": 87969,
+            "process_cpu_ms": 0,
+            "calling_thread_cpu_ns": 84896,
+            "stage": "NLM_TILE_INPUT",
+            "intervals": 1
+          },
+          {
+            "wall_ns": 37604,
+            "process_cpu_ms": 0,
+            "calling_thread_cpu_ns": 37604,
+            "stage": "NLM_RELEASE",
+            "intervals": 1
+          },
+          {
+            "wall_ns": 137031,
+            "process_cpu_ms": 0,
+            "calling_thread_cpu_ns": 136875,
+            "stage": "BITMAP_RELEASE",
+            "intervals": 1
+          }
+        ],
+        "total": {
+          "wall_ns": 32412968,
+          "process_cpu_ms": 53,
+          "calling_thread_cpu_ns": 30030524
+        }
+      },
+      "profile_base_apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+      "label": "cancel-profile",
+      "thermal_before": 0,
+      "thermal_after": 0
+    },
+    "pixel_comparisons": [
+      {
+        "label": "1-profile",
+        "max_channel_error": 0
+      },
+      {
+        "label": "2-plain",
+        "max_channel_error": 0
+      },
+      {
+        "label": "3-plain",
+        "max_channel_error": 0
+      },
+      {
+        "label": "4-profile",
+        "max_channel_error": 0
+      }
+    ],
+    "temperature_and_frequency_not_fixed": true,
+    "diagnostic_overhead_included": true,
+    "not_a_speedup_benchmark": true
+  },
+  "capture": {
+    "closed_cover_native_capture_and_confirm": true,
+    "returned_jpeg_decodes": true,
+    "previous_photo_bytes_preserved": true,
+    "private_images_not_exported": true
+  },
+  "preview": {
+    "final_apk_bridge_reinitialized": true,
+    "phase": 1,
+    "mirrored_frames": 47,
+    "capture_misses": 0,
+    "full_portrait_correction_not_accepted": true
+  },
+  "local_checks": {
+    "core_assertions": 66775111,
+    "debug_tests_per_flavor": 65,
+    "host_contracts": 21,
+    "lab_build_and_lint": true
+  }
+}

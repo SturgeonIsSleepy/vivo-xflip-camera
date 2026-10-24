@@ -285,13 +285,14 @@ public final class PreviewMirrorWorker extends Binder {
         int cx = Math.round(frame.getWidth() * 0.60f), cy = frame.getHeight() / 2;
         int radius = Math.max(2, Math.round(frame.getHeight() * 0.065f));
         int white = 0, count = 0;
-        for (int y = cy - radius; y <= cy + radius; y++) for (int x = cx - radius; x <= cx + radius; x++) {
+        for (int y = Math.max(0, cy - radius); y <= Math.min(frame.getHeight() - 1, cy + radius); y++)
+            for (int x = Math.max(0, cx - radius); x <= Math.min(frame.getWidth() - 1, cx + radius); x++) {
             if ((x - cx) * (x - cx) + (y - cy) * (y - cy) > radius * radius) continue;
             int color = frame.getPixel(x, y);
             if (Color.red(color) > 200 && Color.green(color) > 200 && Color.blue(color) > 200) white++;
             count++;
         }
-        return white > count * 0.65f;
+        return count > 0 && white > count * 0.65f;
     }
 
     private static boolean settingsControls(Bitmap frame) {

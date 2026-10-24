@@ -12,8 +12,8 @@ android {
         minSdk 33
         targetSdk 36
         ndk { abiFilters 'arm64-v8a' }
-        versionCode 30
-        versionName '0.4.4'
+        versionCode 31
+        versionName '0.4.5'
         buildConfigField 'boolean', 'BASIC_CAPTURE', 'false'
     }
 

@@ -571,3 +571,13 @@
 - 待办：[x] 视频发布后取消竞态及提供者故障隔离；[x] 核验本轮远程双 debug、四 APK/Lint 与新增 Robolectric 三项并下载测试 artifact；[ ] 已授权 X Flip 使用同签名唯一 `.lab` 候选，在防抖完成临界点退出，确认无崩溃、无孤立结果且原片保留。既有 P0 快速滑动/原图对照/Back/Activity 重建和 P1 同包 CPU profile/unprofile、取消、ABBA/BAAB 计划不变，均需设备在线及同签名候选；下一项可独立工作继续审查 worker/Surface 的超时 STOP 与会话所有权。Google Camera 合法集成边界未改变，不含 Google 专有代码、算法或二进制。
 - 模型/推理强度无法核实；剩余额度无法读取，未收到限额信号。
 - 远程收据：普通 Git HTTPS 推送因本执行环境无凭据而未改变远程；随后源码提交 `2597c9e1bc1cb511ab5cd5cc4279861c6581a305` 通过已授权 GitHub tree/ref 接口，以 `expected_sha=2732666...`、`force=false` 更新并读回，远程树 `55157630f3ed0e5ebb34b48bea0a5dab2b1d5401` 与本地验证树完全一致。CI [40001356789](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/40001356789) 为 `completed/success` 且 head 精确匹配；日志确认 66,775,111 项核心断言、历史两张 JPEG 的 20,758,528 个完整像素及哈希、两个 debug 各 63 项、四种 APK/Lint、21 项主机契约及主 Gradle `BUILD SUCCESSFUL in 1m 31s`。下载测试 artifact `12522047137` 为 13,689 bytes，SHA-256 `c1b1c9dfeec3a44421409656d8be822550da0434dd259607029765f5b0d77672` 与服务器 digest 一致且 ZIP 完整；18 份 XML 共 126 项，失败/错误/跳过均为 0，新增三种交付/清理路径在两个 flavor 各执行一次。APK/Lint artifact `12522506456` 为 73,546,592 bytes，digest `f296302d3673fa63fa6e21d1c418b626ed1c70f7d36333a093e5c20c65f9fbec`，仅确认已上传，未下载、安装或执行 X Flip 真机验收；两项产物保留至 2026-10-30。
+
+
+## 2026-10-24｜负责人同签名实机续接与CPU验收
+
+- 起始612fb64，同步两位agent前几天的编辑器/预览所有权、output-only恢复、媒体清理及视频交付修复，先在Issue1声明设备/文件范围。X Flip在线且解锁，仅.lab同签名覆盖0.4.5-lab/31；未装回基础/诊断。vivo覆盖更新后悬浮窗ignore，按用户已批准授权恢复allow，相机仍granted；不改全局DPI/性能/旋转锁。
+- 新debug仪器以合成图使用真实Activity/控件/处理器/执行器，快速40次滑动+原图对照门禁、真实Activity.recreate及参数恢复、output-only读取恢复、处理中Back/等待worker退出、无新媒体/原图不变及再开通过。最初单独instrumentation等待外屏启动超时，沿用既有后台instrumentation加shell启动后通过，包装器及最终包又测通过；不把测试入口修正称生产UI修复。测试前后用户system_capture偏好主机逐键核对相同，私有快照只本地。
+- 实拍收尾发现422×682转换后reviewControls采样越界，worker报x must be < bitmap.width()停止翻转。仅限定采样循环到Bitmap边界并拒空计数，新增两个native Bitmap测试覆盖极窄竖向/正常横向黑白判断；不是完整portrait控件/翻转支持。回到横向重开恢复，最终包同版桥接重新初始化后phase1/47帧/capture_misses0，合盖真实拍摄及确认返回JPEG独立解码通过，旧图字节保留。首次确认点过早未生效，看见实际确认页再点成功，非代码故障；镜头很暗，不声称方向矩阵或实拍算法质量重新验收。
+- 最终同包CPU顺序profile/plain/plain/profile，完整save20635/27419/27239/27242ms，四份输出逐像素差0，各次base.apk身份一致，取消及原图保留通过。NLM_FILTER占两次诊断总墙钟93.32%/94.51%，JPEG事务各约0.69s。进程CPU含全应用/并行线程，温度频率未控制，thermal0不等于无降频；先导候选11–13秒与后续27秒说明漂移，不承诺提速或混入速度中位。本轮不改768/4、h5/7/21、halo16、JPEG97及默认关闭。公开完整阶段/软件证据见docs/device-acceptance-2026-10-24.md及对应JSON。
+- 本地66775111核心断言、双debug各65图形、21主机契约、lab构建/Lint通过，修复后相关构建1m22s。最终APK45617648bytes/SHA256a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc与手机和逐次身份一致。真实照片、文件名/摘要/EXIF、截图和用户偏好只留本地，不上传。
+- 下一步代码agent针对已测NLM滤波热点提出单个成熟滤波器/搜索取舍的固定质量对照，不再优先外围微优化；检查agent优先旋转几何/Surface与portrait恢复专项及视频完成临界点取消，避免把本轮边界修复称全方向支持。方向矩阵、真实多曝光HDR、Google内部算法及视频防抖质量继续待办；设备由负责人独占，协作仅GitHub，始终唯一最新.lab入口。
