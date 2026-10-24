@@ -60,3 +60,10 @@
 本地核心66775111项断言、两个debug各65项图形回归、21项主机契约、lab构建/Lint通过。初次全量1分31秒；加入采样边界修复后相关测试/构建/Lint1分22秒通过。最终APK45617648bytes，SHA256 `a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc`，与手机及逐次回执一致。
 
 [完整公开软件/合成证据](evidence/device-acceptance-2026-10-24.json)。[下载最终实测包和初始化脚本](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.5-stability-cpu-lab)，同包覆盖；桥接脚本指定 `-Package org.codeaurora.snapcam.lab`。手机仍只一个项目入口，历史Release/tag保留。
+
+
+## 远程交付收据
+
+源码cc03f21815257d61ca7a2162a1b651881d6ae389已推送读回；Release422504144 / v0.4.5-stability-cpu-lab精确绑定该源码。ZIP671204719为18456944bytes，服务器digest `6d183bd9733513390f69331469109bbda2857132f4ee33a767bed489f8cd9a86` 与本地一致，内APK摘要又核对为a0d0d1f8…，与手机一致。初始化脚本671207422的digest `8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2` 一致。
+
+[CI40060488837](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/40060488837) completed/success、head与源码/tag相同。测试artifact12547500563实际下载，14855bytes，digest `8059055c301d95690c122d735d6f77847ddd48317d79f5532dce3851079e1b9c` 与服务器一致；20XML共130项，失败/错误/跳过0。四APK/Lint artifact12547012356已上传，仅确认服务器产物，不把其签名称为手机签名。下载优先使用Release实测签名包，历史tag/安装包不改。

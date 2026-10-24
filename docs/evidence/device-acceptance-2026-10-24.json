@@ -441,5 +441,34 @@
     "debug_tests_per_flavor": 65,
     "host_contracts": 21,
     "lab_build_and_lint": true
+  },
+  "release": {
+    "tag_sha": "cc03f21815257d61ca7a2162a1b651881d6ae389",
+    "id": 422504144,
+    "script_asset_id": 671207422,
+    "url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/releases/tag/v0.4.5-stability-cpu-lab",
+    "asset_id": 671204719,
+    "apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+    "asset_bytes": 18456944,
+    "asset_digest": "sha256:6d183bd9733513390f69331469109bbda2857132f4ee33a767bed489f8cd9a86",
+    "script_digest": "sha256:8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2",
+    "inner_apk_hash_verified": true
+  },
+  "ci": {
+    "id": 40060488837,
+    "head_sha": "cc03f21815257d61ca7a2162a1b651881d6ae389",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/40060488837",
+    "test_artifact_id": 12547500563,
+    "test_artifact_sha256": "8059055c301d95690c122d735d6f77847ddd48317d79f5532dce3851079e1b9c",
+    "xml_files": 20,
+    "tests": 130,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "apk_lint_artifact_id": 12547012356,
+    "apk_lint_artifact_bytes": 73555634,
+    "apk_lint_artifact_sha256": "5e5c68c1b33e0177f7c9c3f9524a79a4c5b824b7ca9d74d40fd7ab7ad5c63adf"
   }
 }
