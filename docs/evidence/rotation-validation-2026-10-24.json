@@ -1,0 +1,84 @@
+{
+  "apk_sha256": "a0d0d1f8b9a1b0100d5e2ef40a0e7f3de9bd582e0812b541c11a765228f7a9bc",
+  "installed_matches_local": true,
+  "expected_tested_release": true,
+  "display_rotation_before": "lock 0",
+  "fixed_to_user_rotation_before": "default",
+  "rotation_test": {
+    "temporary_display_1_only": true,
+    "before": {
+      "rotation": "lock 0",
+      "fixed": "default"
+    },
+    "runs": [
+      {
+        "label": "rotation-0-0",
+        "display_size": [
+          682,
+          422
+        ],
+        "status": "preview_mirror=gpu_preview, uid=2000, density=200, phase=1, mirrored_frames=1592, fps=28.3, capture_ms=8.7, capture_misses=0, unknown_controls=3"
+      },
+      {
+        "label": "rotation-1-1",
+        "display_size": [
+          422,
+          682
+        ],
+        "status": "preview_mirror=gpu_preview, uid=2000, density=200, phase=1, mirrored_frames=1697, fps=28.4, capture_ms=8.6, capture_misses=0, unknown_controls=25"
+      },
+      {
+        "label": "rotation-2-2",
+        "display_size": [
+          682,
+          422
+        ],
+        "status": "preview_mirror=gpu_preview, uid=2000, density=200, phase=1, mirrored_frames=1797, fps=28.4, capture_ms=8.5, capture_misses=0, unknown_controls=50"
+      },
+      {
+        "label": "rotation-3-3",
+        "display_size": [
+          422,
+          682
+        ],
+        "status": "preview_mirror=gpu_preview, uid=2000, density=200, phase=1, mirrored_frames=1896, fps=28.3, capture_ms=8.5, capture_misses=0, unknown_controls=75"
+      },
+      {
+        "label": "rotation-4-0",
+        "display_size": [
+          682,
+          422
+        ],
+        "status": "preview_mirror=gpu_preview, uid=2000, density=200, phase=1, mirrored_frames=1988, fps=28.2, capture_ms=8.5, capture_misses=0, unknown_controls=78"
+      }
+    ],
+    "restored": {
+      "rotation": "lock 0",
+      "fixed": "default"
+    },
+    "after_restore": {
+      "label": "after-restore",
+      "display_size": [
+        682,
+        422
+      ],
+      "status": "preview_mirror=gpu_preview, uid=2000, density=200, phase=1, mirrored_frames=2095, fps=28.3, capture_ms=8.5, capture_misses=0, unknown_controls=78"
+    }
+  },
+  "visual_review": {
+    "original_landscape_text_unmirrored": true,
+    "rotations_1_2_3_text_mirrored_after_upright_alignment": true,
+    "portrait_histogram_misaligned": true,
+    "return_to_original_landscape_unmirrored": true,
+    "worker_kept_rendering_without_error": true,
+    "visual_images_kept_private": true
+  },
+  "entry_test": {
+    "initial_resume_after_keyguard": "own page, disabled shutter, waiting_camera",
+    "helper_then_force_stop_cold_start": "gpu_preview, phase1, 337 frames, 27.5fps, capture_misses0",
+    "native_preview_then_HOME_then_direct_entry": "vivo FlipToContinue, requires unfolding",
+    "helper_cold_recovery": "recovered camera"
+  },
+  "verification_passed": false,
+  "no_apk_or_algorithm_change": true
+}

@@ -67,3 +67,14 @@
 源码cc03f21815257d61ca7a2162a1b651881d6ae389已推送读回；Release422504144 / v0.4.5-stability-cpu-lab精确绑定该源码。ZIP671204719为18456944bytes，服务器digest `6d183bd9733513390f69331469109bbda2857132f4ee33a767bed489f8cd9a86` 与本地一致，内APK摘要又核对为a0d0d1f8…，与手机一致。初始化脚本671207422的digest `8f64831415d4ab46fa8502d24b7024017d268eba697c8436d675a9d23c414bc2` 一致。
 
 [CI40060488837](https://github.com/SturgeonIsSleepy/vivo-xflip-camera/actions/runs/40060488837) completed/success、head与源码/tag相同。测试artifact12547500563实际下载，14855bytes，digest `8059055c301d95690c122d735d6f77847ddd48317d79f5532dce3851079e1b9c` 与服务器一致；20XML共130项，失败/错误/跳过0。四APK/Lint artifact12547012356已上传，仅确认服务器产物，不把其签名称为手机签名。下载优先使用Release实测签名包，历史tag/安装包不改。
+
+
+## 用户要求“验证”后的补充复验：方向矩阵未通过
+
+仍为同一已发布0.4.5-lab，手机base.apk摘要重新读回与本地/Release一致，没有重装或改算法。用户合盖指纹解锁并准备明亮带非对称印刷文字的目标后继续。原横向实际预览文字正确，337帧、约27.5fps、capture_misses0。
+
+临时仅对display1启用fixed-to-user-rotation并按0→1→2→3→0测试，每档等待3秒，私有截图按目标文字旋转到正向后人工比较。1/2/3档文字均再次镜像，竖向直方图位置及采样也异常；0档及最后回0恢复正常。worker始终报告gpu_preview/phase1，帧数持续增加，约28fps、capture_misses0，没有mirror_error。因此“线程不崩溃”和“正在翻转”状态不能证明实际方向正确，本版完整旋转验收失败。设置已在finally还原原先的user-rotation=lock0和fixed-to-user-rotation=default，并再次读回核对。
+
+入口同样存在限制：首次解锁后恢复旧任务只出现本应用空页面、快门禁用且waiting_camera；经外屏助手加force-stop后冷启动恢复。随后原生取景→HOME→直接重新启动本项目入口，实际出现vivo“翻开手机以继续”；通过助手冷启动再次恢复。前者是本应用等待状态现象，后者是OEM入口拦截，尚未把二者判定为同一根因。不能称完全摆脱辅助入口或独立重开验收通过。
+
+[此次软件状态与人工判读布尔结果](evidence/rotation-validation-2026-10-24.json)。真实截图、文字目标照片及其标识仅本地，不上传。本轮仅验证/记录，没有发布新APK，也没有新录像、防抖竞态或成片方向结论。优先修复会话恢复和随旋转变化的预览/控件几何，之后按相同方向矩阵重测；保留原横向可恢复的现有包。
